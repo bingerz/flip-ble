@@ -107,7 +107,7 @@ public class CentralManager {
         boolean fuzzy = bleScanRuleConfig.isFuzzy();
         long timeOut = bleScanRuleConfig.getScanTimeOut();
 
-        centralScanner.scan(serviceUuids, callback);
+        centralScanner.scan(serviceUuids, deviceNames, deviceMac, fuzzy, timeOut, callback);
     }
 
     /**

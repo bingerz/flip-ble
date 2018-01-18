@@ -10,7 +10,7 @@ public class BleScanRuleConfig {
     private UUID[] mServiceUuids = null;
     private String[] mDeviceNames = null;
     private String mDeviceMac = null;
-    private boolean mAutoConnect = false;
+//    private boolean mAutoConnect = false;
     private boolean mFuzzy = false;
     private long mScanTimeOut = CentralManager.DEFAULT_SCAN_TIME;
 
@@ -26,9 +26,9 @@ public class BleScanRuleConfig {
         return mDeviceMac;
     }
 
-    public boolean isAutoConnect() {
-        return mAutoConnect;
-    }
+//    public boolean isAutoConnect() {
+//        return mAutoConnect;
+//    }
 
     public boolean isFuzzy() {
         return mFuzzy;
@@ -63,10 +63,10 @@ public class BleScanRuleConfig {
             return this;
         }
 
-        public Builder setAutoConnect(boolean autoConnect) {
-            this.mAutoConnect = autoConnect;
-            return this;
-        }
+//        public Builder setAutoConnect(boolean autoConnect) {
+//            this.mAutoConnect = autoConnect;
+//            return this;
+//        }
 
         public Builder setScanTimeOut(long timeOut) {
             this.mTimeOut = timeOut;
@@ -77,7 +77,7 @@ public class BleScanRuleConfig {
             config.mServiceUuids = this.mServiceUuids;
             config.mDeviceNames = this.mDeviceNames;
             config.mDeviceMac = this.mDeviceMac;
-            config.mAutoConnect = this.mAutoConnect;
+//            config.mAutoConnect = this.mAutoConnect;
             config.mFuzzy = this.mFuzzy;
             config.mScanTimeOut = this.mTimeOut;
         }

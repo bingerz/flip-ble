@@ -28,8 +28,9 @@ public class CentralScanner {
     private CentralScannerPresenter centralScannerPresenter;
     private CentralScanState scanState = CentralScanState.STATE_IDLE;
 
-    public void scan(UUID[] serviceUuids, final ScanCallback callback) {
-        startLeScan(serviceUuids, new CentralScannerPresenter() {
+    public void scan(UUID[] serviceUuids, String[] names, String mac, boolean fuzzy, long timeOut,
+                     final ScanCallback callback) {
+        startLeScan(serviceUuids, new CentralScannerPresenter(names, mac, fuzzy, timeOut) {
             @Override
             public void onScanStarted(boolean success) {
                 if (callback != null) {

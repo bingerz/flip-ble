@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,11 +23,20 @@ import cn.bingerz.flipble.utils.BleLog;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public abstract class CentralScannerPresenter implements BluetoothAdapter.LeScanCallback {
 
-
+    private String[] mDeviceNames = null;
+    private String mDeviceMac = null;
+    private boolean mFuzzy = false;
     private List<Peripheral> mPeripheralList = new ArrayList<>();
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private long mScanTimeout = CentralManager.DEFAULT_SCAN_TIME;
+
+    public CentralScannerPresenter(String[] names, String mac, boolean fuzzy, long timeOut) {
+        this.mDeviceNames = names;
+        this.mDeviceMac = mac;
+        this.mFuzzy = fuzzy;
+        this.mScanTimeout = timeOut;
+    }
 
     @Override
     public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
@@ -37,7 +47,33 @@ public abstract class CentralScannerPresenter implements BluetoothAdapter.LeScan
 
         onLeScan(peripheral);
 
-        next(peripheral);
+        synchronized (this) {
+            if (TextUtils.isEmpty(mDeviceMac) && (mDeviceNames == null || mDeviceNames.length < 1)) {
+                next(peripheral);
+                return;
+            }
+
+            if (!TextUtils.isEmpty(mDeviceMac)) {
+                if (!mDeviceMac.equalsIgnoreCase(device.getAddress()))
+                    return;
+            }
+
+            if (mDeviceNames != null && mDeviceNames.length > 0) {
+                AtomicBoolean equal = new AtomicBoolean(false);
+                for (String name : mDeviceNames) {
+                    String remoteName = peripheral.getName();
+                    if (remoteName == null)
+                        remoteName = "";
+                    if (mFuzzy ? remoteName.contains(name) : remoteName.equals(name)) {
+                        equal.set(true);
+                    }
+                }
+                if (!equal.get()) {
+                    return;
+                }
+            }
+            next(peripheral);
+        }
     }
 
     private void next(Peripheral peripheral) {
