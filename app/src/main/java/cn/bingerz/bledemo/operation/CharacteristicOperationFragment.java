@@ -84,9 +84,7 @@ public class CharacteristicOperationFragment extends Fragment {
                     btn.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            CentralManager.getInstance().read(
-                                    peripheral,
-                                    characteristic.getService().getUuid().toString(),
+                            peripheral.read(characteristic.getService().getUuid().toString(),
                                     characteristic.getUuid().toString(),
                                     new ReadCallback() {
 
@@ -140,9 +138,7 @@ public class CharacteristicOperationFragment extends Fragment {
                             if (TextUtils.isEmpty(hex)) {
                                 return;
                             }
-                            CentralManager.getInstance().write(
-                                    peripheral,
-                                    characteristic.getService().getUuid().toString(),
+                            peripheral.write(characteristic.getService().getUuid().toString(),
                                     characteristic.getUuid().toString(),
                                     HexUtil.hexStringToBytes(hex),
                                     new WriteCallback() {
@@ -197,9 +193,7 @@ public class CharacteristicOperationFragment extends Fragment {
                             if (TextUtils.isEmpty(hex)) {
                                 return;
                             }
-                            CentralManager.getInstance().write(
-                                    peripheral,
-                                    characteristic.getService().getUuid().toString(),
+                            peripheral.write(characteristic.getService().getUuid().toString(),
                                     characteristic.getUuid().toString(),
                                     HexUtil.hexStringToBytes(hex),
                                     new WriteCallback() {
@@ -251,9 +245,7 @@ public class CharacteristicOperationFragment extends Fragment {
                         public void onClick(View view) {
                             if (btn.getText().toString().equals(getActivity().getString(R.string.open_notification))) {
                                 btn.setText(getActivity().getString(R.string.close_notification));
-                                CentralManager.getInstance().notify(
-                                        peripheral,
-                                        characteristic.getService().getUuid().toString(),
+                                peripheral.notify(characteristic.getService().getUuid().toString(),
                                         characteristic.getUuid().toString(),
                                         new NotifyCallback() {
 
@@ -307,9 +299,7 @@ public class CharacteristicOperationFragment extends Fragment {
                                         });
                             } else {
                                 btn.setText(getActivity().getString(R.string.open_notification));
-                                CentralManager.getInstance().stopNotify(
-                                        peripheral,
-                                        characteristic.getService().getUuid().toString(),
+                                peripheral.stopNotify(characteristic.getService().getUuid().toString(),
                                         characteristic.getUuid().toString());
                             }
                         }
@@ -327,9 +317,7 @@ public class CharacteristicOperationFragment extends Fragment {
                         public void onClick(View view) {
                             if (btn.getText().toString().equals(getActivity().getString(R.string.open_notification))) {
                                 btn.setText(getActivity().getString(R.string.close_notification));
-                                CentralManager.getInstance().indicate(
-                                        peripheral,
-                                        characteristic.getService().getUuid().toString(),
+                                peripheral.indicate(characteristic.getService().getUuid().toString(),
                                         characteristic.getUuid().toString(),
                                         new IndicateCallback() {
 
@@ -384,9 +372,7 @@ public class CharacteristicOperationFragment extends Fragment {
                                         });
                             } else {
                                 btn.setText(getActivity().getString(R.string.open_notification));
-                                CentralManager.getInstance().stopIndicate(
-                                        peripheral,
-                                        characteristic.getService().getUuid().toString(),
+                                peripheral.stopIndicate(characteristic.getService().getUuid().toString(),
                                         characteristic.getUuid().toString());
                             }
                         }

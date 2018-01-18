@@ -25,6 +25,8 @@ import cn.bingerz.flipble.callback.RssiCallback;
 import cn.bingerz.flipble.callback.WriteCallback;
 import cn.bingerz.flipble.exception.ConnectionException;
 import cn.bingerz.flipble.exception.GattException;
+import cn.bingerz.flipble.exception.NotFoundDeviceException;
+import cn.bingerz.flipble.exception.OtherException;
 import cn.bingerz.flipble.utils.BleLog;
 
 /**
@@ -33,6 +35,9 @@ import cn.bingerz.flipble.utils.BleLog;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class Peripheral {
+
+    private static final int DEFAULT_MTU = 23;
+    private static final int DEFAULT_MAX_MTU = 512;
 
     private ConnectionState connectState = ConnectionState.CONNECT_IDLE;
     private Handler handler = new Handler(Looper.getMainLooper());
@@ -165,7 +170,7 @@ public class Peripheral {
         mtuChangedCallback = null;
     }
 
-    public synchronized boolean connect(boolean autoConnect, ConnectionStateCallback callback) {
+    private boolean connect(boolean autoConnect, ConnectionStateCallback callback) {
         BleLog.i("connect device:" + getName() + " mac:" + getMac() + " autoConnect:" + autoConnect);
         addConnectionStateCallback(callback);
 
@@ -235,6 +240,138 @@ public class Peripheral {
             handler.removeCallbacksAndMessages(null);
         }
     }
+
+    /**
+     * connect a known device
+     */
+    public synchronized boolean connect(ConnectionStateCallback connectionStateCallback) {
+        if (connectionStateCallback == null) {
+            throw new IllegalArgumentException("BleGattCallback can not be Null!");
+        }
+
+        if (!CentralManager.getInstance().isBlueEnable()) {
+            CentralManager.getInstance().handleException(new OtherException("BlueTooth not enable!"));
+            return false;
+        }
+
+        return connect(false, connectionStateCallback);
+    }
+
+    /**
+     * notify
+     */
+    public void notify(String uuid_service, String uuid_notify, NotifyCallback callback) {
+        if (callback == null) {
+            throw new IllegalArgumentException("BleNotifyCallback can not be Null!");
+        }
+
+        newPeripheralController().withUUIDString(uuid_service, uuid_notify)
+                    .enableCharacteristicNotify(callback, uuid_notify);
+    }
+
+    /**
+     * indicate
+     */
+    public void indicate(String uuid_service, String uuid_indicate, IndicateCallback callback) {
+        if (callback == null) {
+            throw new IllegalArgumentException("BleIndicateCallback can not be Null!");
+        }
+
+        newPeripheralController().withUUIDString(uuid_service, uuid_indicate)
+                    .enableCharacteristicIndicate(callback, uuid_indicate);
+    }
+
+    /**
+     * stop notify, remove callback
+     */
+    public boolean stopNotify(String serviceUUID, String notifyUUID) {
+        boolean success = newPeripheralController().withUUIDString(serviceUUID, notifyUUID)
+                .disableCharacteristicNotify();
+        if (success) {
+            removeNotifyCallback(notifyUUID);
+        }
+        return success;
+    }
+
+    /**
+     * stop indicate, remove callback
+     */
+    public boolean stopIndicate(String serviceUUID, String indicateUUID) {
+        boolean success = newPeripheralController().withUUIDString(serviceUUID, indicateUUID)
+                .disableCharacteristicIndicate();
+        if (success) {
+            removeIndicateCallback(indicateUUID);
+        }
+        return success;
+    }
+
+    /**
+     * write
+     */
+    public void write(String serviceUUID, String writeUUID, byte[] data, WriteCallback callback) {
+        if (callback == null) {
+            throw new IllegalArgumentException("BleWriteCallback can not be Null!");
+        }
+
+        if (data == null) {
+            BleLog.e("data is Null!");
+            callback.onWriteFailure(new OtherException("data is Null !"));
+            return;
+        }
+
+        if (data.length > 20) {
+            BleLog.w("data's length beyond 20!");
+        }
+
+        newPeripheralController().withUUIDString(serviceUUID, writeUUID).writeCharacteristic(data, callback, writeUUID);
+    }
+
+    /**
+     * read
+     */
+    public void read(String serviceUUID, String readUUID, ReadCallback callback) {
+        if (callback == null) {
+            throw new IllegalArgumentException("BleReadCallback can not be Null!");
+        }
+
+        newPeripheralController().withUUIDString(serviceUUID, readUUID)
+                .readCharacteristic(callback, readUUID);
+    }
+
+    /**
+     * read Rssi
+     */
+    public void readRssi(RssiCallback callback) {
+        if (callback == null) {
+            throw new IllegalArgumentException("BleRssiCallback can not be Null!");
+        }
+
+        newPeripheralController().readRemoteRssi(callback);
+    }
+
+    /**
+     * set Mtu
+     */
+    public void setMtu(int mtu, MtuChangedCallback callback) {
+        if (callback == null) {
+            throw new IllegalArgumentException("BleMtuChangedCallback can not be Null!");
+        }
+
+        if (mtu > DEFAULT_MAX_MTU) {
+            BleLog.e("requiredMtu should lower than 512 !");
+            callback.onSetMTUFailure(new OtherException("requiredMtu should lower than 512 !"));
+            return;
+        }
+
+        if (mtu < DEFAULT_MTU) {
+            BleLog.e("requiredMtu should higher than 23 !");
+            callback.onSetMTUFailure(new OtherException("requiredMtu should higher than 23 !"));
+            return;
+        }
+
+        newPeripheralController().setMtu(mtu, callback);
+    }
+
     private BluetoothGattCallback coreGattCallback = new BluetoothGattCallback() {
 
         @Override
@@ -346,54 +483,6 @@ public class Peripheral {
         }
 
         @Override
-        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, final int status) {
-            super.onDescriptorWrite(gatt, descriptor, status);
-            BleLog.i("GattCallback：onDescriptorWrite ");
-
-            Iterator iterator = notifyCallbackHashMap.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                final Object call = entry.getValue();
-                if (call instanceof NotifyCallback) {
-                    if (descriptor.getCharacteristic().getUuid().toString().equalsIgnoreCase(((NotifyCallback) call).getKey())) {
-                        ((NotifyCallback) call).getPeripheralConnector().notifyMsgInit();
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (status == BluetoothGatt.GATT_SUCCESS) {
-                                    ((NotifyCallback) call).onNotifySuccess();
-                                } else {
-                                    ((NotifyCallback) call).onNotifyFailure(new GattException(status));
-                                }
-                            }
-                        });
-                    }
-                }
-            }
-
-            iterator = indicateCallbackHashMap.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                final Object call = entry.getValue();
-                if (call instanceof IndicateCallback) {
-                    if (descriptor.getCharacteristic().getUuid().toString().equalsIgnoreCase(((IndicateCallback) call).getKey())) {
-                        ((IndicateCallback) call).getPeripheralConnector().indicateMsgInit();
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (status == BluetoothGatt.GATT_SUCCESS) {
-                                    ((IndicateCallback) call).onIndicateSuccess();
-                                } else {
-                                    ((IndicateCallback) call).onIndicateFailure(new GattException(status));
-                                }
-                            }
-                        });
-                    }
-                }
-            }
-        }
-
-        @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, final int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
             BleLog.i("BluetoothGattCallback：onCharacteristicWrite ");
@@ -445,6 +534,60 @@ public class Peripheral {
                     }
                 }
             }
+        }
+
+        @Override
+        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, final int status) {
+            super.onDescriptorWrite(gatt, descriptor, status);
+            BleLog.i("GattCallback：onDescriptorWrite ");
+
+            Iterator iterator = notifyCallbackHashMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                final Object call = entry.getValue();
+                if (call instanceof NotifyCallback) {
+                    if (descriptor.getCharacteristic().getUuid().toString().equalsIgnoreCase(((NotifyCallback) call).getKey())) {
+                        ((NotifyCallback) call).getPeripheralConnector().notifyMsgInit();
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (status == BluetoothGatt.GATT_SUCCESS) {
+                                    ((NotifyCallback) call).onNotifySuccess();
+                                } else {
+                                    ((NotifyCallback) call).onNotifyFailure(new GattException(status));
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+            iterator = indicateCallbackHashMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                final Object call = entry.getValue();
+                if (call instanceof IndicateCallback) {
+                    if (descriptor.getCharacteristic().getUuid().toString().equalsIgnoreCase(((IndicateCallback) call).getKey())) {
+                        ((IndicateCallback) call).getPeripheralConnector().indicateMsgInit();
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (status == BluetoothGatt.GATT_SUCCESS) {
+                                    ((IndicateCallback) call).onIndicateSuccess();
+                                } else {
+                                    ((IndicateCallback) call).onIndicateFailure(new GattException(status));
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+            super.onDescriptorRead(gatt, descriptor, status);
+            BleLog.i("GattCallback：onDescriptorRead ");
         }
 
         @Override

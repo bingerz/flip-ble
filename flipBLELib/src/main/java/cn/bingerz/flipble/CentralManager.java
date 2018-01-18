@@ -13,16 +13,8 @@ import java.util.UUID;
 
 import cn.bingerz.flipble.bluetoothle.MultiplePeripheralController;
 import cn.bingerz.flipble.bluetoothle.Peripheral;
-import cn.bingerz.flipble.callback.ConnectionStateCallback;
-import cn.bingerz.flipble.callback.IndicateCallback;
-import cn.bingerz.flipble.callback.MtuChangedCallback;
-import cn.bingerz.flipble.callback.NotifyCallback;
-import cn.bingerz.flipble.callback.ReadCallback;
-import cn.bingerz.flipble.callback.RssiCallback;
-import cn.bingerz.flipble.callback.WriteCallback;
 import cn.bingerz.flipble.callback.ScanCallback;
 import cn.bingerz.flipble.exception.BleException;
-import cn.bingerz.flipble.exception.NotFoundDeviceException;
 import cn.bingerz.flipble.exception.OtherException;
 import cn.bingerz.flipble.exception.hanlder.DefaultBleExceptionHandler;
 import cn.bingerz.flipble.scan.BleScanRuleConfig;
@@ -39,12 +31,9 @@ public class CentralManager {
     public static final int DEFAULT_SCAN_TIME = 10000;
     private static final int DEFAULT_MAX_MULTIPLE_DEVICE = 7;
     private static final int DEFAULT_OPERATE_TIME = 5000;
-    private static final int DEFAULT_MTU = 23;
-    private static final int DEFAULT_MAX_MTU = 512;
 
     private int operateTimeout = DEFAULT_OPERATE_TIME;
     private int maxConnectCount = DEFAULT_MAX_MULTIPLE_DEVICE;
-
 
     private CentralScanner centralScanner;
     private BleScanRuleConfig bleScanRuleConfig;
@@ -80,8 +69,6 @@ public class CentralManager {
 
     /**
      * Get the BleScanner
-     *
-     * @return
      */
     public CentralScanner getBleScanner() {
         return centralScanner;
@@ -89,8 +76,6 @@ public class CentralManager {
 
     /**
      * get the ScanRuleConfig
-     *
-     * @return
      */
     public BleScanRuleConfig getScanRuleConfig() {
         return bleScanRuleConfig;
@@ -98,8 +83,6 @@ public class CentralManager {
 
     /**
      * Configure scan and connection properties
-     *
-     * @param scanRuleConfig
      */
     public void initScanRule(BleScanRuleConfig scanRuleConfig) {
         this.bleScanRuleConfig = scanRuleConfig;
@@ -107,8 +90,6 @@ public class CentralManager {
 
     /**
      * scan device around
-     *
-     * @param callback
      */
     public void scan(ScanCallback callback) {
         if (callback == null) {
@@ -142,8 +123,6 @@ public class CentralManager {
 
     /**
      * Get the BluetoothAdapter
-     *
-     * @return
      */
     public BluetoothAdapter getBluetoothAdapter() {
         return mBluetoothAdapter;
@@ -159,8 +138,6 @@ public class CentralManager {
 
     /**
      * Get the multiple peripheral Controller
-     *
-     * @return
      */
     public MultiplePeripheralController getMultiplePeripheralController() {
         return mMultiPeripheralController;
@@ -168,8 +145,6 @@ public class CentralManager {
 
     /**
      * Get the maximum number of connections
-     *
-     * @return
      */
     public int getMaxConnectCount() {
         return maxConnectCount;
@@ -177,9 +152,6 @@ public class CentralManager {
 
     /**
      * Set the maximum number of connections
-     *
-     * @param maxCount
-     * @return BleManager
      */
     public CentralManager setMaxConnectCount(int maxCount) {
         if (maxCount > DEFAULT_MAX_MULTIPLE_DEVICE)
@@ -190,8 +162,6 @@ public class CentralManager {
 
     /**
      * Get operate timeout
-     *
-     * @return
      */
     public int getOperateTimeout() {
         return operateTimeout;
@@ -199,9 +169,6 @@ public class CentralManager {
 
     /**
      * Set operate timeout
-     *
-     * @param operateTimeout
-     * @return BleManager
      */
     public CentralManager setOperateTimeout(int operateTimeout) {
         this.operateTimeout = operateTimeout;
@@ -211,230 +178,15 @@ public class CentralManager {
 
     /**
      * print log?
-     *
-     * @param enable
-     * @return BleManager
      */
     public CentralManager enableLog(boolean enable) {
         BleLog.isPrint = enable;
         return this;
     }
 
-    /**
-     * connect a known device
-     *
-     * @param peripheral
-     * @param connectionStateCallback
-     * @return
-     */
-    public boolean connect(Peripheral peripheral, ConnectionStateCallback connectionStateCallback) {
-        if (connectionStateCallback == null) {
-            throw new IllegalArgumentException("BleGattCallback can not be Null!");
-        }
-
-        if (!isBlueEnable()) {
-            handleException(new OtherException("BlueTooth not enable!"));
-            return false;
-        }
-
-        if (peripheral == null) {
-            connectionStateCallback.onConnectFail(new NotFoundDeviceException());
-        } else {
-            return peripheral.connect(false, connectionStateCallback);
-        }
-        return false;
-    }
-
-    /**
-     * notify
-     *
-     * @param peripheral
-     * @param uuid_service
-     * @param uuid_notify
-     * @param callback
-     */
-    public void notify(Peripheral peripheral, String uuid_service, String uuid_notify, NotifyCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("BleNotifyCallback can not be Null!");
-        }
-
-        if (peripheral == null) {
-            callback.onNotifyFailure(new OtherException("This device not connect!"));
-        } else {
-            peripheral.newPeripheralController()
-                    .withUUIDString(uuid_service, uuid_notify)
-                    .enableCharacteristicNotify(callback, uuid_notify);
-        }
-    }
-
-    /**
-     * indicate
-     *
-     * @param peripheral
-     * @param uuid_service
-     * @param uuid_indicate
-     * @param callback
-     */
-    public void indicate(Peripheral peripheral, String uuid_service, String uuid_indicate, IndicateCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("BleIndicateCallback can not be Null!");
-        }
-
-        if (peripheral == null) {
-            callback.onIndicateFailure(new OtherException("This device not connect!"));
-        } else {
-            peripheral.newPeripheralController()
-                    .withUUIDString(uuid_service, uuid_indicate)
-                    .enableCharacteristicIndicate(callback, uuid_indicate);
-        }
-    }
-
-    /**
-     * stop notify, remove callback
-     *
-     * @param peripheral
-     * @param serviceUUID
-     * @param notifyUUID
-     * @return
-     */
-    public boolean stopNotify(Peripheral peripheral, String serviceUUID, String notifyUUID) {
-        if (peripheral == null) {
-            return false;
-        }
-        boolean success = peripheral.newPeripheralController()
-                .withUUIDString(serviceUUID, notifyUUID).disableCharacteristicNotify();
-        if (success) {
-            peripheral.removeNotifyCallback(notifyUUID);
-        }
-        return success;
-    }
-
-    /**
-     * stop indicate, remove callback
-     *
-     * @param peripheral
-     * @param serviceUUID
-     * @param indicateUUID
-     * @return
-     */
-    public boolean stopIndicate(Peripheral peripheral, String serviceUUID, String indicateUUID) {
-        if (peripheral == null) {
-            return false;
-        }
-        boolean success = peripheral.newPeripheralController()
-                .withUUIDString(serviceUUID, indicateUUID).disableCharacteristicIndicate();
-        if (success) {
-            peripheral.removeIndicateCallback(indicateUUID);
-        }
-        return success;
-    }
-
-    /**
-     * write
-     *
-     * @param peripheral
-     * @param serviceUUID
-     * @param writeUUID
-     * @param data
-     * @param callback
-     */
-    public void write(Peripheral peripheral, String serviceUUID, String writeUUID, byte[] data, WriteCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("BleWriteCallback can not be Null!");
-        }
-
-        if (data == null) {
-            BleLog.e("data is Null!");
-            callback.onWriteFailure(new OtherException("data is Null !"));
-            return;
-        }
-
-        if (data.length > 20) {
-            BleLog.w("data's length beyond 20!");
-        }
-
-        if (peripheral == null) {
-            callback.onWriteFailure(new OtherException("This device not connect!"));
-        } else {
-            peripheral.newPeripheralController()
-                    .withUUIDString(serviceUUID, writeUUID).writeCharacteristic(data, callback, writeUUID);
-        }
-    }
-
-    /**
-     * read
-     *
-     * @param peripheral
-     * @param serviceUUID
-     * @param readUUID
-     * @param callback
-     */
-    public void read(Peripheral peripheral, String serviceUUID, String readUUID, ReadCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("BleReadCallback can not be Null!");
-        }
-
-        if (peripheral == null) {
-            callback.onReadFailure(new OtherException("This device not connect!"));
-        } else {
-            peripheral.newPeripheralController()
-                    .withUUIDString(serviceUUID, readUUID).readCharacteristic(callback, readUUID);
-        }
-    }
-
-    /**
-     * read Rssi
-     *
-     * @param peripheral
-     * @param callback
-     */
-    public void readRssi(Peripheral peripheral, RssiCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("BleRssiCallback can not be Null!");
-        }
-
-        if (peripheral == null) {
-            callback.onRssiFailure(new OtherException("This device not connect!"));
-        } else {
-            peripheral.newPeripheralController().readRemoteRssi(callback);
-        }
-    }
-
-    /**
-     * set Mtu
-     *
-     * @param peripheral
-     * @param mtu
-     * @param callback
-     */
-    public void setMtu(Peripheral peripheral, int mtu, MtuChangedCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("BleMtuChangedCallback can not be Null!");
-        }
-
-        if (mtu > DEFAULT_MAX_MTU) {
-            BleLog.e("requiredMtu should lower than 512 !");
-            callback.onSetMTUFailure(new OtherException("requiredMtu should lower than 512 !"));
-            return;
-        }
-
-        if (mtu < DEFAULT_MTU) {
-            BleLog.e("requiredMtu should higher than 23 !");
-            callback.onSetMTUFailure(new OtherException("requiredMtu should higher than 23 !"));
-            return;
-        }
-
-        if (peripheral == null) {
-            callback.onSetMTUFailure(new OtherException("This device not connect!"));
-        } else {
-            peripheral.newPeripheralController().setMtu(mtu, callback);
-        }
-    }
 
     /**
      * is support ble?
-     *
-     * @return
      */
     public boolean isSupportBle() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
@@ -465,20 +217,16 @@ public class CentralManager {
             return null;
         return mMultiPeripheralController.getPeripheralList();
     }
+
     /**
      * judge Bluetooth is enable
-     *
-     * @return
      */
     public boolean isBlueEnable() {
         return mBluetoothAdapter != null && mBluetoothAdapter.isEnabled();
     }
 
     public boolean isConnected(String key) {
-        if (mMultiPeripheralController != null) {
-            return mMultiPeripheralController.isContainDevice(key);
-        }
-        return false;
+        return mMultiPeripheralController != null && mMultiPeripheralController.isContainDevice(key);
     }
 
     public Peripheral getPeripheral(String key) {

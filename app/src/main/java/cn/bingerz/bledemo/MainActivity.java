@@ -251,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void connect(Peripheral peripheral) {
-        CentralManager.getInstance().connect(peripheral, new ConnectionStateCallback() {
+        peripheral.connect(new ConnectionStateCallback() {
             @Override
             public void onStartConnect() {
                 progressDialog.show();
@@ -292,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void readRssi(Peripheral peripheral) {
-        CentralManager.getInstance().readRssi(peripheral, new RssiCallback() {
+        peripheral.readRssi(new RssiCallback() {
             @Override
             public void onRssiFailure(BleException exception) {
                 Log.i(TAG, "onRssiFailure" + exception.toString());
@@ -306,7 +306,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void setMtu(Peripheral peripheral, int mtu) {
-        CentralManager.getInstance().setMtu(peripheral, mtu, new MtuChangedCallback() {
+        peripheral.setMtu(mtu, new MtuChangedCallback() {
             @Override
             public void onSetMTUFailure(BleException exception) {
                 Log.i(TAG, "onsetMTUFailure" + exception.toString());
