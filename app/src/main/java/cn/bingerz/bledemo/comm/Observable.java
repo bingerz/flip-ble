@@ -1,7 +1,7 @@
 package cn.bingerz.bledemo.comm;
 
 
-import cn.bingerz.flipble.bluetoothle.Peripheral;
+import cn.bingerz.flipble.peripheral.Peripheral;
 
 public interface Observable {
 

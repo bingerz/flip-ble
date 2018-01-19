@@ -1,7 +1,7 @@
-package cn.bingerz.flipble.callback;
+package cn.bingerz.flipble.peripheral.callback;
 
-import cn.bingerz.flipble.bluetoothle.PeripheralController;
-import cn.bingerz.flipble.exception.BleException;
+import cn.bingerz.flipble.exception.BLEException;
+import cn.bingerz.flipble.peripheral.PeripheralController;
 
 /**
  * Created by hanson on 09/01/2018.
@@ -11,7 +11,7 @@ public abstract class WriteCallback {
 
     public abstract void onWriteSuccess();
 
-    public abstract void onWriteFailure(BleException exception);
+    public abstract void onWriteFailure(BLEException exception);
 
     private String key;
 

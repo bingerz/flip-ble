@@ -1,17 +1,17 @@
-package cn.bingerz.flipble.callback;
+package cn.bingerz.flipble.peripheral.callback;
 
-import cn.bingerz.flipble.bluetoothle.PeripheralController;
-import cn.bingerz.flipble.exception.BleException;
+import cn.bingerz.flipble.exception.BLEException;
+import cn.bingerz.flipble.peripheral.PeripheralController;
 
 /**
  * Created by hanson on 09/01/2018.
  */
 
-public abstract class IndicateCallback {
+public abstract class NotifyCallback {
 
-    public abstract void onIndicateSuccess();
+    public abstract void onNotifySuccess();
 
-    public abstract void onIndicateFailure(BleException exception);
+    public abstract void onNotifyFailure(BLEException exception);
 
     public abstract void onCharacteristicChanged(byte[] data);
 

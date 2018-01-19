@@ -1,7 +1,7 @@
 package cn.bingerz.flipble.exception;
 
 
-public class GattException extends BleException {
+public class GattException extends BLEException {
 
     private int gattStatus;
 

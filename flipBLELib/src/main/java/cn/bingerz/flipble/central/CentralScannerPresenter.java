@@ -1,4 +1,4 @@
-package cn.bingerz.flipble.scan;
+package cn.bingerz.flipble.central;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
@@ -12,9 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import cn.bingerz.flipble.CentralManager;
-import cn.bingerz.flipble.bluetoothle.Peripheral;
-import cn.bingerz.flipble.utils.BleLog;
+import cn.bingerz.flipble.peripheral.Peripheral;
+import cn.bingerz.flipble.utils.BLELog;
 
 /**
  * Created by hanson on 10/01/2018.
@@ -84,7 +83,7 @@ public abstract class CentralScannerPresenter implements BluetoothAdapter.LeScan
             }
         }
         if (!hasFound.get()) {
-            BleLog.i("device detected  ------"
+            BLELog.i("device detected  ------"
                     + "  name: " + peripheral.getName()
                     + "  mac: " + peripheral.getMac()
                     + "  Rssi: " + peripheral.getRssi());

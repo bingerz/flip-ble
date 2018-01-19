@@ -1,4 +1,4 @@
-package cn.bingerz.flipble;
+package cn.bingerz.flipble.central;
 
 import android.annotation.TargetApi;
 import android.app.Application;
@@ -11,15 +11,13 @@ import android.os.Build;
 import java.util.List;
 import java.util.UUID;
 
-import cn.bingerz.flipble.bluetoothle.MultiplePeripheralController;
-import cn.bingerz.flipble.bluetoothle.Peripheral;
-import cn.bingerz.flipble.callback.ScanCallback;
-import cn.bingerz.flipble.exception.BleException;
+import cn.bingerz.flipble.peripheral.MultiplePeripheralController;
+import cn.bingerz.flipble.peripheral.Peripheral;
+import cn.bingerz.flipble.central.callback.ScanCallback;
+import cn.bingerz.flipble.exception.BLEException;
 import cn.bingerz.flipble.exception.OtherException;
 import cn.bingerz.flipble.exception.hanlder.DefaultBleExceptionHandler;
-import cn.bingerz.flipble.scan.BleScanRuleConfig;
-import cn.bingerz.flipble.scan.CentralScanner;
-import cn.bingerz.flipble.utils.BleLog;
+import cn.bingerz.flipble.utils.BLELog;
 
 /**
  * Created by hanson on 09/01/2018.
@@ -35,13 +33,13 @@ public class CentralManager {
     private int operateTimeout = DEFAULT_OPERATE_TIME;
     private int maxConnectCount = DEFAULT_MAX_MULTIPLE_DEVICE;
 
-    private CentralScanner centralScanner;
-    private BleScanRuleConfig bleScanRuleConfig;
+    private CentralScanner mCentralScanner;
+    private ScanRuleConfig mScanRuleConfig;
 
     private Application mContext;
     private BluetoothAdapter mBluetoothAdapter;
     private MultiplePeripheralController mMultiPeripheralController;
-    private DefaultBleExceptionHandler bleExceptionHandler;
+    private DefaultBleExceptionHandler mBLEExceptionHandler;
 
     private CentralManager() {}
 
@@ -62,8 +60,8 @@ public class CentralManager {
             }
             mMultiPeripheralController = new MultiplePeripheralController();
 
-            bleScanRuleConfig = new BleScanRuleConfig();
-            centralScanner = CentralScanner.getInstance();
+            mScanRuleConfig = new ScanRuleConfig();
+            mCentralScanner = CentralScanner.getInstance();
         }
     }
 
@@ -71,21 +69,21 @@ public class CentralManager {
      * Get the BleScanner
      */
     public CentralScanner getBleScanner() {
-        return centralScanner;
+        return mCentralScanner;
     }
 
     /**
      * get the ScanRuleConfig
      */
-    public BleScanRuleConfig getScanRuleConfig() {
-        return bleScanRuleConfig;
+    public ScanRuleConfig getScanRuleConfig() {
+        return mScanRuleConfig;
     }
 
     /**
      * Configure scan and connection properties
      */
-    public void initScanRule(BleScanRuleConfig scanRuleConfig) {
-        this.bleScanRuleConfig = scanRuleConfig;
+    public void initScanRule(ScanRuleConfig scanRuleConfig) {
+        this.mScanRuleConfig = scanRuleConfig;
     }
 
     /**
@@ -101,20 +99,20 @@ public class CentralManager {
             return;
         }
 
-        UUID[] serviceUuids = bleScanRuleConfig.getServiceUuids();
-        String[] deviceNames = bleScanRuleConfig.getDeviceNames();
-        String deviceMac = bleScanRuleConfig.getDeviceMac();
-        boolean fuzzy = bleScanRuleConfig.isFuzzy();
-        long timeOut = bleScanRuleConfig.getScanTimeOut();
+        UUID[] serviceUUIDs  = mScanRuleConfig.getServiceUUIDs();
+        String[] deviceNames = mScanRuleConfig.getDeviceNames();
+        String deviceMac     = mScanRuleConfig.getDeviceMac();
+        boolean fuzzy        = mScanRuleConfig.isFuzzy();
+        long timeOut         = mScanRuleConfig.getScanTimeOut();
 
-        centralScanner.scan(serviceUuids, deviceNames, deviceMac, fuzzy, timeOut, callback);
+        mCentralScanner.scan(serviceUUIDs, deviceNames, deviceMac, fuzzy, timeOut, callback);
     }
 
     /**
      * Cancel scan
      */
     public void cancelScan() {
-        centralScanner.stopLeScan();
+        mCentralScanner.stopLeScan();
     }
 
     public Context getContext() {
@@ -132,8 +130,8 @@ public class CentralManager {
     /**
      * Handle Exception Information
      */
-    public void handleException(BleException exception) {
-        bleExceptionHandler.handleException(exception);
+    public void handleException(BLEException exception) {
+        mBLEExceptionHandler.handleException(exception);
     }
 
     /**
@@ -180,7 +178,7 @@ public class CentralManager {
      * print log?
      */
     public CentralManager enableLog(boolean enable) {
-        BleLog.isPrint = enable;
+        BLELog.isPrint = enable;
         return this;
     }
 

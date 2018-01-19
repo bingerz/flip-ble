@@ -1,4 +1,4 @@
-package cn.bingerz.flipble.scan;
+package cn.bingerz.flipble.central;
 
 import android.annotation.TargetApi;
 import android.os.Build;
@@ -6,9 +6,8 @@ import android.os.Build;
 import java.util.List;
 import java.util.UUID;
 
-import cn.bingerz.flipble.CentralManager;
-import cn.bingerz.flipble.bluetoothle.Peripheral;
-import cn.bingerz.flipble.callback.ScanCallback;
+import cn.bingerz.flipble.peripheral.Peripheral;
+import cn.bingerz.flipble.central.callback.ScanCallback;
 
 /**
  * Created by hanson on 10/01/2018.
@@ -28,9 +27,9 @@ public class CentralScanner {
     private CentralScannerPresenter centralScannerPresenter;
     private CentralScanState scanState = CentralScanState.STATE_IDLE;
 
-    public void scan(UUID[] serviceUuids, String[] names, String mac, boolean fuzzy, long timeOut,
+    public void scan(UUID[] serviceUUIDs, String[] names, String mac, boolean fuzzy, long timeOut,
                      final ScanCallback callback) {
-        startLeScan(serviceUuids, new CentralScannerPresenter(names, mac, fuzzy, timeOut) {
+        startLeScan(serviceUUIDs, new CentralScannerPresenter(names, mac, fuzzy, timeOut) {
             @Override
             public void onScanStarted(boolean success) {
                 if (callback != null) {
@@ -61,12 +60,12 @@ public class CentralScanner {
         });
     }
 
-    private synchronized void startLeScan(UUID[] serviceUuids, CentralScannerPresenter presenter) {
+    private synchronized void startLeScan(UUID[] serviceUUIDs, CentralScannerPresenter presenter) {
         if (presenter == null)
             return;
 
         this.centralScannerPresenter = presenter;
-        boolean success = CentralManager.getInstance().getBluetoothAdapter().startLeScan(serviceUuids, centralScannerPresenter);
+        boolean success = CentralManager.getInstance().getBluetoothAdapter().startLeScan(serviceUUIDs, centralScannerPresenter);
         scanState = success ? CentralScanState.STATE_SCANNING : CentralScanState.STATE_IDLE;
         centralScannerPresenter.notifyScanStarted(success);
     }

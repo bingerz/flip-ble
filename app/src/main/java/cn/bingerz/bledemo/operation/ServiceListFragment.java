@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.bingerz.bledemo.R;
-import cn.bingerz.flipble.bluetoothle.Peripheral;
+import cn.bingerz.flipble.peripheral.Peripheral;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class ServiceListFragment extends Fragment {

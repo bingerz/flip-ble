@@ -1,17 +1,17 @@
-package cn.bingerz.flipble.callback;
+package cn.bingerz.flipble.peripheral.callback;
 
-import cn.bingerz.flipble.bluetoothle.PeripheralController;
-import cn.bingerz.flipble.exception.BleException;
+import cn.bingerz.flipble.peripheral.PeripheralController;
+import cn.bingerz.flipble.exception.BLEException;
 
 /**
  * Created by hanson on 09/01/2018.
  */
 
-public abstract class RssiCallback {
+public abstract class MtuChangedCallback {
 
-    public abstract void onRssiFailure(BleException exception);
+    public abstract void onSetMTUFailure(BLEException exception);
 
-    public abstract void onRssiSuccess(int rssi);
+    public abstract void onMtuChanged(int mtu);
 
     private PeripheralController peripheralConnector;
 

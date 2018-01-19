@@ -38,14 +38,14 @@ import java.util.UUID;
 
 import cn.bingerz.bledemo.adapter.PeripheralAdapter;
 import cn.bingerz.bledemo.operation.OperationActivity;
-import cn.bingerz.flipble.CentralManager;
-import cn.bingerz.flipble.bluetoothle.Peripheral;
-import cn.bingerz.flipble.callback.ConnectionStateCallback;
-import cn.bingerz.flipble.callback.MtuChangedCallback;
-import cn.bingerz.flipble.callback.RssiCallback;
-import cn.bingerz.flipble.callback.ScanCallback;
-import cn.bingerz.flipble.exception.BleException;
-import cn.bingerz.flipble.scan.BleScanRuleConfig;
+import cn.bingerz.flipble.central.CentralManager;
+import cn.bingerz.flipble.exception.BLEException;
+import cn.bingerz.flipble.peripheral.Peripheral;
+import cn.bingerz.flipble.peripheral.callback.ConnectionStateCallback;
+import cn.bingerz.flipble.peripheral.callback.MtuChangedCallback;
+import cn.bingerz.flipble.peripheral.callback.RssiCallback;
+import cn.bingerz.flipble.central.callback.ScanCallback;
+import cn.bingerz.flipble.central.ScanRuleConfig;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -74,10 +74,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         CentralManager.getInstance().init(getApplication());
 
-        CentralManager.getInstance()
-                .enableLog(true)
-                .setMaxConnectCount(7)
-                .setOperateTimeout(5000);
+        CentralManager.getInstance().enableLog(true).setMaxConnectCount(7).setOperateTimeout(5000);
     }
 
     @Override
@@ -207,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         boolean isAutoConnect = sw_auto.isChecked();
 
-        BleScanRuleConfig scanRuleConfig = new BleScanRuleConfig.Builder()
+        ScanRuleConfig scanRuleConfig = new ScanRuleConfig.Builder()
                 .setServiceUuids(serviceUuids)      // 只扫描指定的服务的设备，可选
                 .setDeviceName(true, names)   // 只扫描指定广播名的设备，可选
                 .setDeviceMac(mac)                  // 只扫描指定mac的设备，可选
@@ -257,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             @Override
-            public void onConnectFail(BleException exception) {
+            public void onConnectFail(BLEException exception) {
                 img_loading.clearAnimation();
                 img_loading.setVisibility(View.INVISIBLE);
                 btn_scan.setText(getString(R.string.start_scan));
@@ -293,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void readRssi(Peripheral peripheral) {
         peripheral.readRssi(new RssiCallback() {
             @Override
-            public void onRssiFailure(BleException exception) {
+            public void onRssiFailure(BLEException exception) {
                 Log.i(TAG, "onRssiFailure" + exception.toString());
             }
 
@@ -307,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void setMtu(Peripheral peripheral, int mtu) {
         peripheral.setMtu(mtu, new MtuChangedCallback() {
             @Override
-            public void onSetMTUFailure(BleException exception) {
+            public void onSetMTUFailure(BLEException exception) {
                 Log.i(TAG, "onsetMTUFailure" + exception.toString());
             }
 

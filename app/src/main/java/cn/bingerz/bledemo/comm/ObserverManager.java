@@ -4,7 +4,7 @@ package cn.bingerz.bledemo.comm;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.bingerz.flipble.bluetoothle.Peripheral;
+import cn.bingerz.flipble.peripheral.Peripheral;
 
 public class ObserverManager implements Observable {
 

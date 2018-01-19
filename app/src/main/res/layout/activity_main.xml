@@ -67,7 +67,8 @@
             android:paddingLeft="5dp"
             android:paddingRight="5dp"
             android:text="AutoConnect ?"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            android:visibility="gone"/>
 
     </LinearLayout>
 

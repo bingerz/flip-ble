@@ -3,7 +3,7 @@ package cn.bingerz.flipble.exception;
 import android.bluetooth.BluetoothGatt;
 
 
-public class ConnectException extends BleException {
+public class ConnectException extends BLEException {
 
     private BluetoothGatt bluetoothGatt;
     private int gattStatus;

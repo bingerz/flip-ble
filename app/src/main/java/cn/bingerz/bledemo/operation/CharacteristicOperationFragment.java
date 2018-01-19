@@ -20,13 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.bingerz.bledemo.R;
-import cn.bingerz.flipble.CentralManager;
-import cn.bingerz.flipble.bluetoothle.Peripheral;
-import cn.bingerz.flipble.callback.IndicateCallback;
-import cn.bingerz.flipble.callback.NotifyCallback;
-import cn.bingerz.flipble.callback.ReadCallback;
-import cn.bingerz.flipble.callback.WriteCallback;
-import cn.bingerz.flipble.exception.BleException;
+import cn.bingerz.flipble.exception.BLEException;
+import cn.bingerz.flipble.peripheral.Peripheral;
+import cn.bingerz.flipble.peripheral.callback.IndicateCallback;
+import cn.bingerz.flipble.peripheral.callback.NotifyCallback;
+import cn.bingerz.flipble.peripheral.callback.ReadCallback;
+import cn.bingerz.flipble.peripheral.callback.WriteCallback;
 import cn.bingerz.flipble.utils.HexUtil;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -105,7 +104,7 @@ public class CharacteristicOperationFragment extends Fragment {
                                         }
 
                                         @Override
-                                        public void onReadFailure(final BleException exception) {
+                                        public void onReadFailure(final BLEException exception) {
                                             if (isAdded() && getActivity() != null)
                                                 getActivity().runOnUiThread(new Runnable() {
                                                     @Override
@@ -160,7 +159,7 @@ public class CharacteristicOperationFragment extends Fragment {
                                         }
 
                                         @Override
-                                        public void onWriteFailure(final BleException exception) {
+                                        public void onWriteFailure(final BLEException exception) {
                                             if (isAdded() && getActivity() != null)
                                                 getActivity().runOnUiThread(new Runnable() {
                                                     @Override
@@ -215,7 +214,7 @@ public class CharacteristicOperationFragment extends Fragment {
                                         }
 
                                         @Override
-                                        public void onWriteFailure(final BleException exception) {
+                                        public void onWriteFailure(final BLEException exception) {
                                             if (isAdded() && getActivity() != null)
                                                 getActivity().runOnUiThread(new Runnable() {
                                                     @Override
@@ -266,7 +265,7 @@ public class CharacteristicOperationFragment extends Fragment {
                                             }
 
                                             @Override
-                                            public void onNotifyFailure(final BleException exception) {
+                                            public void onNotifyFailure(final BLEException exception) {
                                                 if (isAdded() && getActivity() != null)
                                                     getActivity().runOnUiThread(new Runnable() {
                                                         @Override
@@ -339,7 +338,7 @@ public class CharacteristicOperationFragment extends Fragment {
                                             }
 
                                             @Override
-                                            public void onIndicateFailure(final BleException exception) {
+                                            public void onIndicateFailure(final BLEException exception) {
                                                 if (isAdded() && getActivity() != null)
                                                     getActivity().runOnUiThread(new Runnable() {
                                                         @Override

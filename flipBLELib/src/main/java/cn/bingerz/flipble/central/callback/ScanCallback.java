@@ -1,9 +1,9 @@
-package cn.bingerz.flipble.callback;
+package cn.bingerz.flipble.central.callback;
 
 
 import java.util.List;
 
-import cn.bingerz.flipble.bluetoothle.Peripheral;
+import cn.bingerz.flipble.peripheral.Peripheral;
 
 public abstract class ScanCallback {
 

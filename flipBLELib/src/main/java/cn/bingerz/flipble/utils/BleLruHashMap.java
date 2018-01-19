@@ -3,7 +3,7 @@ package cn.bingerz.flipble.utils;
 
 import java.util.LinkedHashMap;
 
-import cn.bingerz.flipble.bluetoothle.Peripheral;
+import cn.bingerz.flipble.peripheral.Peripheral;
 
 public class BleLruHashMap<K, V> extends LinkedHashMap<K, V> {
 

@@ -18,8 +18,8 @@ import java.util.List;
 import cn.bingerz.bledemo.R;
 import cn.bingerz.bledemo.comm.Observer;
 import cn.bingerz.bledemo.comm.ObserverManager;
-import cn.bingerz.flipble.CentralManager;
-import cn.bingerz.flipble.bluetoothle.Peripheral;
+import cn.bingerz.flipble.central.CentralManager;
+import cn.bingerz.flipble.peripheral.Peripheral;
 
 public class OperationActivity extends AppCompatActivity implements Observer {
 

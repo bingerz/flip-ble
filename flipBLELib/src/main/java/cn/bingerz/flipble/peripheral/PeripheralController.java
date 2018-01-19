@@ -1,4 +1,4 @@
-package cn.bingerz.flipble.bluetoothle;
+package cn.bingerz.flipble.peripheral;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothGatt;
@@ -11,13 +11,13 @@ import android.os.Message;
 
 import java.util.UUID;
 
-import cn.bingerz.flipble.CentralManager;
-import cn.bingerz.flipble.callback.IndicateCallback;
-import cn.bingerz.flipble.callback.MtuChangedCallback;
-import cn.bingerz.flipble.callback.NotifyCallback;
-import cn.bingerz.flipble.callback.ReadCallback;
-import cn.bingerz.flipble.callback.RssiCallback;
-import cn.bingerz.flipble.callback.WriteCallback;
+import cn.bingerz.flipble.central.CentralManager;
+import cn.bingerz.flipble.peripheral.callback.IndicateCallback;
+import cn.bingerz.flipble.peripheral.callback.MtuChangedCallback;
+import cn.bingerz.flipble.peripheral.callback.NotifyCallback;
+import cn.bingerz.flipble.peripheral.callback.ReadCallback;
+import cn.bingerz.flipble.peripheral.callback.RssiCallback;
+import cn.bingerz.flipble.peripheral.callback.WriteCallback;
 import cn.bingerz.flipble.exception.OtherException;
 import cn.bingerz.flipble.exception.TimeoutException;
 

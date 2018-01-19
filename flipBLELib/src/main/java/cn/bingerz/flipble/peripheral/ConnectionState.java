@@ -1,4 +1,4 @@
-package cn.bingerz.flipble.bluetoothle;
+package cn.bingerz.flipble.peripheral;
 
 /**
  * Created by hanson on 09/01/2018.

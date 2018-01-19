@@ -1,4 +1,4 @@
-package cn.bingerz.flipble.bluetoothle;
+package cn.bingerz.flipble.peripheral;
 
 import android.text.TextUtils;
 
@@ -8,7 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-import cn.bingerz.flipble.CentralManager;
+import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.utils.BleLruHashMap;
 
 /**

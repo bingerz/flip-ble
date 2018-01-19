@@ -1,15 +1,15 @@
 package cn.bingerz.flipble.exception.hanlder;
 
+import cn.bingerz.flipble.exception.BLEException;
 import cn.bingerz.flipble.exception.GattException;
-import cn.bingerz.flipble.exception.BleException;
 import cn.bingerz.flipble.exception.ConnectException;
 import cn.bingerz.flipble.exception.NotFoundDeviceException;
 import cn.bingerz.flipble.exception.OtherException;
 import cn.bingerz.flipble.exception.TimeoutException;
 
-public abstract class BleExceptionHandler {
+public abstract class BLEExceptionHandler {
 
-    public BleExceptionHandler handleException(BleException exception) {
+    public BLEExceptionHandler handleException(BLEException exception) {
 
         if (exception != null) {
 

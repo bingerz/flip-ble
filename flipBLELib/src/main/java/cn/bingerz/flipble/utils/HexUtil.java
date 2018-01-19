@@ -2,11 +2,9 @@ package cn.bingerz.flipble.utils;
 
 public class HexUtil {
 
-    private static final char[] DIGITS_LOWER = {'0', '1', '2', '3', '4', '5',
-            '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+    private static final char[] DIGITS_LOWER = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
-    private static final char[] DIGITS_UPPER = {'0', '1', '2', '3', '4', '5',
-            '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    private static final char[] DIGITS_UPPER = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
     public static char[] encodeHex(byte[] data) {
         return encodeHex(data, true);
@@ -17,8 +15,9 @@ public class HexUtil {
     }
 
     protected static char[] encodeHex(byte[] data, char[] toDigits) {
-        if (data == null)
+        if (data == null) {
             return null;
+        }
         int l = data.length;
         char[] out = new char[l << 1];
         for (int i = 0, j = 0; i < l; i++) {
@@ -47,8 +46,9 @@ public class HexUtil {
     }
 
     public static String formatHexString(byte[] data, boolean addSpace) {
-        if (data == null || data.length < 1)
+        if (data == null || data.length < 1) {
             return null;
+        }
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < data.length; i++) {
             String hex = Integer.toHexString(data[i] & 0xFF);
@@ -88,8 +88,7 @@ public class HexUtil {
     protected static int toDigit(char ch, int index) {
         int digit = Character.digit(ch, 16);
         if (digit == -1) {
-            throw new RuntimeException("Illegal hexadecimal character " + ch
-                    + " at index " + index);
+            throw new RuntimeException("Illegal hexadecimal character " + ch + " at index " + index);
         }
         return digit;
     }

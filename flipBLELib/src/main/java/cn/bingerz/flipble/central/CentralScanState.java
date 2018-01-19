@@ -1,4 +1,4 @@
-package cn.bingerz.flipble.scan;
+package cn.bingerz.flipble.central;
 
 
 

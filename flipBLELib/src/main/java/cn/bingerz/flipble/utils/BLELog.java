@@ -1,7 +1,7 @@
 package cn.bingerz.flipble.utils;
 
 
-public final class BleLog {
+public final class BLELog {
 
 	public static boolean isPrint = true;
 	private static String defaultTag = "flipBLE";

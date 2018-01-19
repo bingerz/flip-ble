@@ -1,21 +1,19 @@
-package cn.bingerz.flipble.scan;
+package cn.bingerz.flipble.central;
 
 
 import java.util.UUID;
 
-import cn.bingerz.flipble.CentralManager;
+public class ScanRuleConfig {
 
-public class BleScanRuleConfig {
-
-    private UUID[] mServiceUuids = null;
+    private UUID[] mServiceUUIDs = null;
     private String[] mDeviceNames = null;
     private String mDeviceMac = null;
 //    private boolean mAutoConnect = false;
     private boolean mFuzzy = false;
     private long mScanTimeOut = CentralManager.DEFAULT_SCAN_TIME;
 
-    public UUID[] getServiceUuids() {
-        return mServiceUuids;
+    public UUID[] getServiceUUIDs() {
+        return mServiceUUIDs;
     }
 
     public String[] getDeviceNames() {
@@ -25,10 +23,6 @@ public class BleScanRuleConfig {
     public String getDeviceMac() {
         return mDeviceMac;
     }
-
-//    public boolean isAutoConnect() {
-//        return mAutoConnect;
-//    }
 
     public boolean isFuzzy() {
         return mFuzzy;
@@ -63,27 +57,21 @@ public class BleScanRuleConfig {
             return this;
         }
 
-//        public Builder setAutoConnect(boolean autoConnect) {
-//            this.mAutoConnect = autoConnect;
-//            return this;
-//        }
-
         public Builder setScanTimeOut(long timeOut) {
             this.mTimeOut = timeOut;
             return this;
         }
 
-        void applyConfig(BleScanRuleConfig config) {
-            config.mServiceUuids = this.mServiceUuids;
+        void applyConfig(ScanRuleConfig config) {
+            config.mServiceUUIDs = this.mServiceUuids;
             config.mDeviceNames = this.mDeviceNames;
             config.mDeviceMac = this.mDeviceMac;
-//            config.mAutoConnect = this.mAutoConnect;
             config.mFuzzy = this.mFuzzy;
             config.mScanTimeOut = this.mTimeOut;
         }
 
-        public BleScanRuleConfig build() {
-            BleScanRuleConfig config = new BleScanRuleConfig();
+        public ScanRuleConfig build() {
+            ScanRuleConfig config = new ScanRuleConfig();
             applyConfig(config);
             return config;
         }

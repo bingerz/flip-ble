@@ -1,4 +1,4 @@
-package cn.bingerz.flipble.bluetoothle;
+package cn.bingerz.flipble.peripheral;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
@@ -15,19 +15,18 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import cn.bingerz.flipble.CentralManager;
-import cn.bingerz.flipble.callback.ConnectionStateCallback;
-import cn.bingerz.flipble.callback.IndicateCallback;
-import cn.bingerz.flipble.callback.MtuChangedCallback;
-import cn.bingerz.flipble.callback.NotifyCallback;
-import cn.bingerz.flipble.callback.ReadCallback;
-import cn.bingerz.flipble.callback.RssiCallback;
-import cn.bingerz.flipble.callback.WriteCallback;
+import cn.bingerz.flipble.central.CentralManager;
+import cn.bingerz.flipble.peripheral.callback.ConnectionStateCallback;
+import cn.bingerz.flipble.peripheral.callback.IndicateCallback;
+import cn.bingerz.flipble.peripheral.callback.MtuChangedCallback;
+import cn.bingerz.flipble.peripheral.callback.NotifyCallback;
+import cn.bingerz.flipble.peripheral.callback.ReadCallback;
+import cn.bingerz.flipble.peripheral.callback.RssiCallback;
+import cn.bingerz.flipble.peripheral.callback.WriteCallback;
 import cn.bingerz.flipble.exception.ConnectionException;
 import cn.bingerz.flipble.exception.GattException;
-import cn.bingerz.flipble.exception.NotFoundDeviceException;
 import cn.bingerz.flipble.exception.OtherException;
-import cn.bingerz.flipble.utils.BleLog;
+import cn.bingerz.flipble.utils.BLELog;
 
 /**
  * Created by hanson on 09/01/2018.
@@ -171,7 +170,7 @@ public class Peripheral {
     }
 
     private boolean connect(boolean autoConnect, ConnectionStateCallback callback) {
-        BleLog.i("connect device:" + getName() + " mac:" + getMac() + " autoConnect:" + autoConnect);
+        BLELog.i("connect device:" + getName() + " mac:" + getMac() + " autoConnect:" + autoConnect);
         addConnectionStateCallback(callback);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -195,11 +194,11 @@ public class Peripheral {
             final Method refresh = BluetoothGatt.class.getMethod("refresh");
             if (refresh != null) {
                 boolean success = (Boolean) refresh.invoke(getBluetoothGatt());
-                BleLog.i("refreshDeviceCache, is success:  " + success);
+                BLELog.i("refreshDeviceCache, is success:  " + success);
                 return success;
             }
         } catch (Exception e) {
-            BleLog.i("exception occur while refreshing device: " + e.getMessage());
+            BLELog.i("exception occur while refreshing device: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -314,13 +313,13 @@ public class Peripheral {
         }
 
         if (data == null) {
-            BleLog.e("data is Null!");
+            BLELog.e("data is Null!");
             callback.onWriteFailure(new OtherException("data is Null !"));
             return;
         }
 
         if (data.length > 20) {
-            BleLog.w("data's length beyond 20!");
+            BLELog.w("data's length beyond 20!");
         }
 
         newPeripheralController().withUUIDString(serviceUUID, writeUUID).writeCharacteristic(data, callback, writeUUID);
@@ -358,13 +357,13 @@ public class Peripheral {
         }
 
         if (mtu > DEFAULT_MAX_MTU) {
-            BleLog.e("requiredMtu should lower than 512 !");
+            BLELog.e("requiredMtu should lower than 512 !");
             callback.onSetMTUFailure(new OtherException("requiredMtu should lower than 512 !"));
             return;
         }
 
         if (mtu < DEFAULT_MTU) {
-            BleLog.e("requiredMtu should higher than 23 !");
+            BLELog.e("requiredMtu should higher than 23 !");
             callback.onSetMTUFailure(new OtherException("requiredMtu should higher than 23 !"));
             return;
         }
@@ -377,7 +376,7 @@ public class Peripheral {
         @Override
         public void onConnectionStateChange(final BluetoothGatt gatt, final int status, final int newState) {
             super.onConnectionStateChange(gatt, status, newState);
-            BleLog.i("BluetoothGattCallback：onConnectionStateChange "
+            BLELog.i("BluetoothGattCallback：onConnectionStateChange "
                     + '\n' + "status: " + status
                     + '\n' + "newState: " + newState
                     + '\n' + "currentThread: " + Thread.currentThread().getId());
@@ -414,7 +413,7 @@ public class Peripheral {
         @Override
         public void onServicesDiscovered(final BluetoothGatt gatt, final int status) {
             super.onServicesDiscovered(gatt, status);
-            BleLog.i("BluetoothGattCallback：onServicesDiscovered "
+            BLELog.i("BluetoothGattCallback：onServicesDiscovered "
                     + '\n' + "status: " + status
                     + '\n' + "currentThread: " + Thread.currentThread().getId());
 
@@ -446,7 +445,7 @@ public class Peripheral {
         @Override
         public void onCharacteristicChanged(final BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
-            BleLog.i("BluetoothGattCallback：onCharacteristicChanged ");
+            BLELog.i("BluetoothGattCallback：onCharacteristicChanged ");
 
             Iterator iterator = notifyCallbackHashMap.entrySet().iterator();
             while (iterator.hasNext()) {
@@ -485,7 +484,7 @@ public class Peripheral {
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, final int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
-            BleLog.i("BluetoothGattCallback：onCharacteristicWrite ");
+            BLELog.i("BluetoothGattCallback：onCharacteristicWrite ");
 
             Iterator iterator = writeCallbackHashMap.entrySet().iterator();
             while (iterator.hasNext()) {
@@ -512,7 +511,7 @@ public class Peripheral {
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic, final int status) {
             super.onCharacteristicRead(gatt, characteristic, status);
-            BleLog.i("BluetoothGattCallback：onCharacteristicRead ");
+            BLELog.i("BluetoothGattCallback：onCharacteristicRead ");
 
             Iterator iterator = readCallbackHashMap.entrySet().iterator();
             while (iterator.hasNext()) {
@@ -539,7 +538,7 @@ public class Peripheral {
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, final int status) {
             super.onDescriptorWrite(gatt, descriptor, status);
-            BleLog.i("GattCallback：onDescriptorWrite ");
+            BLELog.i("GattCallback：onDescriptorWrite ");
 
             Iterator iterator = notifyCallbackHashMap.entrySet().iterator();
             while (iterator.hasNext()) {
@@ -587,13 +586,13 @@ public class Peripheral {
         @Override
         public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             super.onDescriptorRead(gatt, descriptor, status);
-            BleLog.i("GattCallback：onDescriptorRead ");
+            BLELog.i("GattCallback：onDescriptorRead ");
         }
 
         @Override
         public void onReadRemoteRssi(BluetoothGatt gatt, final int rssi, final int status) {
             super.onReadRemoteRssi(gatt, rssi, status);
-            BleLog.i("BluetoothGattCallback：onReadRemoteRssi " + status);
+            BLELog.i("BluetoothGattCallback：onReadRemoteRssi " + status);
 
             if (rssiCallback != null) {
                 rssiCallback.getPeripheralConnector().rssiMsgInit();
@@ -614,7 +613,7 @@ public class Peripheral {
         @Override
         public void onMtuChanged(BluetoothGatt gatt, final int mtu, final int status) {
             super.onMtuChanged(gatt, mtu, status);
-            BleLog.i("BluetoothGattCallback：onMtuChanged ");
+            BLELog.i("BluetoothGattCallback：onMtuChanged ");
 
             if (mtuChangedCallback != null) {
                 mtuChangedCallback.getPeripheralConnector().mtuChangedMsgInit();

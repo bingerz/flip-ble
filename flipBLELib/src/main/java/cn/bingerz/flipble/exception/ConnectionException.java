@@ -6,7 +6,7 @@ import android.bluetooth.BluetoothGatt;
  * Created by hanson on 09/01/2018.
  */
 
-public class ConnectionException extends BleException {
+public class ConnectionException extends BLEException {
 
     private BluetoothGatt bluetoothGatt;
     private int gattStatus;
