@@ -85,9 +85,9 @@ public abstract class CentralScannerPresenter implements BluetoothAdapter.LeScan
         }
         if (!hasFound.get()) {
             BLELog.i("device detected ------"
-                    + " name: " + peripheral.getName()
-                    + " mac: " + peripheral.getAddress()
-                    + " Rssi: " + peripheral.getRssi());
+                    + "  name: " + peripheral.getName()
+                    + "  mac: " + peripheral.getAddress()
+                    + "  Rssi: " + peripheral.getRssi());
             mPeripheralList.add(peripheral);
             onScanning(peripheral);
         }
