@@ -39,10 +39,11 @@ public abstract class CentralScannerPresenter implements BluetoothAdapter.LeScan
 
     @Override
     public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-        if (device == null)
+        if (device == null) {
             return;
+        }
 
-        Peripheral peripheral = new Peripheral(device, rssi);
+        Peripheral peripheral = new Peripheral(device, rssi, ScanRecord.parseFromBytes(scanRecord));
 
         onLeScan(peripheral);
 
@@ -78,15 +79,15 @@ public abstract class CentralScannerPresenter implements BluetoothAdapter.LeScan
     private void next(Peripheral peripheral) {
         AtomicBoolean hasFound = new AtomicBoolean(false);
         for (Peripheral device : mPeripheralList) {
-            if (device.getMac().equals(peripheral.getMac())) {
+            if (device.getAddress().equals(peripheral.getAddress())) {
                 hasFound.set(true);
             }
         }
         if (!hasFound.get()) {
-            BLELog.i("device detected  ------"
-                    + "  name: " + peripheral.getName()
-                    + "  mac: " + peripheral.getMac()
-                    + "  Rssi: " + peripheral.getRssi());
+            BLELog.i("device detected ------"
+                    + " name: " + peripheral.getName()
+                    + " mac: " + peripheral.getAddress()
+                    + " Rssi: " + peripheral.getRssi());
             mPeripheralList.add(peripheral);
             onScanning(peripheral);
         }

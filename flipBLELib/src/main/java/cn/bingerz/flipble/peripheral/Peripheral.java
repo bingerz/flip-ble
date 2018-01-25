@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattService;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -14,8 +15,10 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 
 import cn.bingerz.flipble.central.CentralManager;
+import cn.bingerz.flipble.central.ScanRecord;
 import cn.bingerz.flipble.peripheral.callback.ConnectionStateCallback;
 import cn.bingerz.flipble.peripheral.callback.IndicateCallback;
 import cn.bingerz.flipble.peripheral.callback.MtuChangedCallback;
@@ -43,6 +46,7 @@ public class Peripheral {
     private boolean isActivityDisconnect = false;
 
     private int mRssi;
+    private ScanRecord mScanRecord;
     private BluetoothDevice mDevice;
     private BluetoothGatt mBluetoothGatt;
 
@@ -59,9 +63,10 @@ public class Peripheral {
         this.mDevice = device;
     }
 
-    public Peripheral(BluetoothDevice device, int rssi) {
+    public Peripheral(BluetoothDevice device, int rssi, ScanRecord scanRecord) {
         this.mRssi = rssi;
         this.mDevice = device;
+        this.mScanRecord = scanRecord;
     }
 
     public PeripheralController newPeripheralController() {
@@ -75,7 +80,7 @@ public class Peripheral {
         return null;
     }
 
-    public String getMac() {
+    public String getAddress() {
         if (mDevice != null) {
             return mDevice.getAddress();
         }
@@ -83,13 +88,16 @@ public class Peripheral {
     }
 
     public String getKey() {
-        return getName() + getMac();
+        return getName() + getAddress();
     }
 
     public int getRssi() {
         return mRssi;
     }
 
+    public ScanRecord getScanRecord() {
+        return mScanRecord;
+    }
     public ConnectionState getConnectState() {
         return connectState;
     }
@@ -170,7 +178,7 @@ public class Peripheral {
     }
 
     private boolean connect(boolean autoConnect, ConnectionStateCallback callback) {
-        BLELog.i("connect device:" + getName() + " mac:" + getMac() + " autoConnect:" + autoConnect);
+        BLELog.i("connect device:" + getName() + " mac:" + getAddress() + " autoConnect:" + autoConnect);
         addConnectionStateCallback(callback);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -240,6 +248,29 @@ public class Peripheral {
         }
     }
 
+    public boolean isContainService(String serviceUUID) {
+        return getService(serviceUUID) != null;
+    }
+
+    private BluetoothGattService getService(String serviceUUID) {
+        if (mBluetoothGatt == null) {
+            return null;
+        }
+        return mBluetoothGatt.getService(UUID.fromString(serviceUUID));
+    }
+
+    public boolean isContainCharact(String serviceUUID, String charactUUID) {
+        return getCharact(serviceUUID, charactUUID) != null;
+    }
+
+    private BluetoothGattCharacteristic getCharact(String serviceUUID, String charactUUID) {
+        BluetoothGattService service = getService(serviceUUID);
+        if (service == null) {
+            return null;
+        }
+        return service.getCharacteristic(UUID.fromString(charactUUID));
+    }
+
     /**
      * connect a known device
      */
@@ -248,7 +279,7 @@ public class Peripheral {
             throw new IllegalArgumentException("BleGattCallback can not be Null!");
         }
 
-        if (!CentralManager.getInstance().isBlueEnable()) {
+        if (!CentralManager.getInstance().isBluetoothEnable()) {
             CentralManager.getInstance().handleException(new OtherException("BlueTooth not enable!"));
             return false;
         }
@@ -259,25 +290,25 @@ public class Peripheral {
     /**
      * notify
      */
-    public void notify(String uuid_service, String uuid_notify, NotifyCallback callback) {
+    public void notify(String serviceUUID, String notifyUUID, NotifyCallback callback) {
         if (callback == null) {
             throw new IllegalArgumentException("BleNotifyCallback can not be Null!");
         }
 
-        newPeripheralController().withUUIDString(uuid_service, uuid_notify)
-                    .enableCharacteristicNotify(callback, uuid_notify);
+        newPeripheralController().withUUIDString(serviceUUID, notifyUUID)
+                    .enableCharacteristicNotify(callback, notifyUUID);
     }
 
     /**
      * indicate
      */
-    public void indicate(String uuid_service, String uuid_indicate, IndicateCallback callback) {
+    public void indicate(String serviceUUID, String indicateUUID, IndicateCallback callback) {
         if (callback == null) {
             throw new IllegalArgumentException("BleIndicateCallback can not be Null!");
         }
 
-        newPeripheralController().withUUIDString(uuid_service, uuid_indicate)
-                    .enableCharacteristicIndicate(callback, uuid_indicate);
+        newPeripheralController().withUUIDString(serviceUUID, indicateUUID)
+                    .enableCharacteristicIndicate(callback, indicateUUID);
     }
 
     /**

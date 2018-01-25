@@ -105,7 +105,7 @@ public class PeripheralAdapter extends BaseAdapter {
         if (peripheral != null) {
             boolean isConnected = CentralManager.getInstance().isConnected(peripheral.getKey());
             String name = peripheral.getName();
-            String mac = peripheral.getMac();
+            String mac = peripheral.getAddress();
             int rssi = peripheral.getRssi();
             holder.txt_name.setText(name);
             holder.txt_mac.setText(mac);

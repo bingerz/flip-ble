@@ -56,7 +56,7 @@ public class ServiceListFragment extends Fragment {
     private void showData() {
         Peripheral peripheral = ((OperationActivity) getActivity()).getPeripheral();
         String name = peripheral.getName();
-        String mac = peripheral.getMac();
+        String mac = peripheral.getAddress();
         BluetoothGatt gatt = peripheral.getBluetoothGatt();
 
         txt_name.setText(String.valueOf(getActivity().getString(R.string.name) + name));

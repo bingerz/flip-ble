@@ -3,10 +3,13 @@ package cn.bingerz.flipble.central;
 import android.annotation.TargetApi;
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.text.TextUtils;
 
 import java.util.List;
 import java.util.UUID;
@@ -94,7 +97,7 @@ public class CentralManager {
             throw new IllegalArgumentException("BleScanCallback can not be Null!");
         }
 
-        if (!isBlueEnable()) {
+        if (!isBluetoothEnable()) {
             handleException(new OtherException("BlueTooth not enable!"));
             return;
         }
@@ -210,17 +213,54 @@ public class CentralManager {
         }
     }
 
+    /**
+     * judge Bluetooth is enable
+     */
+    public boolean isBluetoothEnable() {
+        return mBluetoothAdapter != null && mBluetoothAdapter.isEnabled();
+    }
+
+    private BluetoothDevice retrieveDevice(String address) {
+        if (mBluetoothAdapter != null) {
+            return mBluetoothAdapter.getRemoteDevice(address);
+        }
+        return null;
+    }
+
+    private BluetoothDevice retrieveDevice(byte[] address) {
+        if (mBluetoothAdapter != null) {
+            return mBluetoothAdapter.getRemoteDevice(address);
+        }
+        return null;
+    }
+
+    public Peripheral retrievePeripheral(String address) {
+        if (!TextUtils.isEmpty(address)) {
+            BluetoothDevice device = retrieveDevice(address);
+            return new Peripheral(device);
+        }
+        return null;
+    }
+
+    public Peripheral retrievePeripheral(byte[] address) {
+        if (!(address == null || address.length != 6)) {
+            BluetoothDevice device = retrieveDevice(address);
+            return new Peripheral(device);
+        }
+        return null;
+    }
+
     public List<Peripheral> getAllConnectedDevice() {
         if (mMultiPeripheralController == null)
             return null;
         return mMultiPeripheralController.getPeripheralList();
     }
 
-    /**
-     * judge Bluetooth is enable
-     */
-    public boolean isBlueEnable() {
-        return mBluetoothAdapter != null && mBluetoothAdapter.isEnabled();
+    public boolean isConnected(Peripheral peripheral) {
+        BluetoothManager bluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
+        BluetoothDevice device = retrieveDevice(peripheral.getAddress());
+        int state = bluetoothManager.getConnectionState(device, BluetoothProfile.GATT);
+        return state == BluetoothProfile.STATE_CONNECTED;
     }
 
     public boolean isConnected(String key) {
