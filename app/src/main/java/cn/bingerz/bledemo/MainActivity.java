@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.UUID;
 
 import cn.bingerz.bledemo.adapter.PeripheralAdapter;
+import cn.bingerz.bledemo.comm.ObserverManager;
 import cn.bingerz.bledemo.operation.OperationActivity;
 import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.exception.BLEException;
@@ -281,7 +282,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 if (!isActiveDisConnected) {
                     Toast.makeText(MainActivity.this, getString(R.string.disconnected), Toast.LENGTH_LONG).show();
-//                    ObserverManager.getInstance().notifyObserver(peripheral);
+                    ObserverManager.getInstance().notifyObserver(peripheral);
                 }
             }
         });
