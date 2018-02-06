@@ -61,6 +61,7 @@ public class CentralManager {
             if (bluetoothManager != null) {
                 mBluetoothAdapter = bluetoothManager.getAdapter();
             }
+            mBLEExceptionHandler = new DefaultBleExceptionHandler();
             mMultiPeripheralController = new MultiplePeripheralController();
 
             mScanRuleConfig = new ScanRuleConfig();
