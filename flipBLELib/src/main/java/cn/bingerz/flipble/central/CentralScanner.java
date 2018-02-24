@@ -1,6 +1,7 @@
 package cn.bingerz.flipble.central;
 
 import android.annotation.TargetApi;
+import android.bluetooth.BluetoothAdapter;
 import android.os.Build;
 
 import java.util.List;
@@ -61,20 +62,29 @@ public class CentralScanner {
     }
 
     private synchronized void startLeScan(UUID[] serviceUUIDs, CentralScannerPresenter presenter) {
-        if (presenter == null)
+        if (presenter == null) {
             return;
+        }
 
         this.centralScannerPresenter = presenter;
-        boolean success = CentralManager.getInstance().getBluetoothAdapter().startLeScan(serviceUUIDs, centralScannerPresenter);
+        boolean success = false;
+        BluetoothAdapter bluetoothAdapter = CentralManager.getInstance().getBluetoothAdapter();
+        if (bluetoothAdapter != null) {
+            success = bluetoothAdapter.startLeScan(serviceUUIDs, presenter);
+        }
         scanState = success ? CentralScanState.STATE_SCANNING : CentralScanState.STATE_IDLE;
         centralScannerPresenter.notifyScanStarted(success);
     }
 
     public synchronized void stopLeScan() {
-        if (centralScannerPresenter == null)
+        if (centralScannerPresenter == null) {
             return;
+        }
 
-        CentralManager.getInstance().getBluetoothAdapter().stopLeScan(centralScannerPresenter);
+        BluetoothAdapter bluetoothAdapter = CentralManager.getInstance().getBluetoothAdapter();
+        if (bluetoothAdapter != null) {
+            bluetoothAdapter.stopLeScan(centralScannerPresenter);
+        }
         scanState = CentralScanState.STATE_IDLE;
         centralScannerPresenter.notifyScanStopped();
     }
