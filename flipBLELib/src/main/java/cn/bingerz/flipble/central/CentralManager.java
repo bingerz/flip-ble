@@ -20,7 +20,7 @@ import cn.bingerz.flipble.central.callback.ScanCallback;
 import cn.bingerz.flipble.exception.BLEException;
 import cn.bingerz.flipble.exception.OtherException;
 import cn.bingerz.flipble.exception.hanlder.DefaultBleExceptionHandler;
-import cn.bingerz.flipble.utils.BLELog;
+import cn.bingerz.flipble.utils.EasyLog;
 
 /**
  * Created by hanson on 09/01/2018.
@@ -57,6 +57,7 @@ public class CentralManager {
     public void init(Application application) {
         if (mContext == null && application != null) {
             mContext = application;
+            EasyLog.setExplicitTag("FlipBLE");
             BluetoothManager bluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
             if (bluetoothManager != null) {
                 mBluetoothAdapter = bluetoothManager.getAdapter();
@@ -182,7 +183,7 @@ public class CentralManager {
      * print log?
      */
     public CentralManager enableLog(boolean enable) {
-        BLELog.isPrint = enable;
+        EasyLog.setLoggable(enable);
         return this;
     }
 

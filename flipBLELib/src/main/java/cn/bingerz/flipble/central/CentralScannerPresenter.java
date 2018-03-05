@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import cn.bingerz.flipble.peripheral.Peripheral;
-import cn.bingerz.flipble.utils.BLELog;
+import cn.bingerz.flipble.utils.EasyLog;
 
 /**
  * Created by hanson on 10/01/2018.
@@ -84,10 +84,8 @@ public abstract class CentralScannerPresenter implements BluetoothAdapter.LeScan
             }
         }
         if (!hasFound.get()) {
-            BLELog.i("device detected ------"
-                    + "  name: " + peripheral.getName()
-                    + "  mac: " + peripheral.getAddress()
-                    + "  Rssi: " + peripheral.getRssi());
+            EasyLog.i("Device detected: Name: %s  Mac: %s  Rssi: %d "
+                    , peripheral.getName(), peripheral.getAddress(), peripheral.getRssi());
             mPeripheralList.add(peripheral);
             onScanning(peripheral);
         }

@@ -29,7 +29,7 @@ import cn.bingerz.flipble.peripheral.callback.WriteCallback;
 import cn.bingerz.flipble.exception.ConnectionException;
 import cn.bingerz.flipble.exception.GattException;
 import cn.bingerz.flipble.exception.OtherException;
-import cn.bingerz.flipble.utils.BLELog;
+import cn.bingerz.flipble.utils.EasyLog;
 
 /**
  * Created by hanson on 09/01/2018.
@@ -98,6 +98,7 @@ public class Peripheral {
     public ScanRecord getScanRecord() {
         return mScanRecord;
     }
+
     public ConnectionState getConnectState() {
         return connectState;
     }
@@ -178,7 +179,7 @@ public class Peripheral {
     }
 
     private boolean connect(boolean autoConnect, ConnectionStateCallback callback) {
-        BLELog.i("connect device:" + getName() + " mac:" + getAddress() + " autoConnect:" + autoConnect);
+        EasyLog.i("connect device:%s mac:%s autoConnect:%s", getName(), getAddress(), autoConnect);
         addConnectionStateCallback(callback);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -202,11 +203,11 @@ public class Peripheral {
             final Method refresh = BluetoothGatt.class.getMethod("refresh");
             if (refresh != null) {
                 boolean success = (Boolean) refresh.invoke(getBluetoothGatt());
-                BLELog.i("refreshDeviceCache, is success:  " + success);
+                EasyLog.i("refreshDeviceCache, is success: " + success);
                 return success;
             }
         } catch (Exception e) {
-            BLELog.i("exception occur while refreshing device: " + e.getMessage());
+            EasyLog.i("exception occur while refreshing device: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -296,7 +297,7 @@ public class Peripheral {
         }
 
         newPeripheralController().withUUIDString(serviceUUID, notifyUUID)
-                    .enableCharacteristicNotify(callback, notifyUUID);
+                .enableCharacteristicNotify(callback, notifyUUID);
     }
 
     /**
@@ -308,7 +309,7 @@ public class Peripheral {
         }
 
         newPeripheralController().withUUIDString(serviceUUID, indicateUUID)
-                    .enableCharacteristicIndicate(callback, indicateUUID);
+                .enableCharacteristicIndicate(callback, indicateUUID);
     }
 
     /**
@@ -344,13 +345,13 @@ public class Peripheral {
         }
 
         if (data == null) {
-            BLELog.e("data is Null!");
+            EasyLog.e("data is Null!");
             callback.onWriteFailure(new OtherException("data is Null !"));
             return;
         }
 
         if (data.length > 20) {
-            BLELog.w("data's length beyond 20!");
+            EasyLog.w("data's length beyond 20!");
         }
 
         newPeripheralController().withUUIDString(serviceUUID, writeUUID).writeCharacteristic(data, callback, writeUUID);
@@ -388,13 +389,13 @@ public class Peripheral {
         }
 
         if (mtu > DEFAULT_MAX_MTU) {
-            BLELog.e("requiredMtu should lower than 512 !");
+            EasyLog.e("requiredMtu should lower than 512 !");
             callback.onSetMTUFailure(new OtherException("requiredMtu should lower than 512 !"));
             return;
         }
 
         if (mtu < DEFAULT_MTU) {
-            BLELog.e("requiredMtu should higher than 23 !");
+            EasyLog.e("requiredMtu should higher than 23 !");
             callback.onSetMTUFailure(new OtherException("requiredMtu should higher than 23 !"));
             return;
         }
@@ -407,10 +408,8 @@ public class Peripheral {
         @Override
         public void onConnectionStateChange(final BluetoothGatt gatt, final int status, final int newState) {
             super.onConnectionStateChange(gatt, status, newState);
-            BLELog.i("BluetoothGattCallback：onConnectionStateChange "
-                    + '\n' + "status: " + status
-                    + '\n' + "newState: " + newState
-                    + '\n' + "currentThread: " + Thread.currentThread().getId());
+            EasyLog.i("BluetoothGattCallback：Connection State Change\nstatus: %d\nnewState: %d\ncurrentThread: %d",
+                    status, newState, Thread.currentThread().getId());
 
             if (newState == BluetoothGatt.STATE_CONNECTED) {
                 gatt.discoverServices();
@@ -444,9 +443,8 @@ public class Peripheral {
         @Override
         public void onServicesDiscovered(final BluetoothGatt gatt, final int status) {
             super.onServicesDiscovered(gatt, status);
-            BLELog.i("BluetoothGattCallback：onServicesDiscovered "
-                    + '\n' + "status: " + status
-                    + '\n' + "currentThread: " + Thread.currentThread().getId());
+            EasyLog.i("BluetoothGattCallback：services discovered\nstatus: %d\ncurrentThread: %d",
+                    status, Thread.currentThread().getId());
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 mBluetoothGatt = gatt;
@@ -476,7 +474,7 @@ public class Peripheral {
         @Override
         public void onCharacteristicChanged(final BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
-            BLELog.i("BluetoothGattCallback：onCharacteristicChanged ");
+            EasyLog.i("BluetoothGattCallback：onCharacteristicChanged ");
 
             Iterator iterator = notifyCallbackHashMap.entrySet().iterator();
             while (iterator.hasNext()) {
@@ -515,7 +513,7 @@ public class Peripheral {
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, final int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
-            BLELog.i("BluetoothGattCallback：onCharacteristicWrite ");
+            EasyLog.i("BluetoothGattCallback：onCharacteristicWrite ");
 
             Iterator iterator = writeCallbackHashMap.entrySet().iterator();
             while (iterator.hasNext()) {
@@ -542,7 +540,7 @@ public class Peripheral {
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic, final int status) {
             super.onCharacteristicRead(gatt, characteristic, status);
-            BLELog.i("BluetoothGattCallback：onCharacteristicRead ");
+            EasyLog.i("BluetoothGattCallback：onCharacteristicRead ");
 
             Iterator iterator = readCallbackHashMap.entrySet().iterator();
             while (iterator.hasNext()) {
@@ -569,7 +567,7 @@ public class Peripheral {
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, final int status) {
             super.onDescriptorWrite(gatt, descriptor, status);
-            BLELog.i("GattCallback：onDescriptorWrite ");
+            EasyLog.i("GattCallback：onDescriptorWrite ");
 
             Iterator iterator = notifyCallbackHashMap.entrySet().iterator();
             while (iterator.hasNext()) {
@@ -617,13 +615,13 @@ public class Peripheral {
         @Override
         public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             super.onDescriptorRead(gatt, descriptor, status);
-            BLELog.i("GattCallback：onDescriptorRead ");
+            EasyLog.i("GattCallback：onDescriptorRead ");
         }
 
         @Override
         public void onReadRemoteRssi(BluetoothGatt gatt, final int rssi, final int status) {
             super.onReadRemoteRssi(gatt, rssi, status);
-            BLELog.i("BluetoothGattCallback：onReadRemoteRssi " + status);
+            EasyLog.i("BluetoothGattCallback：onReadRemoteRssi status: %d", status);
 
             if (rssiCallback != null) {
                 rssiCallback.getPeripheralConnector().rssiMsgInit();
@@ -644,7 +642,7 @@ public class Peripheral {
         @Override
         public void onMtuChanged(BluetoothGatt gatt, final int mtu, final int status) {
             super.onMtuChanged(gatt, mtu, status);
-            BLELog.i("BluetoothGattCallback：onMtuChanged ");
+            EasyLog.i("BluetoothGattCallback：onMtuChanged ");
 
             if (mtuChangedCallback != null) {
                 mtuChangedCallback.getPeripheralConnector().mtuChangedMsgInit();
