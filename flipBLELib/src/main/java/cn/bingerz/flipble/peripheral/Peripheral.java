@@ -45,7 +45,9 @@ public class Peripheral {
     private Handler handler = new Handler(Looper.getMainLooper());
     private boolean isActivityDisconnect = false;
 
-    private int mRssi;
+    private float mRssi;
+    private float mCov;//卡尔曼滤波用的协方差估计值(Covariance estimation)
+
     private ScanRecord mScanRecord;
     private BluetoothDevice mDevice;
     private BluetoothGatt mBluetoothGatt;
@@ -92,7 +94,28 @@ public class Peripheral {
     }
 
     public int getRssi() {
-        return mRssi;
+        return (int) this.mRssi;
+    }
+
+    /**
+     * Calculate and predict real rssi values based on new values, affected by last rssi value.
+     */
+    public int getFliterRssi(int newRSSI) {
+        int R = 1, Q = 1, A = 1, B = 0, C = 1;
+        int u = 0;
+        if (this.mRssi == 0) {
+            this.mRssi = (1 / C) * newRSSI;
+            this.mCov = (1 / C) * Q * (1 / C);
+        } else {
+            final float predX = (A * this.mRssi) + (B * u);
+            final float predCov = ((A * this.mCov) * A) + R;
+
+            final float K = predCov * C * (1 / ((C * predCov * C) + Q));
+
+            this.mRssi = predX + K * (newRSSI - (C * predX));
+            this.mCov = predCov - (K * C * predCov);
+        }
+        return getRssi();
     }
 
     public ScanRecord getScanRecord() {
@@ -413,7 +436,6 @@ public class Peripheral {
 
             if (newState == BluetoothGatt.STATE_CONNECTED) {
                 gatt.discoverServices();
-
             } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
                 closeBluetoothGatt();
                 CentralManager.getInstance().getMultiplePeripheralController().removePeripheral(Peripheral.this);
