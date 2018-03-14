@@ -19,6 +19,7 @@ import java.util.UUID;
 
 import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.central.ScanRecord;
+import cn.bingerz.flipble.exception.ConnectException;
 import cn.bingerz.flipble.peripheral.callback.ConnectionStateCallback;
 import cn.bingerz.flipble.peripheral.callback.IndicateCallback;
 import cn.bingerz.flipble.peripheral.callback.MtuChangedCallback;
@@ -26,7 +27,6 @@ import cn.bingerz.flipble.peripheral.callback.NotifyCallback;
 import cn.bingerz.flipble.peripheral.callback.ReadCallback;
 import cn.bingerz.flipble.peripheral.callback.RssiCallback;
 import cn.bingerz.flipble.peripheral.callback.WriteCallback;
-import cn.bingerz.flipble.exception.ConnectionException;
 import cn.bingerz.flipble.exception.GattException;
 import cn.bingerz.flipble.exception.OtherException;
 import cn.bingerz.flipble.utils.EasyLog;
@@ -304,7 +304,7 @@ public class Peripheral {
         }
 
         if (!CentralManager.getInstance().isBluetoothEnable()) {
-            CentralManager.getInstance().handleException(new OtherException("BlueTooth not enable!"));
+            CentralManager.getInstance().handleException(new OtherException("BT adapter is not turn on."));
             return false;
         }
 
@@ -445,7 +445,7 @@ public class Peripheral {
                         @Override
                         public void run() {
                             if (connectionStateCallback != null)
-                                connectionStateCallback.onConnectFail(new ConnectionException(gatt, status));
+                                connectionStateCallback.onConnectFail(new ConnectException(status));
                         }
                     });
 
@@ -487,7 +487,7 @@ public class Peripheral {
                     @Override
                     public void run() {
                         if (connectionStateCallback != null)
-                            connectionStateCallback.onConnectFail(new ConnectionException(gatt, status));
+                            connectionStateCallback.onConnectFail(new ConnectException(status));
                     }
                 });
             }

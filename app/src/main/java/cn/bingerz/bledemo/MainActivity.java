@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (btn_scan.getText().equals(getString(R.string.start_scan))) {
                     checkPermissions();
                 } else if (btn_scan.getText().equals(getString(R.string.stop_scan))) {
-                    CentralManager.getInstance().cancelScan();
+                    stopScan();
                 }
                 break;
 
@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onConnect(Peripheral peripheral) {
                 if (!CentralManager.getInstance().isConnected(peripheral.getKey())) {
-                    CentralManager.getInstance().cancelScan();
+                    stopScan();
                     connect(peripheral);
                 }
             }
@@ -245,6 +245,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 btn_scan.setText(getString(R.string.start_scan));
             }
         });
+    }
+
+    private void stopScan() {
+        if (CentralManager.getInstance().isScanning()) {
+            CentralManager.getInstance().cancelScan();
+        }
     }
 
     private void connect(Peripheral peripheral) {

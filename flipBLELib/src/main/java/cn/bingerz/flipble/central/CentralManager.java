@@ -18,8 +18,7 @@ import cn.bingerz.flipble.peripheral.MultiplePeripheralController;
 import cn.bingerz.flipble.peripheral.Peripheral;
 import cn.bingerz.flipble.central.callback.ScanCallback;
 import cn.bingerz.flipble.exception.BLEException;
-import cn.bingerz.flipble.exception.OtherException;
-import cn.bingerz.flipble.exception.hanlder.DefaultBleExceptionHandler;
+import cn.bingerz.flipble.exception.hanlder.DefaultExceptionHandler;
 import cn.bingerz.flipble.utils.EasyLog;
 
 /**
@@ -42,7 +41,8 @@ public class CentralManager {
     private Application mContext;
     private BluetoothAdapter mBluetoothAdapter;
     private MultiplePeripheralController mMultiPeripheralController;
-    private DefaultBleExceptionHandler mBLEExceptionHandler;
+
+    private DefaultExceptionHandler mBLEExceptionHandler;
 
     private CentralManager() {}
 
@@ -55,14 +55,17 @@ public class CentralManager {
     }
 
     public void init(Application application) {
-        if (mContext == null && application != null) {
+        if (application == null) {
+            throw new IllegalArgumentException("Init exception, application is null.");
+        }
+        if (mContext == null) {
             mContext = application;
             EasyLog.setExplicitTag("FlipBLE");
             BluetoothManager bluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
             if (bluetoothManager != null) {
                 mBluetoothAdapter = bluetoothManager.getAdapter();
             }
-            mBLEExceptionHandler = new DefaultBleExceptionHandler();
+            mBLEExceptionHandler = new DefaultExceptionHandler();
             mMultiPeripheralController = new MultiplePeripheralController();
 
             mScanRuleConfig = new ScanRuleConfig();
@@ -73,10 +76,16 @@ public class CentralManager {
     /**
      * Get the BleScanner
      */
-    public CentralScanner getBleScanner() {
+    public CentralScanner getScanner() {
         return mCentralScanner;
     }
 
+    public boolean isScanning() {
+        if (mCentralScanner == null) {
+            throw new IllegalStateException("Central Scanner is null.");
+        }
+        return mCentralScanner.getScanState() == CentralScanState.STATE_SCANNING;
+    }
     /**
      * get the ScanRuleConfig
      */
@@ -93,15 +102,12 @@ public class CentralManager {
 
     /**
      * scan device around
+     * Caution:Above Android 6.0,
+     * ensure ACCESS_FINE_LOCATION and ACCESS_COARSE_LOCATION permissions have been granted
      */
     public void scan(ScanCallback callback) {
         if (callback == null) {
-            throw new IllegalArgumentException("BleScanCallback can not be Null!");
-        }
-
-        if (!isBluetoothEnable()) {
-            handleException(new OtherException("BlueTooth not enable!"));
-            return;
+            throw new IllegalArgumentException("ScanCallback can not be null!");
         }
 
         UUID[] serviceUUIDs  = mScanRuleConfig.getServiceUUIDs();

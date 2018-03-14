@@ -3,26 +3,24 @@ package cn.bingerz.flipble.exception;
 
 public class GattException extends BLEException {
 
-    private int gattStatus;
+    private int status;
 
-    public GattException(int gattStatus) {
-        super(ERROR_CODE_GATT, "Gatt Exception Occurred! ");
-        this.gattStatus = gattStatus;
+    public GattException(int status) {
+        super(ERR_CODE_GATT, "Gatt Exception occurred - status=" + status);
+        this.status = status;
     }
 
-    public int getGattStatus() {
-        return gattStatus;
+    public int getStatus() {
+        return status;
     }
 
-    public GattException setGattStatus(int gattStatus) {
-        this.gattStatus = gattStatus;
+    public GattException setStatus(int status) {
+        this.status = status;
         return this;
     }
 
     @Override
     public String toString() {
-        return "GattException{" +
-               "gattStatus=" + gattStatus +
-               "} " + super.toString();
+        return "GattException{" + "status=" + status + "} " + super.toString();
     }
 }

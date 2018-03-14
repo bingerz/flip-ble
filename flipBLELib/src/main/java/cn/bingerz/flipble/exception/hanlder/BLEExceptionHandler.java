@@ -3,8 +3,8 @@ package cn.bingerz.flipble.exception.hanlder;
 import cn.bingerz.flipble.exception.BLEException;
 import cn.bingerz.flipble.exception.GattException;
 import cn.bingerz.flipble.exception.ConnectException;
-import cn.bingerz.flipble.exception.NotFoundDeviceException;
 import cn.bingerz.flipble.exception.OtherException;
+import cn.bingerz.flipble.exception.ScanException;
 import cn.bingerz.flipble.exception.TimeoutException;
 
 public abstract class BLEExceptionHandler {
@@ -12,19 +12,14 @@ public abstract class BLEExceptionHandler {
     public BLEExceptionHandler handleException(BLEException exception) {
 
         if (exception != null) {
-
             if (exception instanceof ConnectException) {
                 onConnectException((ConnectException) exception);
-
             } else if (exception instanceof GattException) {
                 onGattException((GattException) exception);
-
             } else if (exception instanceof TimeoutException) {
                 onTimeoutException((TimeoutException) exception);
-
-            } else if (exception instanceof NotFoundDeviceException) {
-                onNotFoundDeviceException((NotFoundDeviceException) exception);
-
+            } else if (exception instanceof ScanException) {
+                onScanException((ScanException) exception);
             } else {
                 onOtherException((OtherException) exception);
             }
@@ -48,9 +43,9 @@ public abstract class BLEExceptionHandler {
     protected abstract void onTimeoutException(TimeoutException e);
 
     /**
-     * not found device error
+     * scan device failure
      */
-    protected abstract void onNotFoundDeviceException(NotFoundDeviceException e);
+    protected abstract void onScanException(ScanException e);
 
     /**
      * other exceptions

@@ -7,6 +7,7 @@ import android.os.Build;
 import java.util.List;
 import java.util.UUID;
 
+import cn.bingerz.flipble.exception.ScanException;
 import cn.bingerz.flipble.peripheral.Peripheral;
 import cn.bingerz.flipble.central.callback.ScanCallback;
 
@@ -63,14 +64,20 @@ public class CentralScanner {
 
     private synchronized void startLeScan(UUID[] serviceUUIDs, CentralScannerPresenter presenter) {
         if (presenter == null) {
-            return;
+            throw new IllegalArgumentException("CentralScannerPresenter is null.");
+        }
+
+        if (scanState == CentralScanState.STATE_SCANNING) {
+            throw new IllegalStateException("Central Scanner is running.");
         }
 
         this.centralScannerPresenter = presenter;
         boolean success = false;
         BluetoothAdapter bluetoothAdapter = CentralManager.getInstance().getBluetoothAdapter();
-        if (bluetoothAdapter != null) {
+        if (CentralManager.getInstance().isBluetoothEnable()) {
             success = bluetoothAdapter.startLeScan(serviceUUIDs, presenter);
+        } else {
+            CentralManager.getInstance().handleException(new ScanException("BT adapter is not turn on."));
         }
         scanState = success ? CentralScanState.STATE_SCANNING : CentralScanState.STATE_IDLE;
         centralScannerPresenter.notifyScanStarted(success);
@@ -81,9 +88,15 @@ public class CentralScanner {
             return;
         }
 
+        if (scanState == CentralScanState.STATE_IDLE) {
+            throw new IllegalStateException("Central Scanner is stopped.");
+        }
+
         BluetoothAdapter bluetoothAdapter = CentralManager.getInstance().getBluetoothAdapter();
-        if (bluetoothAdapter != null) {
+        if (CentralManager.getInstance().isBluetoothEnable()) {
             bluetoothAdapter.stopLeScan(centralScannerPresenter);
+        } else {
+            CentralManager.getInstance().handleException(new ScanException("BT adapter is not turn on."));
         }
         scanState = CentralScanState.STATE_IDLE;
         centralScannerPresenter.notifyScanStopped();

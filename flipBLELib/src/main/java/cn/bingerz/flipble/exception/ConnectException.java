@@ -1,42 +1,25 @@
 package cn.bingerz.flipble.exception;
 
-import android.bluetooth.BluetoothGatt;
-
-
 public class ConnectException extends BLEException {
 
-    private BluetoothGatt bluetoothGatt;
-    private int gattStatus;
+    private int status;
 
-    public ConnectException(BluetoothGatt bluetoothGatt, int gattStatus) {
-        super(ERROR_CODE_GATT, "Gatt Exception Occurred! ");
-        this.bluetoothGatt = bluetoothGatt;
-        this.gattStatus = gattStatus;
+    public ConnectException(int status) {
+        super(ERR_CODE_GATT, "Connect Exception occurred - status=" + status);
+        this.status = status;
     }
 
-    public int getGattStatus() {
-        return gattStatus;
+    public int getStatus() {
+        return status;
     }
 
-    public ConnectException setGattStatus(int gattStatus) {
-        this.gattStatus = gattStatus;
-        return this;
-    }
-
-    public BluetoothGatt getBluetoothGatt() {
-        return bluetoothGatt;
-    }
-
-    public ConnectException setBluetoothGatt(BluetoothGatt bluetoothGatt) {
-        this.bluetoothGatt = bluetoothGatt;
+    public ConnectException setStatus(int status) {
+        this.status = status;
         return this;
     }
 
     @Override
     public String toString() {
-        return "ConnectException{" +
-               "gattStatus=" + gattStatus +
-               ", bluetoothGatt=" + bluetoothGatt +
-               "} " + super.toString();
+        return "ConnectException{" + "status=" + status + '}';
     }
 }

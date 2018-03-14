@@ -100,7 +100,9 @@ public abstract class CentralScannerPresenter implements BluetoothAdapter.LeScan
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    CentralManager.getInstance().getBleScanner().stopLeScan();
+                    if (CentralManager.getInstance().isScanning()) {
+                        CentralManager.getInstance().getScanner().stopLeScan();
+                    }
                 }
             }, mScanTimeout);
         }

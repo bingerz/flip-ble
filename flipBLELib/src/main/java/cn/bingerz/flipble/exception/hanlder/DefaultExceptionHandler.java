@@ -2,39 +2,39 @@ package cn.bingerz.flipble.exception.hanlder;
 
 import cn.bingerz.flipble.exception.GattException;
 import cn.bingerz.flipble.exception.ConnectException;
-import cn.bingerz.flipble.exception.NotFoundDeviceException;
 import cn.bingerz.flipble.exception.OtherException;
+import cn.bingerz.flipble.exception.ScanException;
 import cn.bingerz.flipble.exception.TimeoutException;
 import cn.bingerz.flipble.utils.EasyLog;
 
-public class DefaultBleExceptionHandler extends BLEExceptionHandler {
+public class DefaultExceptionHandler extends BLEExceptionHandler {
 
-    public DefaultBleExceptionHandler() {
+    public DefaultExceptionHandler() {
 
     }
 
     @Override
     protected void onConnectException(ConnectException e) {
-        EasyLog.e(e.getDescription());
+        EasyLog.e("ConnectException:" + e.getMessage());
     }
 
     @Override
     protected void onGattException(GattException e) {
-        EasyLog.e(e.getDescription());
+        EasyLog.e("GattException:" + e.getMessage());
     }
 
     @Override
     protected void onTimeoutException(TimeoutException e) {
-        EasyLog.e(e.getDescription());
+        EasyLog.e("TimeoutException:" + e.getMessage());
     }
 
     @Override
-    protected void onNotFoundDeviceException(NotFoundDeviceException e) {
-        EasyLog.e(e.getDescription());
+    protected void onScanException(ScanException e) {
+        EasyLog.e("ScanException:" + e.getMessage());
     }
 
     @Override
     protected void onOtherException(OtherException e) {
-        EasyLog.e(e.getDescription());
+        EasyLog.e("OtherException:" + e.getMessage());
     }
 }
