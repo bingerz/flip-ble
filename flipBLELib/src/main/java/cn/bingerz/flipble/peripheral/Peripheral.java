@@ -10,17 +10,18 @@ import android.bluetooth.BluetoothGattService;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.central.ScanRecord;
 import cn.bingerz.flipble.exception.ConnectException;
-import cn.bingerz.flipble.peripheral.callback.ConnectionStateCallback;
+import cn.bingerz.flipble.peripheral.callback.ConnectStateCallback;
 import cn.bingerz.flipble.peripheral.callback.IndicateCallback;
 import cn.bingerz.flipble.peripheral.callback.MtuChangedCallback;
 import cn.bingerz.flipble.peripheral.callback.NotifyCallback;
@@ -41,8 +42,8 @@ public class Peripheral {
     private static final int DEFAULT_MTU = 23;
     private static final int DEFAULT_MAX_MTU = 512;
 
-    private ConnectionState connectState = ConnectionState.CONNECT_IDLE;
-    private Handler handler = new Handler(Looper.getMainLooper());
+    private ConnectionState mConnectState = ConnectionState.CONNECT_IDLE;
+    private Handler mHandler = new Handler(Looper.getMainLooper());
     private boolean isActivityDisconnect = false;
 
     private float mRssi;
@@ -52,14 +53,13 @@ public class Peripheral {
     private BluetoothDevice mDevice;
     private BluetoothGatt mBluetoothGatt;
 
-    private ConnectionStateCallback connectionStateCallback;
-    private RssiCallback rssiCallback;
-    private MtuChangedCallback mtuChangedCallback;
-    private HashMap<String, NotifyCallback> notifyCallbackHashMap = new HashMap<>();
-    private HashMap<String, IndicateCallback> indicateCallbackHashMap = new HashMap<>();
-    private HashMap<String, WriteCallback> writeCallbackHashMap = new HashMap<>();
-    private HashMap<String, ReadCallback> readCallbackHashMap = new HashMap<>();
-
+    private ConnectStateCallback mConnectStateCallback;
+    private RssiCallback mRssiCallback;
+    private MtuChangedCallback mMtuChangedCallback;
+    private Map<String, NotifyCallback> mNotifyCallbackMap = new ConcurrentHashMap<>();
+    private Map<String, IndicateCallback> mIndicateCallbackMap = new ConcurrentHashMap<>();
+    private Map<String, WriteCallback> mWriteCallbackMap = new ConcurrentHashMap<>();
+    private Map<String, ReadCallback> mReadCallbackMap = new ConcurrentHashMap<>();
 
     public Peripheral(BluetoothDevice device) {
         this.mDevice = device;
@@ -123,85 +123,153 @@ public class Peripheral {
     }
 
     public ConnectionState getConnectState() {
-        return connectState;
+        return mConnectState;
     }
 
     public BluetoothGatt getBluetoothGatt() {
         return mBluetoothGatt;
     }
 
-    public synchronized void addConnectionStateCallback(ConnectionStateCallback callback) {
-        this.connectionStateCallback = callback;
+    public synchronized void addConnectionStateCallback(ConnectStateCallback callback) {
+        this.mConnectStateCallback = callback;
     }
 
     public synchronized void removeConnectionStateCallback() {
-        this.connectionStateCallback = null;
+        this.mConnectStateCallback = null;
     }
 
     public synchronized void addNotifyCallback(String uuid, NotifyCallback notifyCallback) {
-        notifyCallbackHashMap.put(uuid, notifyCallback);
-    }
-
-    public synchronized void addIndicateCallback(String uuid, IndicateCallback indicateCallback) {
-        indicateCallbackHashMap.put(uuid, indicateCallback);
-    }
-
-    public synchronized void addWriteCallback(String uuid, WriteCallback writeCallback) {
-        writeCallbackHashMap.put(uuid, writeCallback);
-    }
-
-    public synchronized void addReadCallback(String uuid, ReadCallback readCallback) {
-        readCallbackHashMap.put(uuid, readCallback);
+        mNotifyCallbackMap.put(uuid, notifyCallback);
     }
 
     public synchronized void removeNotifyCallback(String uuid) {
-        if (notifyCallbackHashMap.containsKey(uuid))
-            notifyCallbackHashMap.remove(uuid);
+        if (mNotifyCallbackMap.containsKey(uuid)) {
+            mNotifyCallbackMap.remove(uuid);
+        }
+    }
+
+    private NotifyCallback findNotifyCallback(String uuid) {
+        if (TextUtils.isEmpty(uuid)) {
+            return null;
+        }
+        Iterator iterator = mNotifyCallbackMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry entry = (Map.Entry) iterator.next();
+            NotifyCallback notifyCallback = (NotifyCallback) entry.getValue();
+            if (notifyCallback.getKey().equalsIgnoreCase(uuid)) {
+                return notifyCallback;
+            }
+        }
+        return null;
+    }
+
+    public synchronized void addIndicateCallback(String uuid, IndicateCallback indicateCallback) {
+        mIndicateCallbackMap.put(uuid, indicateCallback);
     }
 
     public synchronized void removeIndicateCallback(String uuid) {
-        if (indicateCallbackHashMap.containsKey(uuid))
-            indicateCallbackHashMap.remove(uuid);
+        if (mIndicateCallbackMap.containsKey(uuid)) {
+            mIndicateCallbackMap.remove(uuid);
+        }
+    }
+
+    private IndicateCallback findIndicateCallback(String uuid) {
+        if (TextUtils.isEmpty(uuid)) {
+            return null;
+        }
+        Iterator iterator = mIndicateCallbackMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry entry = (Map.Entry) iterator.next();
+            IndicateCallback indicateCallback = (IndicateCallback) entry.getValue();
+            if (indicateCallback.getKey().equalsIgnoreCase(uuid)) {
+                return indicateCallback;
+            }
+        }
+        return null;
+    }
+
+    public synchronized void addWriteCallback(String uuid, WriteCallback writeCallback) {
+        mWriteCallbackMap.put(uuid, writeCallback);
     }
 
     public synchronized void removeWriteCallback(String uuid) {
-        if (writeCallbackHashMap.containsKey(uuid))
-            writeCallbackHashMap.remove(uuid);
+        if (mWriteCallbackMap.containsKey(uuid)) {
+            mWriteCallbackMap.remove(uuid);
+        }
+    }
+
+    private WriteCallback findWriteCallback(String uuid) {
+        if (TextUtils.isEmpty(uuid)) {
+            return null;
+        }
+        Iterator iterator = mWriteCallbackMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry entry = (Map.Entry) iterator.next();
+            WriteCallback writeCallback = (WriteCallback) entry.getValue();
+            if (writeCallback.getKey().equalsIgnoreCase(uuid)) {
+                return writeCallback;
+            }
+        }
+        return null;
+    }
+
+    public synchronized void addReadCallback(String uuid, ReadCallback readCallback) {
+        mReadCallbackMap.put(uuid, readCallback);
     }
 
     public synchronized void removeReadCallback(String uuid) {
-        if (readCallbackHashMap.containsKey(uuid))
-            readCallbackHashMap.remove(uuid);
+        if (mReadCallbackMap.containsKey(uuid)) {
+            mReadCallbackMap.remove(uuid);
+        }
+    }
+
+    private ReadCallback findReadCallback(String uuid) {
+        if (TextUtils.isEmpty(uuid)) {
+            return null;
+        }
+        Iterator iterator = mReadCallbackMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry entry = (Map.Entry) iterator.next();
+            ReadCallback readCallback = (ReadCallback) entry.getValue();
+            if (readCallback.getKey().equalsIgnoreCase(uuid)) {
+                return readCallback;
+            }
+        }
+        return null;
     }
 
     public synchronized void clearCharacterCallback() {
-        if (notifyCallbackHashMap != null)
-            notifyCallbackHashMap.clear();
-        if (indicateCallbackHashMap != null)
-            indicateCallbackHashMap.clear();
-        if (writeCallbackHashMap != null)
-            writeCallbackHashMap.clear();
-        if (readCallbackHashMap != null)
-            readCallbackHashMap.clear();
+        if (mNotifyCallbackMap != null) {
+            mNotifyCallbackMap.clear();
+        }
+        if (mIndicateCallbackMap != null) {
+            mIndicateCallbackMap.clear();
+        }
+        if (mWriteCallbackMap != null) {
+            mWriteCallbackMap.clear();
+        }
+        if (mReadCallbackMap != null) {
+            mReadCallbackMap.clear();
+        }
     }
 
     public synchronized void addRssiCallback(RssiCallback callback) {
-        rssiCallback = callback;
+        mRssiCallback = callback;
     }
 
     public synchronized void removeRssiCallback() {
-        rssiCallback = null;
+        mRssiCallback = null;
     }
 
     public synchronized void addMtuChangedCallback(MtuChangedCallback callback) {
-        mtuChangedCallback = callback;
+        mMtuChangedCallback = callback;
     }
 
     public synchronized void removeMtuChangedCallback() {
-        mtuChangedCallback = null;
+        mMtuChangedCallback = null;
     }
 
-    private boolean connect(boolean autoConnect, ConnectionStateCallback callback) {
+    private boolean connect(boolean autoConnect, ConnectStateCallback callback) {
         EasyLog.i("connect device:%s mac:%s autoConnect:%s", getName(), getAddress(), autoConnect);
         addConnectionStateCallback(callback);
 
@@ -212,10 +280,10 @@ public class Peripheral {
             mBluetoothGatt = mDevice.connectGatt(CentralManager.getInstance().getContext(), autoConnect, coreGattCallback);
         }
         if (mBluetoothGatt != null) {
-            if (connectionStateCallback != null) {
-                connectionStateCallback.onStartConnect();
+            if (mConnectStateCallback != null) {
+                mConnectStateCallback.onStartConnect();
             }
-            connectState = ConnectionState.CONNECT_CONNECTING;
+            mConnectState = ConnectionState.CONNECT_CONNECTING;
             return true;
         }
         return false;
@@ -241,8 +309,8 @@ public class Peripheral {
             isActivityDisconnect = true;
             mBluetoothGatt.disconnect();
         }
-        if (handler != null) {
-            handler.removeCallbacksAndMessages(null);
+        if (mHandler != null) {
+            mHandler.removeCallbacksAndMessages(null);
         }
     }
 
@@ -253,7 +321,7 @@ public class Peripheral {
     }
 
     public synchronized void destroy() {
-        connectState = ConnectionState.CONNECT_IDLE;
+        mConnectState = ConnectionState.CONNECT_IDLE;
         if (mBluetoothGatt != null) {
             mBluetoothGatt.disconnect();
         }
@@ -267,8 +335,8 @@ public class Peripheral {
         removeRssiCallback();
         removeMtuChangedCallback();
         clearCharacterCallback();
-        if (handler != null) {
-            handler.removeCallbacksAndMessages(null);
+        if (mHandler != null) {
+            mHandler.removeCallbacksAndMessages(null);
         }
     }
 
@@ -298,7 +366,7 @@ public class Peripheral {
     /**
      * connect a known device
      */
-    public synchronized boolean connect(ConnectionStateCallback connectionStateCallback) {
+    public synchronized boolean connect(ConnectStateCallback connectionStateCallback) {
         if (connectionStateCallback == null) {
             throw new IllegalArgumentException("BleGattCallback can not be Null!");
         }
@@ -351,7 +419,8 @@ public class Peripheral {
      * stop indicate, remove callback
      */
     public boolean stopIndicate(String serviceUUID, String indicateUUID) {
-        boolean success = newPeripheralController().withUUIDString(serviceUUID, indicateUUID)
+        boolean success = newPeripheralController()
+                .withUUIDString(serviceUUID, indicateUUID)
                 .disableCharacteristicIndicate();
         if (success) {
             removeIndicateCallback(indicateUUID);
@@ -377,7 +446,9 @@ public class Peripheral {
             EasyLog.w("data's length beyond 20!");
         }
 
-        newPeripheralController().withUUIDString(serviceUUID, writeUUID).writeCharacteristic(data, callback, writeUUID);
+        newPeripheralController()
+                .withUUIDString(serviceUUID, writeUUID)
+                .writeCharacteristic(data, callback, writeUUID);
     }
 
     /**
@@ -388,7 +459,8 @@ public class Peripheral {
             throw new IllegalArgumentException("BleReadCallback can not be Null!");
         }
 
-        newPeripheralController().withUUIDString(serviceUUID, readUUID)
+        newPeripheralController()
+                .withUUIDString(serviceUUID, readUUID)
                 .readCharacteristic(callback, readUUID);
     }
 
@@ -431,7 +503,7 @@ public class Peripheral {
         @Override
         public void onConnectionStateChange(final BluetoothGatt gatt, final int status, final int newState) {
             super.onConnectionStateChange(gatt, status, newState);
-            EasyLog.i("BluetoothGattCallback：Connection State Change\nstatus: %d\nnewState: %d\ncurrentThread: %d",
+            EasyLog.i("BluetoothGattCallback：Connection State Change\nstatus: %d  newState: %d  currentThread: %d",
                     status, newState, Thread.currentThread().getId());
 
             if (newState == BluetoothGatt.STATE_CONNECTED) {
@@ -439,23 +511,25 @@ public class Peripheral {
             } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
                 closeBluetoothGatt();
                 CentralManager.getInstance().getMultiplePeripheralController().removePeripheral(Peripheral.this);
-                if (connectState == ConnectionState.CONNECT_CONNECTING) {
-                    connectState = ConnectionState.CONNECT_FAILURE;
-                    handler.post(new Runnable() {
+                if (mConnectState == ConnectionState.CONNECT_CONNECTING) {
+                    mConnectState = ConnectionState.CONNECT_FAILURE;
+                    mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            if (connectionStateCallback != null)
-                                connectionStateCallback.onConnectFail(new ConnectException(status));
+                            if (mConnectStateCallback != null) {
+                                mConnectStateCallback.onConnectFail(new ConnectException(status));
+                            }
                         }
                     });
 
-                } else if (connectState == ConnectionState.CONNECT_CONNECTED) {
-                    connectState = ConnectionState.CONNECT_DISCONNECT;
-                    handler.post(new Runnable() {
+                } else if (mConnectState == ConnectionState.CONNECT_CONNECTED) {
+                    mConnectState = ConnectionState.CONNECT_DISCONNECT;
+                    mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            if (connectionStateCallback != null)
-                                connectionStateCallback.onDisConnected(isActivityDisconnect, Peripheral.this, newState);
+                            if (mConnectStateCallback != null) {
+                                mConnectStateCallback.onDisConnected(isActivityDisconnect, Peripheral.this, newState);
+                            }
                         }
                     });
                 }
@@ -465,29 +539,31 @@ public class Peripheral {
         @Override
         public void onServicesDiscovered(final BluetoothGatt gatt, final int status) {
             super.onServicesDiscovered(gatt, status);
-            EasyLog.i("BluetoothGattCallback：services discovered\nstatus: %d\ncurrentThread: %d",
+            EasyLog.i("BluetoothGattCallback：services discovered\nstatus: %d  currentThread: %d",
                     status, Thread.currentThread().getId());
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 mBluetoothGatt = gatt;
-                connectState = ConnectionState.CONNECT_CONNECTED;
+                mConnectState = ConnectionState.CONNECT_CONNECTED;
                 isActivityDisconnect = false;
                 CentralManager.getInstance().getMultiplePeripheralController().addPeripheral(Peripheral.this);
-                handler.post(new Runnable() {
+                mHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        if (connectionStateCallback != null)
-                            connectionStateCallback.onConnectSuccess(Peripheral.this, status);
+                        if (mConnectStateCallback != null) {
+                            mConnectStateCallback.onConnectSuccess(Peripheral.this, status);
+                        }
                     }
                 });
             } else {
                 closeBluetoothGatt();
-                connectState = ConnectionState.CONNECT_FAILURE;
-                handler.post(new Runnable() {
+                mConnectState = ConnectionState.CONNECT_FAILURE;
+                mHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        if (connectionStateCallback != null)
-                            connectionStateCallback.onConnectFail(new ConnectException(status));
+                        if (mConnectStateCallback != null) {
+                            mConnectStateCallback.onConnectFail(new ConnectException(status));
+                        }
                     }
                 });
             }
@@ -498,38 +574,25 @@ public class Peripheral {
             super.onCharacteristicChanged(gatt, characteristic);
             EasyLog.i("BluetoothGattCallback：onCharacteristicChanged ");
 
-            Iterator iterator = notifyCallbackHashMap.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                final Object call = entry.getValue();
-                if (call instanceof NotifyCallback) {
-                    if (characteristic.getUuid().toString().equalsIgnoreCase(((NotifyCallback) call).getKey())) {
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                ((NotifyCallback) call).onCharacteristicChanged(characteristic.getValue());
-                            }
-                        });
+            final NotifyCallback notifyCallback = findNotifyCallback(characteristic.getUuid().toString());
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (notifyCallback != null) {
+                        notifyCallback.onCharacteristicChanged(characteristic.getValue());
                     }
                 }
-            }
+            });
 
-            iterator = indicateCallbackHashMap.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                final Object call = entry.getValue();
-                if (call instanceof IndicateCallback) {
-                    if (characteristic.getUuid().toString().equalsIgnoreCase(((IndicateCallback) call).getKey())) {
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                ((IndicateCallback) call).onCharacteristicChanged(characteristic.getValue());
-                            }
-                        });
+            final IndicateCallback indicateCallback = findIndicateCallback(characteristic.getUuid().toString());
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (indicateCallback != null) {
+                        indicateCallback.onCharacteristicChanged(characteristic.getValue());
                     }
                 }
-            }
-
+            });
         }
 
         @Override
@@ -537,26 +600,22 @@ public class Peripheral {
             super.onCharacteristicWrite(gatt, characteristic, status);
             EasyLog.i("BluetoothGattCallback：onCharacteristicWrite ");
 
-            Iterator iterator = writeCallbackHashMap.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                final Object call = entry.getValue();
-                if (call instanceof WriteCallback) {
-                    if (characteristic.getUuid().toString().equalsIgnoreCase(((WriteCallback) call).getKey())) {
-                        ((WriteCallback) call).getPeripheralConnector().writeMsgInit();
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (status == BluetoothGatt.GATT_SUCCESS) {
-                                    ((WriteCallback) call).onWriteSuccess();
-                                } else {
-                                    ((WriteCallback) call).onWriteFailure(new GattException(status));
-                                }
-                            }
-                        });
+            final WriteCallback writeCallback = findWriteCallback(characteristic.getUuid().toString());
+            if (writeCallback != null) {
+                writeCallback.getPeripheralConnector().notifyMsgInit();
+            }
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (writeCallback != null) {
+                        if (status == BluetoothGatt.GATT_SUCCESS) {
+                            writeCallback.onWriteSuccess();
+                        } else {
+                            writeCallback.onWriteFailure(new GattException(status));
+                        }
                     }
                 }
-            }
+            });
         }
 
         @Override
@@ -564,26 +623,22 @@ public class Peripheral {
             super.onCharacteristicRead(gatt, characteristic, status);
             EasyLog.i("BluetoothGattCallback：onCharacteristicRead ");
 
-            Iterator iterator = readCallbackHashMap.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                final Object call = entry.getValue();
-                if (call instanceof ReadCallback) {
-                    if (characteristic.getUuid().toString().equalsIgnoreCase(((ReadCallback) call).getKey())) {
-                        ((ReadCallback) call).getPeripheralConnector().readMsgInit();
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (status == BluetoothGatt.GATT_SUCCESS) {
-                                    ((ReadCallback) call).onReadSuccess(characteristic.getValue());
-                                } else {
-                                    ((ReadCallback) call).onReadFailure(new GattException(status));
-                                }
-                            }
-                        });
+            final ReadCallback readCallback = findReadCallback(characteristic.getUuid().toString());
+            if (readCallback != null) {
+                readCallback.getPeripheralConnector().readMsgInit();
+            }
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (readCallback != null) {
+                        if (status == BluetoothGatt.GATT_SUCCESS) {
+                            readCallback.onReadSuccess(characteristic.getValue());
+                        } else {
+                            readCallback.onReadFailure(new GattException(status));
+                        }
                     }
                 }
-            }
+            });
         }
 
         @Override
@@ -591,47 +646,41 @@ public class Peripheral {
             super.onDescriptorWrite(gatt, descriptor, status);
             EasyLog.i("GattCallback：onDescriptorWrite ");
 
-            Iterator iterator = notifyCallbackHashMap.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                final Object call = entry.getValue();
-                if (call instanceof NotifyCallback) {
-                    if (descriptor.getCharacteristic().getUuid().toString().equalsIgnoreCase(((NotifyCallback) call).getKey())) {
-                        ((NotifyCallback) call).getPeripheralConnector().notifyMsgInit();
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (status == BluetoothGatt.GATT_SUCCESS) {
-                                    ((NotifyCallback) call).onNotifySuccess();
-                                } else {
-                                    ((NotifyCallback) call).onNotifyFailure(new GattException(status));
-                                }
-                            }
-                        });
-                    }
-                }
-            }
+            String uuid = descriptor.getCharacteristic().getUuid().toString();
 
-            iterator = indicateCallbackHashMap.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                final Object call = entry.getValue();
-                if (call instanceof IndicateCallback) {
-                    if (descriptor.getCharacteristic().getUuid().toString().equalsIgnoreCase(((IndicateCallback) call).getKey())) {
-                        ((IndicateCallback) call).getPeripheralConnector().indicateMsgInit();
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (status == BluetoothGatt.GATT_SUCCESS) {
-                                    ((IndicateCallback) call).onIndicateSuccess();
-                                } else {
-                                    ((IndicateCallback) call).onIndicateFailure(new GattException(status));
-                                }
-                            }
-                        });
+            final NotifyCallback notifyCallback = findNotifyCallback(uuid);
+            if (notifyCallback != null) {
+                notifyCallback.getPeripheralConnector().notifyMsgInit();
+            }
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (notifyCallback != null) {
+                        if (status == BluetoothGatt.GATT_SUCCESS) {
+                            notifyCallback.onNotifySuccess();
+                        } else {
+                            notifyCallback.onNotifyFailure(new GattException(status));
+                        }
                     }
                 }
+            });
+
+            final IndicateCallback indicateCallback = findIndicateCallback(uuid);
+            if (indicateCallback != null) {
+                indicateCallback.getPeripheralConnector().notifyMsgInit();
             }
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (indicateCallback != null) {
+                        if (status == BluetoothGatt.GATT_SUCCESS) {
+                            indicateCallback.onIndicateSuccess();
+                        } else {
+                            indicateCallback.onIndicateFailure(new GattException(status));
+                        }
+                    }
+                }
+            });
         }
 
         @Override
@@ -645,15 +694,15 @@ public class Peripheral {
             super.onReadRemoteRssi(gatt, rssi, status);
             EasyLog.i("BluetoothGattCallback：onReadRemoteRssi status: %d", status);
 
-            if (rssiCallback != null) {
-                rssiCallback.getPeripheralConnector().rssiMsgInit();
-                handler.post(new Runnable() {
+            if (mRssiCallback != null) {
+                mRssiCallback.getPeripheralConnector().rssiMsgInit();
+                mHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         if (status == BluetoothGatt.GATT_SUCCESS) {
-                            rssiCallback.onRssiSuccess(rssi);
+                            mRssiCallback.onRssiSuccess(rssi);
                         } else {
-                            rssiCallback.onRssiFailure(new GattException(status));
+                            mRssiCallback.onRssiFailure(new GattException(status));
                         }
                     }
                 });
@@ -666,15 +715,15 @@ public class Peripheral {
             super.onMtuChanged(gatt, mtu, status);
             EasyLog.i("BluetoothGattCallback：onMtuChanged ");
 
-            if (mtuChangedCallback != null) {
-                mtuChangedCallback.getPeripheralConnector().mtuChangedMsgInit();
-                handler.post(new Runnable() {
+            if (mMtuChangedCallback != null) {
+                mMtuChangedCallback.getPeripheralConnector().mtuChangedMsgInit();
+                mHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         if (status == BluetoothGatt.GATT_SUCCESS) {
-                            mtuChangedCallback.onMtuChanged(mtu);
+                            mMtuChangedCallback.onMtuChanged(mtu);
                         } else {
-                            mtuChangedCallback.onSetMTUFailure(new GattException(status));
+                            mMtuChangedCallback.onSetMTUFailure(new GattException(status));
                         }
                     }
                 });

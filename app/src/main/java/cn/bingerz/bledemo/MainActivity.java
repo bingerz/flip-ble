@@ -42,7 +42,7 @@ import cn.bingerz.bledemo.operation.OperationActivity;
 import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.exception.BLEException;
 import cn.bingerz.flipble.peripheral.Peripheral;
-import cn.bingerz.flipble.peripheral.callback.ConnectionStateCallback;
+import cn.bingerz.flipble.peripheral.callback.ConnectStateCallback;
 import cn.bingerz.flipble.peripheral.callback.MtuChangedCallback;
 import cn.bingerz.flipble.peripheral.callback.RssiCallback;
 import cn.bingerz.flipble.central.callback.ScanCallback;
@@ -254,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void connect(Peripheral peripheral) {
-        peripheral.connect(new ConnectionStateCallback() {
+        peripheral.connect(new ConnectStateCallback() {
             @Override
             public void onStartConnect() {
                 progressDialog.show();
