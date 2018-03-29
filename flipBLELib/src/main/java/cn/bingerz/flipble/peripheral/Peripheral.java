@@ -602,7 +602,7 @@ public class Peripheral {
 
             final WriteCallback writeCallback = findWriteCallback(characteristic.getUuid().toString());
             if (writeCallback != null) {
-                writeCallback.getPeripheralConnector().notifyMsgInit();
+                writeCallback.getPeripheralConnector().writeMsgInit();
             }
             mHandler.post(new Runnable() {
                 @Override
