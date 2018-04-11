@@ -528,7 +528,7 @@ public class Peripheral {
                         @Override
                         public void run() {
                             if (mConnectStateCallback != null) {
-                                mConnectStateCallback.onDisConnected(isActivityDisconnect, Peripheral.this, newState);
+                                mConnectStateCallback.onDisConnected(isActivityDisconnect, Peripheral.this, status);
                             }
                         }
                     });
