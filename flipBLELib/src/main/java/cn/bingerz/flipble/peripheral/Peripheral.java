@@ -31,6 +31,7 @@ import cn.bingerz.flipble.peripheral.callback.WriteCallback;
 import cn.bingerz.flipble.exception.GattException;
 import cn.bingerz.flipble.exception.OtherException;
 import cn.bingerz.flipble.utils.EasyLog;
+import cn.bingerz.flipble.utils.HexUtil;
 
 /**
  * Created by hanson on 09/01/2018.
@@ -573,6 +574,7 @@ public class Peripheral {
         public void onCharacteristicChanged(final BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
             EasyLog.i("BluetoothGattCallback：onCharacteristicChanged ");
+            EasyLog.d("uuid：%s value: %s", characteristic.getUuid(), HexUtil.encodeHexStr(characteristic.getValue()));
 
             final NotifyCallback notifyCallback = findNotifyCallback(characteristic.getUuid().toString());
             mHandler.post(new Runnable() {
@@ -599,6 +601,7 @@ public class Peripheral {
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, final int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
             EasyLog.i("BluetoothGattCallback：onCharacteristicWrite ");
+            EasyLog.d("uuid：%s value: %s", characteristic.getUuid(), HexUtil.encodeHexStr(characteristic.getValue()));
 
             final WriteCallback writeCallback = findWriteCallback(characteristic.getUuid().toString());
             if (writeCallback != null) {
@@ -622,6 +625,7 @@ public class Peripheral {
         public void onCharacteristicRead(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic, final int status) {
             super.onCharacteristicRead(gatt, characteristic, status);
             EasyLog.i("BluetoothGattCallback：onCharacteristicRead ");
+            EasyLog.d("uuid：%s value: %s", characteristic.getUuid(), HexUtil.encodeHexStr(characteristic.getValue()));
 
             final ReadCallback readCallback = findReadCallback(characteristic.getUuid().toString());
             if (readCallback != null) {
@@ -645,6 +649,7 @@ public class Peripheral {
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, final int status) {
             super.onDescriptorWrite(gatt, descriptor, status);
             EasyLog.i("GattCallback：onDescriptorWrite ");
+            EasyLog.d("uuid：%s value: %s", descriptor.getUuid(), HexUtil.encodeHexStr(descriptor.getValue()));
 
             String uuid = descriptor.getCharacteristic().getUuid().toString();
 
@@ -687,6 +692,7 @@ public class Peripheral {
         public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             super.onDescriptorRead(gatt, descriptor, status);
             EasyLog.i("GattCallback：onDescriptorRead ");
+            EasyLog.d("uuid：%s value: %s", descriptor.getUuid(), HexUtil.encodeHexStr(descriptor.getValue()));
         }
 
         @Override
