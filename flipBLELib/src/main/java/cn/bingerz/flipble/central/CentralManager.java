@@ -198,8 +198,12 @@ public class CentralManager {
      * is support ble?
      */
     public boolean isSupportBle() {
+        if (mContext == null) {
+            throw new IllegalStateException("Context is not initialized.");
+        }
+        PackageManager packageManager = mContext.getApplicationContext().getPackageManager();
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
-                && mContext.getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+                && packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
     }
 
     /**
@@ -265,6 +269,9 @@ public class CentralManager {
     }
 
     public boolean isConnected(Peripheral peripheral) {
+        if (mContext == null) {
+            throw new IllegalStateException("Context is not initialized.");
+        }
         BluetoothManager bluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothDevice device = retrieveDevice(peripheral.getAddress());
         int state = bluetoothManager.getConnectionState(device, BluetoothProfile.GATT);

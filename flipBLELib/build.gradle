@@ -2,13 +2,13 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion "26.0.2"
+    buildToolsVersion "27.0.3"
 
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 22
-        versionCode 8
-        versionName "0.2.2"
+        versionCode 9
+        versionName "0.2.3"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -22,10 +22,10 @@ android {
     }
 
     task makeJar(type: Copy) {
-        from('build/intermediates/bundles/release/')
+        from('build/intermediates/intermediate-jars/release/')
         into('release/')
         include('classes.jar')
-        rename ('classes.jar', 'flipble-v0.2.2.jar')
+        rename ('classes.jar', 'flipble-v0.2.3.jar')
     }
 
     tasks.whenTaskAdded { task ->
