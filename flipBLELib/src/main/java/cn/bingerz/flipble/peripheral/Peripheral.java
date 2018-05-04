@@ -91,7 +91,7 @@ public class Peripheral {
     }
 
     public String getKey() {
-        return getName() + getAddress();
+        return getAddress();
     }
 
     public int getRssi() {
