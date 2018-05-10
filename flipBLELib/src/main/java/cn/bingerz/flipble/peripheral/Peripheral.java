@@ -387,9 +387,11 @@ public class Peripheral {
         if (callback == null) {
             throw new IllegalArgumentException("BleNotifyCallback can not be Null!");
         }
-
-        newPeripheralController().withUUIDString(serviceUUID, notifyUUID)
-                .enableCharacteristicNotify(callback, notifyUUID);
+        PeripheralController controller = newPeripheralController();
+        if (controller != null) {
+            controller.withUUIDString(serviceUUID, notifyUUID)
+                    .enableCharacteristicNotify(callback, notifyUUID);
+        }
     }
 
     /**
@@ -399,19 +401,25 @@ public class Peripheral {
         if (callback == null) {
             throw new IllegalArgumentException("BleIndicateCallback can not be Null!");
         }
-
-        newPeripheralController().withUUIDString(serviceUUID, indicateUUID)
-                .enableCharacteristicIndicate(callback, indicateUUID);
+        PeripheralController controller = newPeripheralController();
+        if (controller != null) {
+            controller.withUUIDString(serviceUUID, indicateUUID)
+                    .enableCharacteristicIndicate(callback, indicateUUID);
+        }
     }
 
     /**
      * stop notify, remove callback
      */
     public boolean stopNotify(String serviceUUID, String notifyUUID) {
-        boolean success = newPeripheralController().withUUIDString(serviceUUID, notifyUUID)
-                .disableCharacteristicNotify();
-        if (success) {
-            removeNotifyCallback(notifyUUID);
+        boolean success = false;
+        PeripheralController controller = newPeripheralController();
+        if (controller != null) {
+            success = controller.withUUIDString(serviceUUID, notifyUUID)
+                    .disableCharacteristicNotify();
+            if (success) {
+                removeNotifyCallback(notifyUUID);
+            }
         }
         return success;
     }
@@ -420,11 +428,14 @@ public class Peripheral {
      * stop indicate, remove callback
      */
     public boolean stopIndicate(String serviceUUID, String indicateUUID) {
-        boolean success = newPeripheralController()
-                .withUUIDString(serviceUUID, indicateUUID)
-                .disableCharacteristicIndicate();
-        if (success) {
-            removeIndicateCallback(indicateUUID);
+        boolean success = false;
+        PeripheralController controller = newPeripheralController();
+        if (controller != null) {
+            success = controller.withUUIDString(serviceUUID, indicateUUID)
+                    .disableCharacteristicIndicate();
+            if (success) {
+                removeIndicateCallback(indicateUUID);
+            }
         }
         return success;
     }
@@ -446,10 +457,11 @@ public class Peripheral {
         if (data.length > 20) {
             EasyLog.w("data's length beyond 20!");
         }
-
-        newPeripheralController()
-                .withUUIDString(serviceUUID, writeUUID)
-                .writeCharacteristic(data, callback, writeUUID);
+        PeripheralController controller = newPeripheralController();
+        if (controller != null) {
+            controller.withUUIDString(serviceUUID, writeUUID)
+                    .writeCharacteristic(data, callback, writeUUID);
+        }
     }
 
     /**
@@ -460,9 +472,11 @@ public class Peripheral {
             throw new IllegalArgumentException("BleReadCallback can not be Null!");
         }
 
-        newPeripheralController()
-                .withUUIDString(serviceUUID, readUUID)
-                .readCharacteristic(callback, readUUID);
+        PeripheralController controller = newPeripheralController();
+        if (controller != null) {
+            controller.withUUIDString(serviceUUID, readUUID)
+                    .readCharacteristic(callback, readUUID);
+        }
     }
 
     /**
@@ -472,8 +486,10 @@ public class Peripheral {
         if (callback == null) {
             throw new IllegalArgumentException("BleRssiCallback can not be Null!");
         }
-
-        newPeripheralController().readRemoteRssi(callback);
+        PeripheralController controller = newPeripheralController();
+        if (controller != null) {
+            controller.readRemoteRssi(callback);
+        }
     }
 
     /**
@@ -496,7 +512,10 @@ public class Peripheral {
             return;
         }
 
-        newPeripheralController().setMtu(mtu, callback);
+        PeripheralController controller = newPeripheralController();
+        if (controller != null) {
+            controller.setMtu(mtu, callback);
+        }
     }
 
     private BluetoothGattCallback coreGattCallback = new BluetoothGattCallback() {
