@@ -106,6 +106,9 @@ public class PeripheralController {
     }
 
     public PeripheralController(Peripheral peripheral) {
+        if (peripheral == null) {
+            throw new IllegalArgumentException("peripheral is null.");
+        }
         this.mPeripheral = peripheral;
         this.mBluetoothGatt = mPeripheral.getBluetoothGatt();
     }
@@ -293,7 +296,7 @@ public class PeripheralController {
 
         if (mCharacteristic.setValue(data)) {
             handleCharacteristicWriteCallback(writeCallback, writeUUID);
-            if (!mBluetoothGatt.writeCharacteristic(mCharacteristic)) {
+            if (mBluetoothGatt != null && !mBluetoothGatt.writeCharacteristic(mCharacteristic)) {
                 writeMsgInit();
                 if (writeCallback != null) {
                     writeCallback.onWriteFailure(new OtherException("gatt writeCharacteristic fail"));
@@ -314,7 +317,7 @@ public class PeripheralController {
                 && (mCharacteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
 
             handleCharacteristicReadCallback(readCallback, readUUID);
-            if (!mBluetoothGatt.readCharacteristic(mCharacteristic)) {
+            if (mBluetoothGatt != null && !mBluetoothGatt.readCharacteristic(mCharacteristic)) {
                 readMsgInit();
                 if (readCallback != null) {
                     readCallback.onReadFailure(new OtherException("gatt readCharacteristic fail"));
@@ -332,7 +335,7 @@ public class PeripheralController {
      */
     public void readRemoteRssi(RssiCallback rssiCallback) {
         handleRSSIReadCallback(rssiCallback);
-        if (!mBluetoothGatt.readRemoteRssi()) {
+        if (mBluetoothGatt != null && !mBluetoothGatt.readRemoteRssi()) {
             rssiMsgInit();
             if (rssiCallback != null) {
                 rssiCallback.onRssiFailure(new OtherException("gatt readRemoteRssi fail"));
@@ -346,7 +349,7 @@ public class PeripheralController {
     public void setMtu(int requiredMtu, MtuChangedCallback mtuChangedCallback) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             handleSetMtuCallback(mtuChangedCallback);
-            if (!mBluetoothGatt.requestMtu(requiredMtu)) {
+            if (mBluetoothGatt != null && !mBluetoothGatt.requestMtu(requiredMtu)) {
                 mtuChangedMsgInit();
                 if (mtuChangedCallback != null) {
                     mtuChangedCallback.onSetMTUFailure(new OtherException("gatt requestMtu fail"));
