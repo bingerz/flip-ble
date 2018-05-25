@@ -39,6 +39,7 @@ public class CentralManager {
     private ScanRuleConfig mScanRuleConfig;
 
     private Application mContext;
+    private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private MultiplePeripheralController mMultiPeripheralController;
 
@@ -61,9 +62,9 @@ public class CentralManager {
         if (mContext == null) {
             mContext = application;
             EasyLog.setExplicitTag("FlipBLE");
-            BluetoothManager bluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
-            if (bluetoothManager != null) {
-                mBluetoothAdapter = bluetoothManager.getAdapter();
+            mBluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
+            if (mBluetoothManager != null) {
+                mBluetoothAdapter = mBluetoothManager.getAdapter();
             }
             mBLEExceptionHandler = new DefaultExceptionHandler();
             mMultiPeripheralController = new MultiplePeripheralController();
@@ -190,7 +191,6 @@ public class CentralManager {
         return this;
     }
 
-
     /**
      * print log?
      */
@@ -198,7 +198,6 @@ public class CentralManager {
         EasyLog.setLoggable(enable);
         return this;
     }
-
 
     /**
      * is support ble?
@@ -215,6 +214,7 @@ public class CentralManager {
     /**
      * Open bluetooth
      */
+    @SuppressWarnings({"MissingPermission"})
     public void enableBluetooth() {
         if (mBluetoothAdapter != null) {
             mBluetoothAdapter.enable();
@@ -224,6 +224,7 @@ public class CentralManager {
     /**
      * Disable bluetooth
      */
+    @SuppressWarnings({"MissingPermission"})
     public void disableBluetooth() {
         if (mBluetoothAdapter != null) {
             if (mBluetoothAdapter.isEnabled())
@@ -234,6 +235,7 @@ public class CentralManager {
     /**
      * judge Bluetooth is enable
      */
+    @SuppressWarnings({"MissingPermission"})
     public boolean isBluetoothEnable() {
         return mBluetoothAdapter != null && mBluetoothAdapter.isEnabled();
     }
@@ -274,14 +276,17 @@ public class CentralManager {
         return mMultiPeripheralController.getPeripheralList();
     }
 
-    public boolean isConnected(Peripheral peripheral) {
-        if (mContext == null) {
-            throw new IllegalStateException("Context is not initialized.");
+    @SuppressWarnings({"MissingPermission"})
+    public boolean isBLEConnected(String address) {
+        if (!isBluetoothEnable()) {
+            throw new IllegalStateException("BT adapter is not turn on.");
+        } else if (!BluetoothAdapter.checkBluetoothAddress(address)) {
+            throw new IllegalArgumentException(address + " is not a valid Bluetooth address");
+        } else {
+            BluetoothDevice device = retrieveDevice(address);
+            int state = mBluetoothManager.getConnectionState(device, BluetoothProfile.GATT);
+            return state == BluetoothProfile.STATE_CONNECTED;
         }
-        BluetoothManager bluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
-        BluetoothDevice device = retrieveDevice(peripheral.getAddress());
-        int state = bluetoothManager.getConnectionState(device, BluetoothProfile.GATT);
-        return state == BluetoothProfile.STATE_CONNECTED;
     }
 
     public boolean isConnected(String key) {
@@ -289,10 +294,9 @@ public class CentralManager {
     }
 
     public Peripheral getPeripheral(String key) {
-        if (mMultiPeripheralController != null) {
-            return mMultiPeripheralController.getPeripheral(key);
-        }
-        return null;
+        if (mMultiPeripheralController == null)
+            return null;
+        return mMultiPeripheralController.getPeripheral(key);
     }
 
     public void disconnectAllDevice() {

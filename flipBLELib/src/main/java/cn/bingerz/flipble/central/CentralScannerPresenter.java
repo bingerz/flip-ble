@@ -43,7 +43,7 @@ public abstract class CentralScannerPresenter implements BluetoothAdapter.LeScan
             return;
         }
 
-        Peripheral peripheral = new Peripheral(device, rssi, ScanRecord.parseFromBytes(scanRecord));
+        Peripheral peripheral = new Peripheral(device, rssi, scanRecord);
 
         onLeScan(peripheral);
 

@@ -62,6 +62,7 @@ public class CentralScanner {
         });
     }
 
+    @SuppressWarnings({"MissingPermission"})
     private synchronized void startLeScan(UUID[] serviceUUIDs, CentralScannerPresenter presenter) {
         if (presenter == null) {
             throw new IllegalArgumentException("CentralScannerPresenter is null.");
@@ -83,6 +84,7 @@ public class CentralScanner {
         centralScannerPresenter.notifyScanStarted(success);
     }
 
+    @SuppressWarnings({"MissingPermission"})
     public synchronized void stopLeScan() {
         if (centralScannerPresenter == null) {
             return;

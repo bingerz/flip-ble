@@ -44,13 +44,13 @@ public class Peripheral {
     private static final int DEFAULT_MAX_MTU = 512;
 
     private ConnectionState mConnectState = ConnectionState.CONNECT_IDLE;
-    private Handler mHandler = new Handler(Looper.getMainLooper());
+    private Handler mMainHandler = new Handler(Looper.getMainLooper());
     private boolean isActivityDisconnect = false;
 
     private float mRssi;
-    private float mCov;//卡尔曼滤波用的协方差估计值(Covariance estimation)
+    private float mCov; //卡尔曼滤波用的协方差估计值(Covariance estimation)
 
-    private ScanRecord mScanRecord;
+    private byte[] mScanRecord;
     private BluetoothDevice mDevice;
     private BluetoothGatt mBluetoothGatt;
 
@@ -66,7 +66,7 @@ public class Peripheral {
         this.mDevice = device;
     }
 
-    public Peripheral(BluetoothDevice device, int rssi, ScanRecord scanRecord) {
+    public Peripheral(BluetoothDevice device, int rssi, byte[] scanRecord) {
         this.mRssi = rssi;
         this.mDevice = device;
         this.mScanRecord = scanRecord;
@@ -76,6 +76,7 @@ public class Peripheral {
         return new PeripheralController(this);
     }
 
+    @SuppressWarnings({"MissingPermission"})
     public String getName() {
         if (mDevice != null) {
             return mDevice.getName();
@@ -120,7 +121,7 @@ public class Peripheral {
     }
 
     public ScanRecord getScanRecord() {
-        return mScanRecord;
+        return ScanRecord.parseFromBytes(mScanRecord);
     }
 
     public ConnectionState getConnectState() {
@@ -286,6 +287,8 @@ public class Peripheral {
             }
             mConnectState = ConnectionState.CONNECT_CONNECTING;
             return true;
+        } else {
+            EasyLog.e("connect device fail, bluetoothGatt is null.");
         }
         return false;
     }
@@ -310,8 +313,8 @@ public class Peripheral {
             isActivityDisconnect = true;
             mBluetoothGatt.disconnect();
         }
-        if (mHandler != null) {
-            mHandler.removeCallbacksAndMessages(null);
+        if (mMainHandler != null) {
+            mMainHandler.removeCallbacksAndMessages(null);
         }
     }
 
@@ -336,8 +339,8 @@ public class Peripheral {
         removeRssiCallback();
         removeMtuChangedCallback();
         clearCharacterCallback();
-        if (mHandler != null) {
-            mHandler.removeCallbacksAndMessages(null);
+        if (mMainHandler != null) {
+            mMainHandler.removeCallbacksAndMessages(null);
         }
     }
 
@@ -370,14 +373,16 @@ public class Peripheral {
     public synchronized boolean connect(ConnectStateCallback connectionStateCallback) {
         if (connectionStateCallback == null) {
             throw new IllegalArgumentException("BleGattCallback can not be Null!");
-        }
-
-        if (!CentralManager.getInstance().isBluetoothEnable()) {
+        } else if (!CentralManager.getInstance().isBluetoothEnable()) {
             CentralManager.getInstance().handleException(new OtherException("BT adapter is not turn on."));
             return false;
+        } else {
+            if (CentralManager.getInstance().isScanning()) {
+                CentralManager.getInstance().handleException(
+                        new OtherException("When connecting the device, Recommended to stop scanning"));
+            }
+            return connect(false, connectionStateCallback);
         }
-
-        return connect(false, connectionStateCallback);
     }
 
     /**
@@ -533,7 +538,7 @@ public class Peripheral {
                 CentralManager.getInstance().getMultiplePeripheralController().removePeripheral(Peripheral.this);
                 if (mConnectState == ConnectionState.CONNECT_CONNECTING) {
                     mConnectState = ConnectionState.CONNECT_FAILURE;
-                    mHandler.post(new Runnable() {
+                    mMainHandler.post(new Runnable() {
                         @Override
                         public void run() {
                             if (mConnectStateCallback != null) {
@@ -544,7 +549,7 @@ public class Peripheral {
 
                 } else if (mConnectState == ConnectionState.CONNECT_CONNECTED) {
                     mConnectState = ConnectionState.CONNECT_DISCONNECT;
-                    mHandler.post(new Runnable() {
+                    mMainHandler.post(new Runnable() {
                         @Override
                         public void run() {
                             if (mConnectStateCallback != null) {
@@ -567,7 +572,7 @@ public class Peripheral {
                 mConnectState = ConnectionState.CONNECT_CONNECTED;
                 isActivityDisconnect = false;
                 CentralManager.getInstance().getMultiplePeripheralController().addPeripheral(Peripheral.this);
-                mHandler.post(new Runnable() {
+                mMainHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         if (mConnectStateCallback != null) {
@@ -578,7 +583,7 @@ public class Peripheral {
             } else {
                 closeBluetoothGatt();
                 mConnectState = ConnectionState.CONNECT_FAILURE;
-                mHandler.post(new Runnable() {
+                mMainHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         if (mConnectStateCallback != null) {
@@ -596,7 +601,7 @@ public class Peripheral {
             EasyLog.d("uuid：%s value: %s", characteristic.getUuid(), HexUtil.encodeHexStr(characteristic.getValue()));
 
             final NotifyCallback notifyCallback = findNotifyCallback(characteristic.getUuid().toString());
-            mHandler.post(new Runnable() {
+            mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     if (notifyCallback != null) {
@@ -606,7 +611,7 @@ public class Peripheral {
             });
 
             final IndicateCallback indicateCallback = findIndicateCallback(characteristic.getUuid().toString());
-            mHandler.post(new Runnable() {
+            mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     if (indicateCallback != null) {
@@ -626,7 +631,7 @@ public class Peripheral {
             if (writeCallback != null) {
                 writeCallback.getPeripheralConnector().writeMsgInit();
             }
-            mHandler.post(new Runnable() {
+            mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     if (writeCallback != null) {
@@ -650,7 +655,7 @@ public class Peripheral {
             if (readCallback != null) {
                 readCallback.getPeripheralConnector().readMsgInit();
             }
-            mHandler.post(new Runnable() {
+            mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     if (readCallback != null) {
@@ -676,7 +681,7 @@ public class Peripheral {
             if (notifyCallback != null) {
                 notifyCallback.getPeripheralConnector().notifyMsgInit();
             }
-            mHandler.post(new Runnable() {
+            mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     if (notifyCallback != null) {
@@ -693,7 +698,7 @@ public class Peripheral {
             if (indicateCallback != null) {
                 indicateCallback.getPeripheralConnector().notifyMsgInit();
             }
-            mHandler.post(new Runnable() {
+            mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     if (indicateCallback != null) {
@@ -721,7 +726,7 @@ public class Peripheral {
 
             if (mRssiCallback != null) {
                 mRssiCallback.getPeripheralConnector().rssiMsgInit();
-                mHandler.post(new Runnable() {
+                mMainHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         if (status == BluetoothGatt.GATT_SUCCESS) {
@@ -742,7 +747,7 @@ public class Peripheral {
 
             if (mMtuChangedCallback != null) {
                 mMtuChangedCallback.getPeripheralConnector().mtuChangedMsgInit();
-                mHandler.post(new Runnable() {
+                mMainHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         if (status == BluetoothGatt.GATT_SUCCESS) {
