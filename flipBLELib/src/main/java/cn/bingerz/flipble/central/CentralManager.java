@@ -47,11 +47,11 @@ public class CentralManager {
     private CentralManager() {}
 
     public static CentralManager getInstance() {
-        return CentralManagerHolder.sCentralManager;
+        return CentralManagerHolder.INSTANCE;
     }
 
     private static class CentralManagerHolder {
-        private static final CentralManager sCentralManager = new CentralManager();
+        private static final CentralManager INSTANCE = new CentralManager();
     }
 
     public void init(Application application) {
@@ -81,11 +81,10 @@ public class CentralManager {
     }
 
     public boolean isScanning() {
-        if (mCentralScanner == null) {
-            throw new IllegalStateException("Central Scanner is null.");
-        }
-        return mCentralScanner.getScanState() == CentralScanState.STATE_SCANNING;
+        return mCentralScanner != null
+                && mCentralScanner.getScanState() == CentralScanState.STATE_SCANNING;
     }
+
     /**
      * get the ScanRuleConfig
      */
@@ -109,7 +108,10 @@ public class CentralManager {
         if (callback == null) {
             throw new IllegalArgumentException("ScanCallback can not be null!");
         }
-
+        if (mCentralScanner == null) {
+            EasyLog.e("CentralScanner is null.");
+            return;
+        }
         UUID[] serviceUUIDs  = mScanRuleConfig.getServiceUUIDs();
         String[] deviceNames = mScanRuleConfig.getDeviceNames();
         String deviceMac     = mScanRuleConfig.getDeviceMac();
@@ -123,6 +125,10 @@ public class CentralManager {
      * Cancel scan
      */
     public void cancelScan() {
+        if (mCentralScanner == null) {
+            EasyLog.e("CentralScanner is null.");
+            return;
+        }
         mCentralScanner.stopLeScan();
     }
 
