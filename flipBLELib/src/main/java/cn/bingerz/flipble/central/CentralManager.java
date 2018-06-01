@@ -278,10 +278,11 @@ public class CentralManager {
 
     @SuppressWarnings({"MissingPermission"})
     public boolean isBLEConnected(String address) {
-        if (!isBluetoothEnable()) {
-            throw new IllegalStateException("BT adapter is not turn on.");
-        } else if (!BluetoothAdapter.checkBluetoothAddress(address)) {
+        if (!BluetoothAdapter.checkBluetoothAddress(address)) {
             throw new IllegalArgumentException(address + " is not a valid Bluetooth address");
+        } else if (!isBluetoothEnable()) {
+            EasyLog.e("BT adapter is not turn on.");
+            return false;
         } else {
             BluetoothDevice device = retrieveDevice(address);
             int state = mBluetoothManager.getConnectionState(device, BluetoothProfile.GATT);
