@@ -74,9 +74,15 @@ public class CentralScanner {
 
         this.centralScannerPresenter = presenter;
         boolean success = false;
-        BluetoothAdapter bluetoothAdapter = CentralManager.getInstance().getBluetoothAdapter();
+
         if (CentralManager.getInstance().isBluetoothEnable()) {
-            success = bluetoothAdapter.startLeScan(serviceUUIDs, presenter);
+            //Add try catch code block, Binder(IPC) NullPointerException, Parcel.readException
+            try {
+                BluetoothAdapter adapter = CentralManager.getInstance().getBluetoothAdapter();
+                success = adapter.startLeScan(serviceUUIDs, presenter);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else {
             CentralManager.getInstance().handleException(new ScanException("BT adapter is not turn on."));
         }
@@ -94,9 +100,14 @@ public class CentralScanner {
             throw new IllegalStateException("Central Scanner is stopped.");
         }
 
-        BluetoothAdapter bluetoothAdapter = CentralManager.getInstance().getBluetoothAdapter();
         if (CentralManager.getInstance().isBluetoothEnable()) {
-            bluetoothAdapter.stopLeScan(centralScannerPresenter);
+            //Add try catch code block, Binder(IPC) NullPointerException, Parcel.readException
+            try {
+                BluetoothAdapter adapter = CentralManager.getInstance().getBluetoothAdapter();
+                adapter.stopLeScan(centralScannerPresenter);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else {
             CentralManager.getInstance().handleException(new ScanException("BT adapter is not turn on."));
         }

@@ -326,14 +326,13 @@ public class Peripheral {
 
     public synchronized void destroy() {
         mConnectState = ConnectionState.CONNECT_IDLE;
-        if (mBluetoothGatt != null) {
+        //Add try catch code block, Binder(IPC) NullPointerException, Parcel.readException
+        try {
             mBluetoothGatt.disconnect();
-        }
-        if (mBluetoothGatt != null) {
             refreshDeviceCache();
-        }
-        if (mBluetoothGatt != null) {
             mBluetoothGatt.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         removeConnectionStateCallback();
         removeRssiCallback();
