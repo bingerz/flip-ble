@@ -37,8 +37,9 @@ public class HexUtil {
     }
 
 
-    protected static String encodeHexStr(byte[] data, char[] toDigits) {
-        return new String(encodeHex(data, toDigits));
+    private static String encodeHexStr(byte[] data, char[] toDigits) {
+        char[] result = encodeHex(data, toDigits);
+        return result != null ? new String(result) : null;
     }
 
     public static String formatHexString(byte[] data) {

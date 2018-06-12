@@ -523,12 +523,32 @@ public class Peripheral {
         }
     }
 
+    private void printCharacteristic(BluetoothGattCharacteristic characteristic) {
+        if (characteristic == null) {
+            return;
+        }
+        String uuid, value;
+        uuid = characteristic.getUuid() != null ? characteristic.getUuid().toString() : "null";
+        value = characteristic.getValue() != null ? HexUtil.encodeHexStr(characteristic.getValue()) : "null";
+        EasyLog.d("Characteristic uuid：%s  value: %s", uuid, value);
+    }
+
+    private void printDescriptor(BluetoothGattDescriptor descriptor) {
+        if (descriptor == null) {
+            return;
+        }
+        String uuid, value;
+        uuid = descriptor.getUuid() != null ? descriptor.getUuid().toString() : "null";
+        value = descriptor.getValue() != null ? HexUtil.encodeHexStr(descriptor.getValue()) : "null";
+        EasyLog.d("Descriptor uuid：%s  value: %s", uuid, value);
+    }
+
     private BluetoothGattCallback coreGattCallback = new BluetoothGattCallback() {
 
         @Override
         public void onConnectionStateChange(final BluetoothGatt gatt, final int status, final int newState) {
             super.onConnectionStateChange(gatt, status, newState);
-            EasyLog.i("BluetoothGattCallback：Connection State Change\nstatus: %d  newState: %d  currentThread: %d",
+            EasyLog.i("GattCallback：Connection State Change\nstatus: %d  newState: %d  currentThread: %d",
                     status, newState, Thread.currentThread().getId());
 
             if (newState == BluetoothGatt.STATE_CONNECTED) {
@@ -564,7 +584,7 @@ public class Peripheral {
         @Override
         public void onServicesDiscovered(final BluetoothGatt gatt, final int status) {
             super.onServicesDiscovered(gatt, status);
-            EasyLog.i("BluetoothGattCallback：services discovered\nstatus: %d  currentThread: %d",
+            EasyLog.i("GattCallback：services discovered\nstatus: %d  currentThread: %d",
                     status, Thread.currentThread().getId());
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
@@ -597,8 +617,8 @@ public class Peripheral {
         @Override
         public void onCharacteristicChanged(final BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
-            EasyLog.i("BluetoothGattCallback：onCharacteristicChanged ");
-            EasyLog.d("uuid：%s value: %s", characteristic.getUuid(), HexUtil.encodeHexStr(characteristic.getValue()));
+            EasyLog.i("GattCallback：onCharacteristicChanged ");
+            printCharacteristic(characteristic);
 
             final NotifyCallback notifyCallback = findNotifyCallback(characteristic.getUuid().toString());
             mMainHandler.post(new Runnable() {
@@ -624,8 +644,8 @@ public class Peripheral {
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, final int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
-            EasyLog.i("BluetoothGattCallback：onCharacteristicWrite ");
-            EasyLog.d("uuid：%s value: %s", characteristic.getUuid(), HexUtil.encodeHexStr(characteristic.getValue()));
+            EasyLog.i("GattCallback：onCharacteristicWrite ");
+            printCharacteristic(characteristic);
 
             final WriteCallback writeCallback = findWriteCallback(characteristic.getUuid().toString());
             if (writeCallback != null) {
@@ -648,8 +668,8 @@ public class Peripheral {
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic, final int status) {
             super.onCharacteristicRead(gatt, characteristic, status);
-            EasyLog.i("BluetoothGattCallback：onCharacteristicRead ");
-            EasyLog.d("uuid：%s value: %s", characteristic.getUuid(), HexUtil.encodeHexStr(characteristic.getValue()));
+            EasyLog.i("GattCallback：onCharacteristicRead ");
+            printCharacteristic(characteristic);
 
             final ReadCallback readCallback = findReadCallback(characteristic.getUuid().toString());
             if (readCallback != null) {
@@ -673,7 +693,7 @@ public class Peripheral {
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, final int status) {
             super.onDescriptorWrite(gatt, descriptor, status);
             EasyLog.i("GattCallback：onDescriptorWrite ");
-            EasyLog.d("uuid：%s value: %s", descriptor.getUuid(), HexUtil.encodeHexStr(descriptor.getValue()));
+            printDescriptor(descriptor);
 
             String uuid = descriptor.getCharacteristic().getUuid().toString();
 
@@ -716,13 +736,13 @@ public class Peripheral {
         public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             super.onDescriptorRead(gatt, descriptor, status);
             EasyLog.i("GattCallback：onDescriptorRead ");
-            EasyLog.d("uuid：%s value: %s", descriptor.getUuid(), HexUtil.encodeHexStr(descriptor.getValue()));
+            printDescriptor(descriptor);
         }
 
         @Override
         public void onReadRemoteRssi(BluetoothGatt gatt, final int rssi, final int status) {
             super.onReadRemoteRssi(gatt, rssi, status);
-            EasyLog.i("BluetoothGattCallback：onReadRemoteRssi status: %d", status);
+            EasyLog.i("GattCallback：onReadRemoteRssi value: %d  status: %d", rssi, status);
 
             if (mRssiCallback != null) {
                 mRssiCallback.getPeripheralConnector().rssiMsgInit();
@@ -743,7 +763,7 @@ public class Peripheral {
         @Override
         public void onMtuChanged(BluetoothGatt gatt, final int mtu, final int status) {
             super.onMtuChanged(gatt, mtu, status);
-            EasyLog.i("BluetoothGattCallback：onMtuChanged ");
+            EasyLog.i("GattCallback：onMtuChanged value: %d  status: %d", mtu, status);
 
             if (mMtuChangedCallback != null) {
                 mMtuChangedCallback.getPeripheralConnector().mtuChangedMsgInit();
