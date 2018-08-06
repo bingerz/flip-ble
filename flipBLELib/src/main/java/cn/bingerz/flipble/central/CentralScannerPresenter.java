@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import cn.bingerz.flipble.peripheral.Peripheral;
 import cn.bingerz.flipble.utils.EasyLog;
 
 /**
@@ -25,7 +24,7 @@ public abstract class CentralScannerPresenter implements BluetoothAdapter.LeScan
     private String[] mDeviceNames = null;
     private String mDeviceMac = null;
     private boolean mFuzzy = false;
-    private List<Peripheral> mPeripheralList = new ArrayList<>();
+    private List<ScanDevice> mScanDevices = new ArrayList<>();
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private long mScanTimeout = CentralManager.DEFAULT_SCAN_TIME;
@@ -37,19 +36,16 @@ public abstract class CentralScannerPresenter implements BluetoothAdapter.LeScan
         this.mScanTimeout = timeOut;
     }
 
+    @SuppressWarnings({"MissingPermission"})
     @Override
     public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
         if (device == null) {
             return;
         }
 
-        Peripheral peripheral = new Peripheral(device, rssi, scanRecord);
-
-        onLeScan(peripheral);
-
         synchronized (this) {
             if (TextUtils.isEmpty(mDeviceMac) && (mDeviceNames == null || mDeviceNames.length < 1)) {
-                next(peripheral);
+                next(device, rssi, scanRecord);
                 return;
             }
 
@@ -61,7 +57,7 @@ public abstract class CentralScannerPresenter implements BluetoothAdapter.LeScan
             if (mDeviceNames != null && mDeviceNames.length > 0) {
                 AtomicBoolean equal = new AtomicBoolean(false);
                 for (String name : mDeviceNames) {
-                    String remoteName = peripheral.getName();
+                    String remoteName = device.getName();
                     if (remoteName == null)
                         remoteName = "";
                     if (mFuzzy ? remoteName.contains(name) : remoteName.equals(name)) {
@@ -72,27 +68,29 @@ public abstract class CentralScannerPresenter implements BluetoothAdapter.LeScan
                     return;
                 }
             }
-            next(peripheral);
+            next(device, rssi, scanRecord);
         }
     }
 
-    private void next(Peripheral peripheral) {
+    @SuppressWarnings({"MissingPermission"})
+    private void next(BluetoothDevice device, int rssi, byte[] scanRecord) {
         AtomicBoolean hasFound = new AtomicBoolean(false);
-        for (Peripheral device : mPeripheralList) {
-            if (device.getAddress().equals(peripheral.getAddress())) {
+        for (ScanDevice scanDevice : mScanDevices) {
+            if (scanDevice.getAddress().equals(device.getAddress())) {
                 hasFound.set(true);
             }
         }
         if (!hasFound.get()) {
             EasyLog.i("Device detected: Name: %s  Mac: %s  Rssi: %d "
-                    , peripheral.getName(), peripheral.getAddress(), peripheral.getRssi());
-            mPeripheralList.add(peripheral);
-            onScanning(peripheral);
+                    , device.getName(), device.getAddress(), rssi);
+            ScanDevice scanDevice = new ScanDevice(device, rssi, scanRecord);
+            mScanDevices.add(scanDevice);
+            onScanning(scanDevice);
         }
     }
 
     public final void notifyScanStarted(boolean success) {
-        mPeripheralList.clear();
+        mScanDevices.clear();
 
         removeHandlerMsg();
 
@@ -112,7 +110,7 @@ public abstract class CentralScannerPresenter implements BluetoothAdapter.LeScan
 
     public final void notifyScanStopped() {
         removeHandlerMsg();
-        onScanFinished(mPeripheralList);
+        onScanFinished(mScanDevices);
     }
 
     public final void removeHandlerMsg() {
@@ -121,10 +119,8 @@ public abstract class CentralScannerPresenter implements BluetoothAdapter.LeScan
 
     public abstract void onScanStarted(boolean success);
 
-    public abstract void onLeScan(Peripheral peripheral);
+    public abstract void onScanning(ScanDevice device);
 
-    public abstract void onScanning(Peripheral peripheral);
-
-    public abstract void onScanFinished(List<Peripheral> peripheralList);
+    public abstract void onScanFinished(List<ScanDevice> scanDevices);
 
 }

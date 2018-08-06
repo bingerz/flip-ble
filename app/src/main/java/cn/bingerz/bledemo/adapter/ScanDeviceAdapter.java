@@ -15,46 +15,47 @@ import java.util.List;
 
 import cn.bingerz.bledemo.R;
 import cn.bingerz.flipble.central.CentralManager;
+import cn.bingerz.flipble.central.ScanDevice;
 import cn.bingerz.flipble.peripheral.Peripheral;
 
-public class PeripheralAdapter extends BaseAdapter {
+public class ScanDeviceAdapter extends BaseAdapter {
 
     private Context context;
-    private List<Peripheral> peripheralList;
+    private List<ScanDevice> scanDevices;
 
-    public PeripheralAdapter(Context context) {
+    public ScanDeviceAdapter(Context context) {
         this.context = context;
-        peripheralList = new ArrayList<>();
+        scanDevices = new ArrayList<>();
     }
 
-    public void addDevice(Peripheral peripheral) {
-        removeDevice(peripheral);
-        peripheralList.add(peripheral);
+    public void addDevice(ScanDevice device) {
+        removeDevice(device);
+        scanDevices.add(device);
     }
 
-    public void removeDevice(Peripheral peripheral) {
-        for (int i = 0; i < peripheralList.size(); i++) {
-            Peripheral device = peripheralList.get(i);
-            if (peripheral.getKey().equals(device.getKey())) {
-                peripheralList.remove(i);
+    public void removeDevice(ScanDevice scanDevice) {
+        for (int i = 0; i < scanDevices.size(); i++) {
+            ScanDevice device = scanDevices.get(i);
+            if (device.getAddress().equals(scanDevice.getAddress())) {
+                scanDevices.remove(i);
             }
         }
     }
 
     public void clearConnectedDevice() {
-        for (int i = 0; i < peripheralList.size(); i++) {
-            Peripheral peripheral = peripheralList.get(i);
-            if (CentralManager.getInstance().isConnected(peripheral.getKey())) {
-                peripheralList.remove(i);
+        for (int i = 0; i < scanDevices.size(); i++) {
+            ScanDevice device = scanDevices.get(i);
+            if (CentralManager.getInstance().isConnected(device.getAddress())) {
+                scanDevices.remove(i);
             }
         }
     }
 
     public void clearScanDevice() {
-        for (int i = 0; i < peripheralList.size(); i++) {
-            Peripheral peripheral = peripheralList.get(i);
-            if (!CentralManager.getInstance().isConnected(peripheral.getKey())) {
-                peripheralList.remove(i);
+        for (int i = 0; i < scanDevices.size(); i++) {
+            ScanDevice device = scanDevices.get(i);
+            if (!CentralManager.getInstance().isConnected(device.getAddress())) {
+                scanDevices.remove(i);
             }
         }
     }
@@ -66,14 +67,14 @@ public class PeripheralAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return peripheralList.size();
+        return scanDevices.size();
     }
 
     @Override
-    public Peripheral getItem(int position) {
-        if (position > peripheralList.size())
+    public ScanDevice getItem(int position) {
+        if (position > scanDevices.size())
             return null;
-        return peripheralList.get(position);
+        return scanDevices.get(position);
     }
 
     @Override
@@ -101,12 +102,12 @@ public class PeripheralAdapter extends BaseAdapter {
             holder.btn_detail = convertView.findViewById(R.id.btn_detail);
         }
 
-        final Peripheral peripheral = getItem(position);
-        if (peripheral != null) {
-            boolean isConnected = CentralManager.getInstance().isConnected(peripheral.getKey());
-            String name = peripheral.getName();
-            String mac = peripheral.getAddress();
-            int rssi = peripheral.getRssi();
+        final ScanDevice device = getItem(position);
+        if (device != null) {
+            boolean isConnected = CentralManager.getInstance().isConnected(device.getAddress());
+            String name = device.getName();
+            String mac = device.getAddress();
+            int rssi = device.getRssi();
             holder.txt_name.setText(name);
             holder.txt_mac.setText(mac);
             holder.txt_rssi.setText(String.valueOf(rssi));
@@ -129,7 +130,7 @@ public class PeripheralAdapter extends BaseAdapter {
             @Override
             public void onClick(View view) {
                 if (mListener != null) {
-                    mListener.onConnect(peripheral);
+                    mListener.onConnect(device);
                 }
             }
         });
@@ -138,7 +139,7 @@ public class PeripheralAdapter extends BaseAdapter {
             @Override
             public void onClick(View view) {
                 if (mListener != null) {
-                    mListener.onDisConnect(peripheral);
+                    mListener.onDisConnect(device);
                 }
             }
         });
@@ -147,7 +148,7 @@ public class PeripheralAdapter extends BaseAdapter {
             @Override
             public void onClick(View view) {
                 if (mListener != null) {
-                    mListener.onDetail(peripheral);
+                    mListener.onDetail(device);
                 }
             }
         });
@@ -168,11 +169,11 @@ public class PeripheralAdapter extends BaseAdapter {
     }
 
     public interface OnDeviceClickListener {
-        void onConnect(Peripheral peripheral);
+        void onConnect(ScanDevice device);
 
-        void onDisConnect(Peripheral peripheral);
+        void onDisConnect(ScanDevice device);
 
-        void onDetail(Peripheral peripheral);
+        void onDetail(ScanDevice device);
     }
 
     private OnDeviceClickListener mListener;

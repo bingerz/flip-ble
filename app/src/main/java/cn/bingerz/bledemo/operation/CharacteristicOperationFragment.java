@@ -63,12 +63,12 @@ public class CharacteristicOperationFragment extends Fragment {
             layout_container.getChildAt(i).setVisibility(View.GONE);
         }
         if (childList.contains(child)) {
-            layout_container.findViewWithTag(peripheral.getKey() + characteristic.getUuid().toString() + charaProp).setVisibility(View.VISIBLE);
+            layout_container.findViewWithTag(peripheral.getAddress() + characteristic.getUuid().toString() + charaProp).setVisibility(View.VISIBLE);
         } else {
             childList.add(child);
 
             View view = LayoutInflater.from(getActivity()).inflate(R.layout.layout_characteric_operation, null);
-            view.setTag(peripheral.getKey() + characteristic.getUuid().toString() + charaProp);
+            view.setTag(peripheral.getAddress() + characteristic.getUuid().toString() + charaProp);
             LinearLayout layout_add = (LinearLayout) view.findViewById(R.id.layout_add);
             final TextView txt_title = (TextView) view.findViewById(R.id.txt_title);
             txt_title.setText(String.valueOf(characteristic.getUuid().toString() + getActivity().getString(R.string.data_changed)));

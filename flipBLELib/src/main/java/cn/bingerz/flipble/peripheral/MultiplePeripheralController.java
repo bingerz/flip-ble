@@ -27,8 +27,8 @@ public class MultiplePeripheralController {
         if (peripheral == null) {
             return;
         }
-        if (!bleLruHashMap.containsKey(peripheral.getKey())) {
-            bleLruHashMap.put(peripheral.getKey(), peripheral);
+        if (!bleLruHashMap.containsKey(peripheral.getAddress())) {
+            bleLruHashMap.put(peripheral.getAddress(), peripheral);
         }
     }
 
@@ -36,8 +36,8 @@ public class MultiplePeripheralController {
         if (peripheral == null) {
             return;
         }
-        if (bleLruHashMap.containsKey(peripheral.getKey())) {
-            bleLruHashMap.remove(peripheral.getKey());
+        if (bleLruHashMap.containsKey(peripheral.getAddress())) {
+            bleLruHashMap.remove(peripheral.getAddress());
         }
     }
 
@@ -76,7 +76,7 @@ public class MultiplePeripheralController {
         Collections.sort(bleBluetoothList, new Comparator<Peripheral>() {
             @Override
             public int compare(final Peripheral lhs, final Peripheral rhs) {
-                return lhs.getKey().compareToIgnoreCase(rhs.getKey());
+                return lhs.getAddress().compareToIgnoreCase(rhs.getAddress());
             }
         });
         return bleBluetoothList;

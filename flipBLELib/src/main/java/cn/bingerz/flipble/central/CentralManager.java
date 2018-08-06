@@ -290,14 +290,14 @@ public class CentralManager {
         }
     }
 
-    public boolean isConnected(String key) {
-        return mMultiPeripheralController != null && mMultiPeripheralController.isContainDevice(key);
+    public boolean isConnected(String address) {
+        return mMultiPeripheralController != null && mMultiPeripheralController.isContainDevice(address);
     }
 
-    public Peripheral getPeripheral(String key) {
+    public Peripheral getPeripheral(String address) {
         if (mMultiPeripheralController == null)
             return null;
-        return mMultiPeripheralController.getPeripheral(key);
+        return mMultiPeripheralController.getPeripheral(address);
     }
 
     public void disconnectAllDevice() {

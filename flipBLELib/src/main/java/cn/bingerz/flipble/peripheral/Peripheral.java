@@ -19,7 +19,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import cn.bingerz.flipble.central.CentralManager;
-import cn.bingerz.flipble.central.ScanRecord;
+import cn.bingerz.flipble.central.ScanDevice;
 import cn.bingerz.flipble.exception.ConnectException;
 import cn.bingerz.flipble.peripheral.callback.ConnectStateCallback;
 import cn.bingerz.flipble.peripheral.callback.IndicateCallback;
@@ -50,8 +50,7 @@ public class Peripheral {
     private float mRssi;
     private float mCov; //卡尔曼滤波用的协方差估计值(Covariance estimation)
 
-    private byte[] mScanRecord;
-    private BluetoothDevice mDevice;
+    private ScanDevice mDevice;
     private BluetoothGatt mBluetoothGatt;
 
     private ConnectStateCallback mConnectStateCallback;
@@ -63,20 +62,22 @@ public class Peripheral {
     private Map<String, ReadCallback> mReadCallbackMap = new ConcurrentHashMap<>();
 
     public Peripheral(BluetoothDevice device) {
-        this.mDevice = device;
+        ScanDevice scanDevice = new ScanDevice(device, 0, null);
+        this.mDevice = scanDevice;
     }
 
-    public Peripheral(BluetoothDevice device, int rssi, byte[] scanRecord) {
-        this.mRssi = rssi;
+    public Peripheral(ScanDevice device) {
         this.mDevice = device;
-        this.mScanRecord = scanRecord;
     }
 
     public PeripheralController newPeripheralController() {
         return new PeripheralController(this);
     }
 
-    @SuppressWarnings({"MissingPermission"})
+    public ScanDevice getDevice() {
+        return mDevice;
+    }
+
     public String getName() {
         if (mDevice != null) {
             return mDevice.getName();
@@ -89,10 +90,6 @@ public class Peripheral {
             return mDevice.getAddress();
         }
         return null;
-    }
-
-    public String getKey() {
-        return getAddress();
     }
 
     public int getRssi() {
@@ -118,10 +115,6 @@ public class Peripheral {
             this.mCov = predCov - (K * C * predCov);
         }
         return getRssi();
-    }
-
-    public ScanRecord getScanRecord() {
-        return ScanRecord.parseFromBytes(mScanRecord);
     }
 
     public ConnectionState getConnectState() {
@@ -275,11 +268,16 @@ public class Peripheral {
         EasyLog.i("connect device:%s mac:%s autoConnect:%s", getName(), getAddress(), autoConnect);
         addConnectionStateCallback(callback);
 
+        BluetoothDevice device = mDevice != null ? mDevice.getDevice() : null;
+        if (device == null) {
+            EasyLog.i("connect device fail, device is null.");
+            return false;
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mBluetoothGatt = mDevice.connectGatt(CentralManager.getInstance().getContext(), autoConnect,
+            mBluetoothGatt = device.connectGatt(CentralManager.getInstance().getContext(), autoConnect,
                     coreGattCallback, BluetoothDevice.TRANSPORT_LE);
         } else {
-            mBluetoothGatt = mDevice.connectGatt(CentralManager.getInstance().getContext(), autoConnect, coreGattCallback);
+            mBluetoothGatt = device.connectGatt(CentralManager.getInstance().getContext(), autoConnect, coreGattCallback);
         }
         if (mBluetoothGatt != null) {
             if (mConnectStateCallback != null) {

@@ -36,10 +36,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import cn.bingerz.bledemo.adapter.PeripheralAdapter;
+import cn.bingerz.bledemo.adapter.ScanDeviceAdapter;
 import cn.bingerz.bledemo.comm.ObserverManager;
 import cn.bingerz.bledemo.operation.OperationActivity;
 import cn.bingerz.flipble.central.CentralManager;
+import cn.bingerz.flipble.central.ScanDevice;
 import cn.bingerz.flipble.exception.BLEException;
 import cn.bingerz.flipble.peripheral.Peripheral;
 import cn.bingerz.flipble.peripheral.callback.ConnectStateCallback;
@@ -63,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageView img_loading;
 
     private Animation operatingAnim;
-    private PeripheralAdapter mPeripheralAdapter;
+    private ScanDeviceAdapter mScanDeviceAdapter;
     private ProgressDialog progressDialog;
 
     @Override
@@ -138,43 +139,47 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         operatingAnim.setInterpolator(new LinearInterpolator());
         progressDialog = new ProgressDialog(this);
 
-        mPeripheralAdapter = new PeripheralAdapter(this);
-        mPeripheralAdapter.setOnDeviceClickListener(new PeripheralAdapter.OnDeviceClickListener() {
+        mScanDeviceAdapter = new ScanDeviceAdapter(this);
+        mScanDeviceAdapter.setOnDeviceClickListener(new ScanDeviceAdapter.OnDeviceClickListener() {
             @Override
-            public void onConnect(Peripheral peripheral) {
-                if (!CentralManager.getInstance().isConnected(peripheral.getKey())) {
+            public void onConnect(ScanDevice device) {
+                if (!CentralManager.getInstance().isConnected(device.getAddress())) {
                     stopScan();
+                    Peripheral peripheral = new Peripheral(device);
                     connect(peripheral);
                 }
             }
 
             @Override
-            public void onDisConnect(Peripheral peripheral) {
-                if (CentralManager.getInstance().isConnected(peripheral.getKey())) {
-                    peripheral.disconnect();
+            public void onDisConnect(ScanDevice device) {
+                if (CentralManager.getInstance().isConnected(device.getAddress())) {
+                    Peripheral peripheral = CentralManager.getInstance().getPeripheral(device.getAddress());
+                    if (peripheral != null) {
+                        peripheral.disconnect();
+                    }
                 }
             }
 
             @Override
-            public void onDetail(Peripheral peripheral) {
-                if (CentralManager.getInstance().isConnected(peripheral.getKey())) {
+            public void onDetail(ScanDevice device) {
+                if (CentralManager.getInstance().isConnected(device.getAddress())) {
                     Intent intent = new Intent(MainActivity.this, OperationActivity.class);
-                    intent.putExtra(OperationActivity.KEY_DATA, peripheral.getKey());
+                    intent.putExtra(OperationActivity.KEY_DATA, device.getAddress());
                     startActivity(intent);
                 }
             }
         });
         ListView listView_device = findViewById(R.id.list_device);
-        listView_device.setAdapter(mPeripheralAdapter);
+        listView_device.setAdapter(mScanDeviceAdapter);
     }
 
     private void showConnectedDevice() {
         List<Peripheral> deviceList = CentralManager.getInstance().getAllConnectedDevice();
-        mPeripheralAdapter.clearConnectedDevice();
+        mScanDeviceAdapter.clearConnectedDevice();
         for (Peripheral peripheral : deviceList) {
-            mPeripheralAdapter.addDevice(peripheral);
+            mScanDeviceAdapter.addDevice(peripheral.getDevice());
         }
-        mPeripheralAdapter.notifyDataSetChanged();
+        mScanDeviceAdapter.notifyDataSetChanged();
     }
 
     private void setScanRule() {
@@ -218,28 +223,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         CentralManager.getInstance().scan(new ScanCallback() {
             @Override
             public void onScanStarted(boolean success) {
-                mPeripheralAdapter.clearScanDevice();
-                mPeripheralAdapter.notifyDataSetChanged();
+                mScanDeviceAdapter.clearScanDevice();
+                mScanDeviceAdapter.notifyDataSetChanged();
                 img_loading.startAnimation(operatingAnim);
                 img_loading.setVisibility(View.VISIBLE);
                 btn_scan.setText(getString(R.string.stop_scan));
             }
 
             @Override
-            public void onLeScan(Peripheral peripheral) {
-                super.onLeScan(peripheral);
-            }
-
-            @Override
-            public void onScanning(Peripheral peripheral) {
-                if (peripheral.getRssi() > -65) {
-                    mPeripheralAdapter.addDevice(peripheral);
-                    mPeripheralAdapter.notifyDataSetChanged();
+            public void onScanning(ScanDevice device) {
+                if (device.getRssi() > -65) {
+                    mScanDeviceAdapter.addDevice(device);
+                    mScanDeviceAdapter.notifyDataSetChanged();
                 }
             }
 
             @Override
-            public void onScanFinished(List<Peripheral> scanResultList) {
+            public void onScanFinished(List<ScanDevice> scanResultList) {
                 img_loading.clearAnimation();
                 img_loading.setVisibility(View.INVISIBLE);
                 btn_scan.setText(getString(R.string.start_scan));
@@ -272,8 +272,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onConnectSuccess(Peripheral peripheral, int status) {
                 progressDialog.dismiss();
-                mPeripheralAdapter.addDevice(peripheral);
-                mPeripheralAdapter.notifyDataSetChanged();
+                mScanDeviceAdapter.addDevice(peripheral.getDevice());
+                mScanDeviceAdapter.notifyDataSetChanged();
 
                 readRssi(peripheral);
                 setMtu(peripheral, 23);
@@ -283,8 +283,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onDisConnected(boolean isActiveDisConnected, Peripheral peripheral, int status) {
                 progressDialog.dismiss();
 
-                mPeripheralAdapter.removeDevice(peripheral);
-                mPeripheralAdapter.notifyDataSetChanged();
+                mScanDeviceAdapter.removeDevice(peripheral.getDevice());
+                mScanDeviceAdapter.notifyDataSetChanged();
 
                 if (!isActiveDisConnected) {
                     Toast.makeText(MainActivity.this, getString(R.string.disconnected), Toast.LENGTH_LONG).show();

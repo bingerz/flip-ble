@@ -58,7 +58,7 @@ public class OperationActivity extends AppCompatActivity implements Observer {
 
     @Override
     public void disConnected(Peripheral peripheral) {
-        if (peripheral != null && mPeripheral != null && peripheral.getKey().equals(mPeripheral.getKey())) {
+        if (peripheral != null && mPeripheral != null && peripheral.getAddress().equals(mPeripheral.getAddress())) {
             finish();
         }
     }

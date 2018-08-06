@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.UUID;
 
 import cn.bingerz.flipble.exception.ScanException;
-import cn.bingerz.flipble.peripheral.Peripheral;
 import cn.bingerz.flipble.central.callback.ScanCallback;
 
 /**
@@ -40,21 +39,14 @@ public class CentralScanner {
             }
 
             @Override
-            public void onLeScan(Peripheral peripheral) {
-                if (callback != null) {
-                    callback.onLeScan(peripheral);
-                }
-            }
-
-            @Override
-            public void onScanning(Peripheral result) {
+            public void onScanning(ScanDevice result) {
                 if (callback != null) {
                     callback.onScanning(result);
                 }
             }
 
             @Override
-            public void onScanFinished(List<Peripheral> scanResultList) {
+            public void onScanFinished(List<ScanDevice> scanResultList) {
                 if (callback != null) {
                     callback.onScanFinished(scanResultList);
                 }
