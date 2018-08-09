@@ -15,6 +15,7 @@
     <string name="please_open_blue">请先打开蓝牙</string>
     <string name="select_operation_type">选择操作类型</string>
     <string name="characteristic">特性</string>
+    <string name="property">属性</string>
     <string name="data_changed">的数据变化：</string>
     <string name="read">读</string>
     <string name="write">写</string>
@@ -22,6 +23,7 @@
     <string name="close_notification">关闭通知</string>
     <string name="service_list">服务列表</string>
     <string name="characteristic_list">特征列表</string>
+    <string name="property_list">属性列表</string>
     <string name="console">操作控制台</string>
     <string name="name">设备广播名：</string>
     <string name="mac">MAC:</string>

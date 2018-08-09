@@ -16,6 +16,8 @@ package cn.bingerz.flipble.central;
  * limitations under the License.
  */
 
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.os.ParcelUuid;
 import android.util.Log;
 import android.util.SparseArray;
@@ -407,6 +409,7 @@ public final class ScanRecord {
     /**
      * Check whether two {@link Map} equal.
      */
+    @TargetApi(Build.VERSION_CODES.KITKAT)
     private <T> boolean equals(Map<T, byte[]> map, Map<T, byte[]> otherMap) {
         if (map == otherMap) {
             return true;

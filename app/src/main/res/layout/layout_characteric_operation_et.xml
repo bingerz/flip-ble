@@ -25,7 +25,5 @@
             android:layout_marginLeft="10dp"
             android:gravity="center"
             android:textSize="15sp" />
-
     </LinearLayout>
-
 </LinearLayout>

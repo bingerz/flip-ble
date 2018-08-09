@@ -13,9 +13,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.VisibleForTesting;
+import android.support.test.espresso.IdlingResource;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
@@ -27,7 +31,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,6 +42,7 @@ import java.util.UUID;
 import cn.bingerz.bledemo.adapter.ScanDeviceAdapter;
 import cn.bingerz.bledemo.comm.ObserverManager;
 import cn.bingerz.bledemo.operation.OperationActivity;
+import cn.bingerz.bledemo.util.EspressoIdlingResource;
 import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.central.ScanDevice;
 import cn.bingerz.flipble.exception.BLEException;
@@ -56,16 +60,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int REQUEST_CODE_OPEN_GPS = 1;
     private static final int REQUEST_CODE_PERMISSION_LOCATION = 2;
 
-    private LinearLayout layout_setting;
-    private TextView txt_setting;
-    private Button btn_scan;
-    private EditText et_name, et_mac, et_uuid;
-    private Switch sw_auto;
-    private ImageView img_loading;
+    private LinearLayout llSetting;
+    private TextView tvSetting;
+    private Button btnScan;
+    private EditText etName, etMac, etUUID;
+    private Switch swAuto;
+    private ImageView ivLoading;
 
     private Animation operatingAnim;
     private ScanDeviceAdapter mScanDeviceAdapter;
     private ProgressDialog progressDialog;
+
+    private String DEFAULT_SERVICE_UUID = "00001803-0000-1000-8000-00805f9b34fb";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,20 +102,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_scan:
-                if (btn_scan.getText().equals(getString(R.string.start_scan))) {
+                if (btnScan.getText().equals(getString(R.string.start_scan))) {
                     checkPermissions();
-                } else if (btn_scan.getText().equals(getString(R.string.stop_scan))) {
+                } else if (btnScan.getText().equals(getString(R.string.stop_scan))) {
                     stopScan();
                 }
                 break;
 
             case R.id.txt_setting:
-                if (layout_setting.getVisibility() == View.VISIBLE) {
-                    layout_setting.setVisibility(View.GONE);
-                    txt_setting.setText(getString(R.string.expand_search_settings));
+                if (llSetting.getVisibility() == View.VISIBLE) {
+                    llSetting.setVisibility(View.GONE);
+                    tvSetting.setText(getString(R.string.expand_search_settings));
                 } else {
-                    layout_setting.setVisibility(View.VISIBLE);
-                    txt_setting.setText(getString(R.string.retrieve_search_settings));
+                    llSetting.setVisibility(View.VISIBLE);
+                    tvSetting.setText(getString(R.string.retrieve_search_settings));
                 }
                 break;
         }
@@ -119,31 +125,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        btn_scan = findViewById(R.id.btn_scan);
-        btn_scan.setText(getString(R.string.start_scan));
-        btn_scan.setOnClickListener(this);
+        btnScan = findViewById(R.id.btn_scan);
+        btnScan.setText(getString(R.string.start_scan));
+        btnScan.setOnClickListener(this);
 
-        et_name = findViewById(R.id.et_name);
-        et_mac = findViewById(R.id.et_mac);
-        et_uuid = findViewById(R.id.et_uuid);
-        sw_auto = findViewById(R.id.sw_auto);
+        etName = findViewById(R.id.et_name);
+        etMac = findViewById(R.id.et_mac);
+        etUUID = findViewById(R.id.et_uuid);
+        swAuto = findViewById(R.id.sw_auto);
 
-        layout_setting = findViewById(R.id.layout_setting);
-        txt_setting = findViewById(R.id.txt_setting);
-        txt_setting.setOnClickListener(this);
-        layout_setting.setVisibility(View.GONE);
-        txt_setting.setText(getString(R.string.expand_search_settings));
+        llSetting = findViewById(R.id.layout_setting);
+        tvSetting = findViewById(R.id.txt_setting);
+        tvSetting.setOnClickListener(this);
+        llSetting.setVisibility(View.GONE);
+        tvSetting.setText(getString(R.string.expand_search_settings));
 
-        img_loading = findViewById(R.id.img_loading);
+        ivLoading = findViewById(R.id.img_loading);
         operatingAnim = AnimationUtils.loadAnimation(this, R.anim.rotate);
         operatingAnim.setInterpolator(new LinearInterpolator());
         progressDialog = new ProgressDialog(this);
 
-        mScanDeviceAdapter = new ScanDeviceAdapter(this);
+        mScanDeviceAdapter = new ScanDeviceAdapter();
         mScanDeviceAdapter.setOnDeviceClickListener(new ScanDeviceAdapter.OnDeviceClickListener() {
             @Override
             public void onConnect(ScanDevice device) {
                 if (!CentralManager.getInstance().isConnected(device.getAddress())) {
+                    EspressoIdlingResource.increment();
                     stopScan();
                     Peripheral peripheral = new Peripheral(device);
                     connect(peripheral);
@@ -169,8 +176,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         });
-        ListView listView_device = findViewById(R.id.list_device);
-        listView_device.setAdapter(mScanDeviceAdapter);
+        RecyclerView mRecyclerView = findViewById(R.id.rv_list);
+        mRecyclerView.setHasFixedSize(true);
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setAdapter(mScanDeviceAdapter);
     }
 
     private void showConnectedDevice() {
@@ -184,13 +194,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void setScanRule() {
         String[] uuids;
-        String str_uuid = et_uuid.getText().toString();
+        String str_uuid = etUUID.getText().toString();
         if (TextUtils.isEmpty(str_uuid)) {
             uuids = null;
         } else {
             uuids = str_uuid.split(",");
         }
-        UUID[] serviceUuids = null;
+        UUID[] serviceUuids = new UUID[]{ UUID.fromString(DEFAULT_SERVICE_UUID)};
         if (uuids != null && uuids.length > 0) {
             serviceUuids = new UUID[uuids.length];
             for (int i = 0; i < uuids.length; i++) {
@@ -199,22 +209,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         String[] names;
-        String str_name = et_name.getText().toString();
+        String str_name = etName.getText().toString();
         if (TextUtils.isEmpty(str_name)) {
             names = null;
         } else {
             names = str_name.split(",");
         }
 
-        String mac = et_mac.getText().toString();
+        String mac = etMac.getText().toString();
 
-        boolean isAutoConnect = sw_auto.isChecked();
+        boolean isAutoConnect = swAuto.isChecked();
 
         ScanRuleConfig scanRuleConfig = new ScanRuleConfig.Builder()
                 .setServiceUuids(serviceUuids)      // 只扫描指定的服务的设备，可选
                 .setDeviceName(true, names)   // 只扫描指定广播名的设备，可选
                 .setDeviceMac(mac)                  // 只扫描指定mac的设备，可选
-                .setScanTimeOut(10000)              // 扫描超时时间，可选，默认10秒
+                .setScanTimeOut(6000)              // 扫描超时时间，可选，默认10秒
                 .build();
         CentralManager.getInstance().initScanRule(scanRuleConfig);
     }
@@ -225,9 +235,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onScanStarted(boolean success) {
                 mScanDeviceAdapter.clearScanDevice();
                 mScanDeviceAdapter.notifyDataSetChanged();
-                img_loading.startAnimation(operatingAnim);
-                img_loading.setVisibility(View.VISIBLE);
-                btn_scan.setText(getString(R.string.stop_scan));
+                ivLoading.startAnimation(operatingAnim);
+                ivLoading.setVisibility(View.VISIBLE);
+                btnScan.setText(getString(R.string.stop_scan));
             }
 
             @Override
@@ -240,9 +250,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onScanFinished(List<ScanDevice> scanResultList) {
-                img_loading.clearAnimation();
-                img_loading.setVisibility(View.INVISIBLE);
-                btn_scan.setText(getString(R.string.start_scan));
+                ivLoading.clearAnimation();
+                ivLoading.setVisibility(View.INVISIBLE);
+                btnScan.setText(getString(R.string.start_scan));
             }
         });
     }
@@ -262,15 +272,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onConnectFail(BLEException exception) {
-                img_loading.clearAnimation();
-                img_loading.setVisibility(View.INVISIBLE);
-                btn_scan.setText(getString(R.string.start_scan));
+                EspressoIdlingResource.decrement();
+                ivLoading.clearAnimation();
+                ivLoading.setVisibility(View.INVISIBLE);
+                btnScan.setText(getString(R.string.start_scan));
                 progressDialog.dismiss();
                 Toast.makeText(MainActivity.this, getString(R.string.connect_fail), Toast.LENGTH_LONG).show();
             }
 
             @Override
             public void onConnectSuccess(Peripheral peripheral, int status) {
+                EspressoIdlingResource.decrement();
                 progressDialog.dismiss();
                 mScanDeviceAdapter.addDevice(peripheral.getDevice());
                 mScanDeviceAdapter.notifyDataSetChanged();
@@ -414,4 +426,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    @VisibleForTesting
+    public IdlingResource getCountingIdlingResource() {
+        return EspressoIdlingResource.getIdlingResource();
+    }
 }

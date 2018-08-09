@@ -21,19 +21,11 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tv_uuid"
+            android:id="@+id/tv_property"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:textSize="12sp" />
-
-        <TextView
-            android:id="@+id/tv_type"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:textSize="12sp" />
-
     </LinearLayout>
 
     <ImageView

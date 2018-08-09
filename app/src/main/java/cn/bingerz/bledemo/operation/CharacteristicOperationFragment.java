@@ -37,7 +37,7 @@ public class CharacteristicOperationFragment extends Fragment {
     public static final int PROPERTY_NOTIFY = 4;
     public static final int PROPERTY_INDICATE = 5;
 
-    private LinearLayout layout_container;
+    private LinearLayout llContainer;
 
     private List<String> childList = new ArrayList<>();
 
@@ -50,7 +50,7 @@ public class CharacteristicOperationFragment extends Fragment {
     }
 
     private void initView(View v) {
-        layout_container = (LinearLayout) v.findViewById(R.id.layout_container);
+        llContainer = (LinearLayout) v.findViewById(R.id.layout_container);
     }
 
     public void showData() {
@@ -59,18 +59,18 @@ public class CharacteristicOperationFragment extends Fragment {
         final int charaProp = ((OperationActivity) getActivity()).getCharaProp();
         String child = characteristic.getUuid().toString() + String.valueOf(charaProp);
 
-        for (int i = 0; i < layout_container.getChildCount(); i++) {
-            layout_container.getChildAt(i).setVisibility(View.GONE);
+        for (int i = 0; i < llContainer.getChildCount(); i++) {
+            llContainer.getChildAt(i).setVisibility(View.GONE);
         }
         if (childList.contains(child)) {
-            layout_container.findViewWithTag(peripheral.getAddress() + characteristic.getUuid().toString() + charaProp).setVisibility(View.VISIBLE);
+            llContainer.findViewWithTag(peripheral.getAddress() + characteristic.getUuid().toString() + charaProp).setVisibility(View.VISIBLE);
         } else {
             childList.add(child);
 
             View view = LayoutInflater.from(getActivity()).inflate(R.layout.layout_characteric_operation, null);
             view.setTag(peripheral.getAddress() + characteristic.getUuid().toString() + charaProp);
             LinearLayout layout_add = (LinearLayout) view.findViewById(R.id.layout_add);
-            final TextView txt_title = (TextView) view.findViewById(R.id.txt_title);
+            final TextView txt_title = (TextView) view.findViewById(R.id.tv_title);
             txt_title.setText(String.valueOf(characteristic.getUuid().toString() + getActivity().getString(R.string.data_changed)));
             final TextView txt = (TextView) view.findViewById(R.id.txt);
             txt.setMovementMethod(ScrollingMovementMethod.getInstance());
@@ -93,11 +93,14 @@ public class CharacteristicOperationFragment extends Fragment {
                                                 getActivity().runOnUiThread(new Runnable() {
                                                     @Override
                                                     public void run() {
-                                                        txt.append(HexUtil.formatHexString(data, true));
-                                                        txt.append("\n");
-                                                        int offset = txt.getLineCount() * txt.getLineHeight();
-                                                        if (offset > txt.getHeight()) {
-                                                            txt.scrollTo(0, offset - txt.getHeight());
+                                                        String value = HexUtil.formatHexString(data, true);
+                                                        if (!TextUtils.isEmpty(value)) {
+                                                            txt.append(value);
+                                                            txt.append("\n");
+                                                            int offset = txt.getLineCount() * txt.getLineHeight();
+                                                            if (offset > txt.getHeight()) {
+                                                                txt.scrollTo(0, offset - txt.getHeight());
+                                                            }
                                                         }
                                                     }
                                                 });
@@ -380,10 +383,7 @@ public class CharacteristicOperationFragment extends Fragment {
                 }
                 break;
             }
-
-            layout_container.addView(view);
+            llContainer.addView(view);
         }
     }
-
-
 }

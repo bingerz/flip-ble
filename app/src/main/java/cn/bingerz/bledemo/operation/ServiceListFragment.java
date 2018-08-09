@@ -3,16 +3,15 @@ package cn.bingerz.bledemo.operation;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattService;
-import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.BaseAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 
 
@@ -25,7 +24,7 @@ import cn.bingerz.flipble.peripheral.Peripheral;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class ServiceListFragment extends Fragment {
 
-    private TextView txt_name, txt_mac;
+    private TextView tvName, tvMacAddress;
     private ResultAdapter mResultAdapter;
 
     @Override
@@ -37,20 +36,13 @@ public class ServiceListFragment extends Fragment {
     }
 
     private void initView(View v) {
-        txt_name = (TextView) v.findViewById(R.id.txt_name);
-        txt_mac = (TextView) v.findViewById(R.id.txt_mac);
+        tvName = (TextView) v.findViewById(R.id.tv_name);
+        tvMacAddress = (TextView) v.findViewById(R.id.tv_mac);
 
-        mResultAdapter = new ResultAdapter(getActivity());
-        ListView listView_device = (ListView) v.findViewById(R.id.list_service);
-        listView_device.setAdapter(mResultAdapter);
-        listView_device.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                BluetoothGattService service = mResultAdapter.getItem(position);
-                ((OperationActivity) getActivity()).setBluetoothGattService(service);
-                ((OperationActivity) getActivity()).changePage(1);
-            }
-        });
+        mResultAdapter = new ResultAdapter();
+        RecyclerView recyclerView = (RecyclerView) v.findViewById(R.id.rv_service_list);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        recyclerView.setAdapter(mResultAdapter);
     }
 
     private void showData() {
@@ -59,8 +51,8 @@ public class ServiceListFragment extends Fragment {
         String mac = peripheral.getAddress();
         BluetoothGatt gatt = peripheral.getBluetoothGatt();
 
-        txt_name.setText(String.valueOf(getActivity().getString(R.string.name) + name));
-        txt_mac.setText(String.valueOf(getActivity().getString(R.string.mac) + mac));
+        tvName.setText(String.valueOf(getActivity().getString(R.string.name) + name));
+        tvMacAddress.setText(String.valueOf(getActivity().getString(R.string.mac) + mac));
 
         mResultAdapter.clear();
         for (BluetoothGattService service : gatt.getServices()) {
@@ -69,68 +61,63 @@ public class ServiceListFragment extends Fragment {
         mResultAdapter.notifyDataSetChanged();
     }
 
-    private class ResultAdapter extends BaseAdapter {
+    private class ResultAdapter extends RecyclerView.Adapter<ResultAdapter.ViewHolder> {
 
-        private Context context;
-        private List<BluetoothGattService> bluetoothGattServices;
+        private List<BluetoothGattService> mBluetoothGattServices;
 
-        ResultAdapter(Context context) {
-            this.context = context;
-            bluetoothGattServices = new ArrayList<>();
+        ResultAdapter() {
+            mBluetoothGattServices = new ArrayList<>();
         }
 
         void addResult(BluetoothGattService service) {
-            bluetoothGattServices.add(service);
+            mBluetoothGattServices.add(service);
         }
 
         void clear() {
-            bluetoothGattServices.clear();
+            mBluetoothGattServices.clear();
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.adapter_service, parent, false);
+            return new ViewHolder(v);
         }
 
         @Override
-        public int getCount() {
-            return bluetoothGattServices.size();
-        }
-
-        @Override
-        public BluetoothGattService getItem(int position) {
-            if (position > bluetoothGattServices.size())
-                return null;
-            return bluetoothGattServices.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            ViewHolder holder;
-            if (convertView != null) {
-                holder = (ViewHolder) convertView.getTag();
-            } else {
-                convertView = View.inflate(context, R.layout.adapter_service, null);
-                holder = new ViewHolder();
-                convertView.setTag(holder);
-                holder.txt_title = (TextView) convertView.findViewById(R.id.txt_title);
-                holder.txt_uuid = (TextView) convertView.findViewById(R.id.txt_uuid);
-                holder.txt_type = (TextView) convertView.findViewById(R.id.txt_type);
-            }
-
-            BluetoothGattService service = bluetoothGattServices.get(position);
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            final BluetoothGattService service = mBluetoothGattServices.get(position);
             String uuid = service.getUuid().toString();
 
-            holder.txt_title.setText(String.valueOf(getActivity().getString(R.string.service) + "(" + position + ")"));
-            holder.txt_uuid.setText(uuid);
-            holder.txt_type.setText(getActivity().getString(R.string.type));
-            return convertView;
+            holder.tvTitle.setText(String.valueOf(getActivity().getString(R.string.service) + "(" + position + ")"));
+            holder.tvUUID.setText(uuid);
+            holder.tvType.setText(getActivity().getString(R.string.type));
+
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                ((OperationActivity) getActivity()).setBluetoothGattService(service);
+                ((OperationActivity) getActivity()).changePage(1);
+                }
+            });
         }
 
-        class ViewHolder {
-            TextView txt_title;
-            TextView txt_uuid;
-            TextView txt_type;
+        @Override
+        public int getItemCount() {
+            return mBluetoothGattServices == null ? 0 : mBluetoothGattServices.size();
+        }
+
+        public class ViewHolder extends RecyclerView.ViewHolder {
+            TextView tvTitle;
+            TextView tvUUID;
+            TextView tvType;
+
+            public ViewHolder(View itemView) {
+                super(itemView);
+                tvTitle = (TextView) itemView.findViewById(R.id.tv_title);
+                tvUUID = (TextView) itemView.findViewById(R.id.tv_uuid);
+                tvType = (TextView) itemView.findViewById(R.id.tv_type);
+            }
         }
     }
 

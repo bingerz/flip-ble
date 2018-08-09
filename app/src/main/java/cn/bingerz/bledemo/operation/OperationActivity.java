@@ -33,7 +33,7 @@ public class OperationActivity extends AppCompatActivity implements Observer {
     private Toolbar toolbar;
     private List<Fragment> fragments = new ArrayList<>();
     private int currentPage = 0;
-    private String[] titles = new String[3];
+    private String[] titles = new String[4];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +109,7 @@ public class OperationActivity extends AppCompatActivity implements Observer {
         titles = new String[]{
                 getString(R.string.service_list),
                 getString(R.string.characteristic_list),
+                getString(R.string.property_list),
                 getString(R.string.console)};
     }
 
@@ -124,13 +125,16 @@ public class OperationActivity extends AppCompatActivity implements Observer {
         if (currentPage == 1) {
             ((CharacteristicListFragment) fragments.get(1)).showData();
         } else if (currentPage == 2) {
-            ((CharacteristicOperationFragment) fragments.get(2)).showData();
+            ((PropertyListFragment) fragments.get(2)).showData();
+        } else if (currentPage == 3) {
+            ((CharacteristicOperationFragment) fragments.get(3)).showData();
         }
     }
 
     private void prepareFragment() {
         fragments.add(new ServiceListFragment());
         fragments.add(new CharacteristicListFragment());
+        fragments.add(new PropertyListFragment());
         fragments.add(new CharacteristicOperationFragment());
         for (Fragment fragment : fragments) {
             getSupportFragmentManager().beginTransaction().add(R.id.fragment, fragment).hide(fragment).commit();

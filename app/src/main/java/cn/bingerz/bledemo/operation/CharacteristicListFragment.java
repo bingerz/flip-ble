@@ -4,19 +4,16 @@ package cn.bingerz.bledemo.operation;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 
@@ -32,63 +29,17 @@ public class CharacteristicListFragment extends Fragment {
     private ResultAdapter mResultAdapter;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_characteric_list, null);
         initView(v);
         return v;
     }
 
     private void initView(View v) {
-        mResultAdapter = new ResultAdapter(getActivity());
-        ListView listView_device = (ListView) v.findViewById(R.id.list_service);
-        listView_device.setAdapter(mResultAdapter);
-        listView_device.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final BluetoothGattCharacteristic characteristic = mResultAdapter.getItem(position);
-                final List<Integer> propList = new ArrayList<>();
-                List<String> propNameList = new ArrayList<>();
-                int charaProp = characteristic.getProperties();
-                if ((charaProp & BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
-                    propList.add(CharacteristicOperationFragment.PROPERTY_READ);
-                    propNameList.add("Read");
-                }
-                if ((charaProp & BluetoothGattCharacteristic.PROPERTY_WRITE) > 0) {
-                    propList.add(CharacteristicOperationFragment.PROPERTY_WRITE);
-                    propNameList.add("Write");
-                }
-                if ((charaProp & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) > 0) {
-                    propList.add(CharacteristicOperationFragment.PROPERTY_WRITE_NO_RESPONSE);
-                    propNameList.add("Write No Response");
-                }
-                if ((charaProp & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
-                    propList.add(CharacteristicOperationFragment.PROPERTY_NOTIFY);
-                    propNameList.add("Notify");
-                }
-                if ((charaProp & BluetoothGattCharacteristic.PROPERTY_INDICATE) > 0) {
-                    propList.add(CharacteristicOperationFragment.PROPERTY_INDICATE);
-                    propNameList.add("Indicate");
-                }
-
-                if (propList.size() > 1) {
-                    new AlertDialog.Builder(getActivity())
-                            .setTitle(getActivity().getString(R.string.select_operation_type))
-                            .setItems(propNameList.toArray(new String[propNameList.size()]), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    ((OperationActivity) getActivity()).setCharacteristic(characteristic);
-                                    ((OperationActivity) getActivity()).setCharaProp(propList.get(which));
-                                    ((OperationActivity) getActivity()).changePage(2);
-                                }
-                            })
-                            .show();
-                } else if (propList.size() > 0) {
-                    ((OperationActivity) getActivity()).setCharacteristic(characteristic);
-                    ((OperationActivity) getActivity()).setCharaProp(propList.get(0));
-                    ((OperationActivity) getActivity()).changePage(2);
-                }
-            }
-        });
+        mResultAdapter = new ResultAdapter();
+        RecyclerView recyclerView = (RecyclerView) v.findViewById(R.id.rv_characteristic_list);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        recyclerView.setAdapter(mResultAdapter);
     }
 
     public void showData() {
@@ -100,13 +51,11 @@ public class CharacteristicListFragment extends Fragment {
         mResultAdapter.notifyDataSetChanged();
     }
 
-    private class ResultAdapter extends BaseAdapter {
+    private class ResultAdapter extends RecyclerView.Adapter<ResultAdapter.ViewHolder> {
 
-        private Context context;
         private List<BluetoothGattCharacteristic> characteristicList;
 
-        ResultAdapter(Context context) {
-            this.context = context;
+        ResultAdapter() {
             characteristicList = new ArrayList<>();
         }
 
@@ -118,43 +67,20 @@ public class CharacteristicListFragment extends Fragment {
             characteristicList.clear();
         }
 
+        @NonNull
         @Override
-        public int getCount() {
-            return characteristicList.size();
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.adapter_service, parent, false);
+            return new ViewHolder(v);
         }
 
         @Override
-        public BluetoothGattCharacteristic getItem(int position) {
-            if (position > characteristicList.size())
-                return null;
-            return characteristicList.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            ViewHolder holder;
-            if (convertView != null) {
-                holder = (ViewHolder) convertView.getTag();
-            } else {
-                convertView = View.inflate(context, R.layout.adapter_service, null);
-                holder = new ViewHolder();
-                convertView.setTag(holder);
-                holder.txt_title = (TextView) convertView.findViewById(R.id.txt_title);
-                holder.txt_uuid = (TextView) convertView.findViewById(R.id.txt_uuid);
-                holder.txt_type = (TextView) convertView.findViewById(R.id.txt_type);
-                holder.img_next = (ImageView) convertView.findViewById(R.id.img_next);
-            }
-
-            BluetoothGattCharacteristic characteristic = characteristicList.get(position);
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            final BluetoothGattCharacteristic characteristic = characteristicList.get(position);
             String uuid = characteristic.getUuid().toString();
 
-            holder.txt_title.setText(String.valueOf(getActivity().getString(R.string.characteristic) + "（" + position + ")"));
-            holder.txt_uuid.setText(uuid);
+            holder.tvTitle.setText(String.valueOf(getActivity().getString(R.string.characteristic) + "（" + position + ")"));
+            holder.tvUUID.setText(uuid);
 
             StringBuilder property = new StringBuilder();
             int charaProp = characteristic.getProperties();
@@ -182,20 +108,39 @@ public class CharacteristicListFragment extends Fragment {
                 property.delete(property.length() - 2, property.length() - 1);
             }
             if (property.length() > 0) {
-                holder.txt_type.setText(String.valueOf(getActivity().getString(R.string.characteristic) + "( " + property.toString() + ")"));
-                holder.img_next.setVisibility(View.VISIBLE);
+                holder.tvType.setText(String.valueOf(getActivity().getString(R.string.characteristic) + "( " + property.toString() + ")"));
+                holder.ivNext.setVisibility(View.VISIBLE);
             } else {
-                holder.img_next.setVisibility(View.INVISIBLE);
+                holder.ivNext.setVisibility(View.INVISIBLE);
             }
 
-            return convertView;
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ((OperationActivity) getActivity()).setCharacteristic(characteristic);
+                    ((OperationActivity) getActivity()).changePage(2);
+                }
+            });
         }
 
-        class ViewHolder {
-            TextView txt_title;
-            TextView txt_uuid;
-            TextView txt_type;
-            ImageView img_next;
+        @Override
+        public int getItemCount() {
+            return characteristicList == null ? 0 : characteristicList.size();
+        }
+
+        public class ViewHolder extends RecyclerView.ViewHolder {
+            TextView tvTitle;
+            TextView tvUUID;
+            TextView tvType;
+            ImageView ivNext;
+
+            public ViewHolder(View itemView) {
+                super(itemView);
+                tvTitle = (TextView) itemView.findViewById(R.id.tv_title);
+                tvUUID = (TextView) itemView.findViewById(R.id.tv_uuid);
+                tvType = (TextView) itemView.findViewById(R.id.tv_type);
+                ivNext = (ImageView) itemView.findViewById(R.id.iv_next);
+            }
         }
     }
 }

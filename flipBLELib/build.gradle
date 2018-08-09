@@ -8,7 +8,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 22
         versionCode 13
-        versionName "0.2.7"
+        versionName "0.2.8"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -25,7 +25,7 @@ android {
         from('build/intermediates/intermediate-jars/release/')
         into('release/')
         include('classes.jar')
-        rename ('classes.jar', 'flipble-v0.2.7.jar')
+        rename ('classes.jar', 'flipble-v0.2.8.jar')
     }
 
     tasks.whenTaskAdded { task ->
@@ -38,4 +38,20 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    // Dependencies for local unit tests
+    testImplementation "junit:junit:$versions.junit"
+    testImplementation "org.mockito:mockito-core:$versions.mockito"
+    testImplementation "org.hamcrest:hamcrest-all:$versions.hamcrest"
+    testImplementation "org.powermock:powermock-module-junit4:$versions.powerMockito"
+    testImplementation "org.powermock:powermock-api-mockito:$versions.powerMockito"
+
+    // Android Testing Support Library's runner and rules
+    androidTestImplementation "com.android.support.test:runner:$versions.runner"
+    androidTestImplementation "com.android.support.test:rules:$versions.rules"
+
+    // Espresso UI Testing dependencies.
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:$versions.espresso"
+    androidTestImplementation "com.android.support.test.espresso:espresso-contrib:$versions.espresso"
+    androidTestImplementation "com.android.support.test.espresso:espresso-intents:$versions.espresso"
+
 }

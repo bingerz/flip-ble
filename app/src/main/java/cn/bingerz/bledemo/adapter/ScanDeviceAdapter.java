@@ -1,10 +1,10 @@
 package cn.bingerz.bledemo.adapter;
 
-
-import android.content.Context;
+import android.support.annotation.NonNull;
+import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -16,46 +16,44 @@ import java.util.List;
 import cn.bingerz.bledemo.R;
 import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.central.ScanDevice;
-import cn.bingerz.flipble.peripheral.Peripheral;
 
-public class ScanDeviceAdapter extends BaseAdapter {
+public class ScanDeviceAdapter extends RecyclerView.Adapter<ScanDeviceAdapter.ViewHolder> {
 
-    private Context context;
-    private List<ScanDevice> scanDevices;
+    private List<ScanDevice> mScanDevices;
 
-    public ScanDeviceAdapter(Context context) {
-        this.context = context;
-        scanDevices = new ArrayList<>();
+    public ScanDeviceAdapter() {
+        mScanDevices = new ArrayList<>();
     }
+
 
     public void addDevice(ScanDevice device) {
         removeDevice(device);
-        scanDevices.add(device);
+        mScanDevices.add(device);
     }
 
     public void removeDevice(ScanDevice scanDevice) {
-        for (int i = 0; i < scanDevices.size(); i++) {
-            ScanDevice device = scanDevices.get(i);
+        for (int i = 0; i < mScanDevices.size(); i++) {
+            ScanDevice device = mScanDevices.get(i);
             if (device.getAddress().equals(scanDevice.getAddress())) {
-                scanDevices.remove(i);
+                mScanDevices.remove(i);
             }
         }
     }
 
     public void clearConnectedDevice() {
-        for (int i = 0; i < scanDevices.size(); i++) {
-            ScanDevice device = scanDevices.get(i);
+        for (int i = 0; i < mScanDevices.size(); i++) {
+            ScanDevice device = mScanDevices.get(i);
             if (CentralManager.getInstance().isConnected(device.getAddress())) {
-                scanDevices.remove(i);
+                mScanDevices.remove(i);
             }
         }
     }
 
     public void clearScanDevice() {
-        for (int i = 0; i < scanDevices.size(); i++) {
-            ScanDevice device = scanDevices.get(i);
+        for (int i = 0; i < mScanDevices.size(); i++) {
+            ScanDevice device = mScanDevices.get(i);
             if (!CentralManager.getInstance().isConnected(device.getAddress())) {
-                scanDevices.remove(i);
+                mScanDevices.remove(i);
             }
         }
     }
@@ -66,67 +64,43 @@ public class ScanDeviceAdapter extends BaseAdapter {
     }
 
     @Override
-    public int getCount() {
-        return scanDevices.size();
+    public int getItemCount() {
+        return mScanDevices == null ? 0 : mScanDevices.size();
+    }
+
+    @NonNull
+    @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.adapter_device, parent, false);
+        return new ViewHolder(v);
     }
 
     @Override
-    public ScanDevice getItem(int position) {
-        if (position > scanDevices.size())
-            return null;
-        return scanDevices.get(position);
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return 0;
-    }
-
-    @Override
-    public View getView(int position, View convertView, final ViewGroup parent) {
-        ViewHolder holder;
-        if (convertView != null) {
-            holder = (ViewHolder) convertView.getTag();
-        } else {
-            convertView = View.inflate(context, R.layout.adapter_device, null);
-            holder = new ViewHolder();
-            convertView.setTag(holder);
-            holder.img_blue = convertView.findViewById(R.id.img_blue);
-            holder.txt_name = convertView.findViewById(R.id.txt_name);
-            holder.txt_mac = convertView.findViewById(R.id.txt_mac);
-            holder.txt_rssi = convertView.findViewById(R.id.txt_rssi);
-            holder.layout_idle = convertView.findViewById(R.id.layout_idle);
-            holder.layout_connected = convertView.findViewById(R.id.layout_connected);
-            holder.btn_disconnect = convertView.findViewById(R.id.btn_disconnect);
-            holder.btn_connect = convertView.findViewById(R.id.btn_connect);
-            holder.btn_detail = convertView.findViewById(R.id.btn_detail);
-        }
-
-        final ScanDevice device = getItem(position);
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        final ScanDevice device = mScanDevices.get(position);
         if (device != null) {
             boolean isConnected = CentralManager.getInstance().isConnected(device.getAddress());
             String name = device.getName();
             String mac = device.getAddress();
             int rssi = device.getRssi();
-            holder.txt_name.setText(name);
-            holder.txt_mac.setText(mac);
-            holder.txt_rssi.setText(String.valueOf(rssi));
+            holder.tvName.setText(name);
+            holder.tvMacAddress.setText(mac);
+            holder.tvRssi.setText(String.valueOf(rssi));
             if (isConnected) {
-                holder.img_blue.setImageResource(R.mipmap.ic_blue_connected);
-                holder.txt_name.setTextColor(0xFF4a90e2);
-                holder.txt_mac.setTextColor(0xFF4a90e2);
-                holder.layout_idle.setVisibility(View.GONE);
-                holder.layout_connected.setVisibility(View.VISIBLE);
+                holder.ivBluetooth.setImageResource(R.mipmap.ic_blue_connected);
+                holder.tvName.setTextColor(0xFF4a90e2);
+                holder.tvMacAddress.setTextColor(0xFF4a90e2);
+                holder.llIdle.setVisibility(View.GONE);
+                holder.llConnected.setVisibility(View.VISIBLE);
             } else {
-                holder.img_blue.setImageResource(R.mipmap.ic_blue_remote);
-                holder.txt_name.setTextColor(0xFF000000);
-                holder.txt_mac.setTextColor(0xFF000000);
-                holder.layout_idle.setVisibility(View.VISIBLE);
-                holder.layout_connected.setVisibility(View.GONE);
+                holder.ivBluetooth.setImageResource(R.mipmap.ic_blue_remote);
+                holder.tvName.setTextColor(0xFF000000);
+                holder.tvMacAddress.setTextColor(0xFF000000);
+                holder.llIdle.setVisibility(View.VISIBLE);
+                holder.llConnected.setVisibility(View.GONE);
             }
         }
-
-        holder.btn_connect.setOnClickListener(new View.OnClickListener() {
+        holder.btnConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (mListener != null) {
@@ -135,7 +109,7 @@ public class ScanDeviceAdapter extends BaseAdapter {
             }
         });
 
-        holder.btn_disconnect.setOnClickListener(new View.OnClickListener() {
+        holder.btnDisconnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (mListener != null) {
@@ -144,7 +118,7 @@ public class ScanDeviceAdapter extends BaseAdapter {
             }
         });
 
-        holder.btn_detail.setOnClickListener(new View.OnClickListener() {
+        holder.btnDetail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (mListener != null) {
@@ -152,20 +126,31 @@ public class ScanDeviceAdapter extends BaseAdapter {
                 }
             }
         });
-
-        return convertView;
     }
 
-    class ViewHolder {
-        ImageView img_blue;
-        TextView txt_name;
-        TextView txt_mac;
-        TextView txt_rssi;
-        LinearLayout layout_idle;
-        LinearLayout layout_connected;
-        Button btn_disconnect;
-        Button btn_connect;
-        Button btn_detail;
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        private ImageView ivBluetooth;
+        private TextView tvName;
+        private TextView tvMacAddress;
+        private TextView tvRssi;
+        private LinearLayout llIdle;
+        private LinearLayout llConnected;
+        private Button btnDisconnect;
+        private Button btnConnect;
+        private Button btnDetail;
+
+        public ViewHolder(View itemView) {
+            super(itemView);
+            ivBluetooth = itemView.findViewById(R.id.iv_bluetooth);
+            tvName = itemView.findViewById(R.id.tv_name);
+            tvMacAddress = itemView.findViewById(R.id.tv_mac);
+            tvRssi = itemView.findViewById(R.id.tv_rssi);
+            llIdle = itemView.findViewById(R.id.layout_idle);
+            llConnected = itemView.findViewById(R.id.layout_connected);
+            btnDisconnect = itemView.findViewById(R.id.btn_disconnect);
+            btnConnect = itemView.findViewById(R.id.btn_connect);
+            btnDetail = itemView.findViewById(R.id.btn_detail);
+        }
     }
 
     public interface OnDeviceClickListener {
