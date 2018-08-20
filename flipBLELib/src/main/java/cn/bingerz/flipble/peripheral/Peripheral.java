@@ -364,6 +364,16 @@ public class Peripheral {
         return service.getCharacteristic(UUID.fromString(charactUUID));
     }
 
+    public boolean isContainProperty(String serviceUUID, String charactUUID, int propertyType) {
+        BluetoothGattCharacteristic characteristic = getCharact(serviceUUID, charactUUID);
+        if (characteristic != null) {
+            int charaProp = characteristic.getProperties();
+            return (charaProp & propertyType) > 0;
+        } else {
+            return false;
+        }
+    }
+
     /**
      * connect a known device
      */
