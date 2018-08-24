@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.action.ViewActions.replaceText;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.RootMatchers.isDialog;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -272,6 +273,64 @@ public class MainActivityTest {
         iteratorServiceCharacteristicProperty();
         Espresso.pressBack();
         clickDisconnectDeviceByIndex(itemCount - 1);
+    }
+
+    private boolean iteratorExecuteWriteShutdown() {
+        int serviceItemCount = checkServiceListNotNull_GetCount();
+        if (serviceItemCount != 7) {
+            return false;
+        }
+        clickService(serviceItemCount - 1);
+
+        int characteristicItemCount = checkCharacteristicListNotNull_GetCount();
+        if (characteristicItemCount > 1) {
+            Espresso.pressBack();
+            return false;
+        }
+        clickCharacteristic(0);
+
+        int propertyItemCount = checkPropertyListNotNull_GetCount();
+        if (propertyItemCount != 3) {
+            Espresso.pressBack();
+            Espresso.pressBack();
+            return false;
+        }
+
+        clickProperty(1);
+
+        onView(allOf(withId(R.id.et), withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE))).perform(replaceText("06"));
+
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        onView(allOf(withId(R.id.btn), withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE))).perform(click());
+        return true;
+    }
+
+    //    @Test
+    public void clickConnect_Shutdown_IteratorAll() {
+        int itemCount = clickScanButton_ReturnItemCount();
+        Assert.assertTrue(itemCount > 0);
+        for (int i = itemCount; i > 0; i--) {
+            clickConnectDeviceByIndexWhenScannedListNotNull(0);
+
+            clickDeviceDetailByIndex(itemCount - 1);
+
+            boolean result = iteratorExecuteWriteShutdown();
+            if (result) {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Espresso.pressBack();
+                clickDisconnectDeviceByIndex(itemCount - 1);
+            }
+            itemCount--;
+        }
     }
 
     /**
