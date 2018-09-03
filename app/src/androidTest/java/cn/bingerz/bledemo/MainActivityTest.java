@@ -37,6 +37,7 @@ import static org.hamcrest.core.AllOf.allOf;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class MainActivityTest {
+    private static final String TAG = MainActivityTest.class.getSimpleName();
 
     private int mServiceAdapterItemCount = 0;
     private int mCharacteristicAdapterItemCount = 0;
@@ -277,13 +278,15 @@ public class MainActivityTest {
 
     private boolean iteratorExecuteWriteShutdown() {
         int serviceItemCount = checkServiceListNotNull_GetCount();
-        if (serviceItemCount != 7) {
+        if (serviceItemCount != 6) {
+            Log.e(TAG, "service item count abnormal.");
             return false;
         }
         clickService(serviceItemCount - 1);
 
         int characteristicItemCount = checkCharacteristicListNotNull_GetCount();
         if (characteristicItemCount > 1) {
+            Log.e(TAG, "characteristic item count abnormal.");
             Espresso.pressBack();
             return false;
         }
@@ -291,6 +294,7 @@ public class MainActivityTest {
 
         int propertyItemCount = checkPropertyListNotNull_GetCount();
         if (propertyItemCount != 3) {
+            Log.e(TAG, "property item count abnormal.");
             Espresso.pressBack();
             Espresso.pressBack();
             return false;
@@ -301,7 +305,7 @@ public class MainActivityTest {
         onView(allOf(withId(R.id.et), withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE))).perform(replaceText("06"));
 
         try {
-            Thread.sleep(2000);
+            Thread.sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -309,7 +313,7 @@ public class MainActivityTest {
         return true;
     }
 
-    //    @Test
+//    @Test
     public void clickConnect_Shutdown_IteratorAll() {
         int itemCount = clickScanButton_ReturnItemCount();
         Assert.assertTrue(itemCount > 0);

@@ -237,7 +237,13 @@ public class CentralManager {
      */
     @SuppressWarnings({"MissingPermission"})
     public boolean isBluetoothEnable() {
-        return mBluetoothAdapter != null && mBluetoothAdapter.isEnabled();
+        boolean result = false;
+        try {
+            result = mBluetoothAdapter != null && mBluetoothAdapter.isEnabled();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     private BluetoothDevice retrieveDevice(String address) {
