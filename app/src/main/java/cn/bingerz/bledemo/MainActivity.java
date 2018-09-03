@@ -218,8 +218,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         String mac = etMac.getText().toString();
 
-        boolean isAutoConnect = swAuto.isChecked();
-
         ScanRuleConfig scanRuleConfig = new ScanRuleConfig.Builder()
                 .setServiceUuids(serviceUuids)      // 只扫描指定的服务的设备，可选
                 .setDeviceName(true, names)   // 只扫描指定广播名的设备，可选
@@ -264,7 +262,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void connect(Peripheral peripheral) {
-        peripheral.connect(false, new ConnectStateCallback() {
+        boolean isAutoConnect = swAuto.isChecked();
+        peripheral.connect(isAutoConnect, new ConnectStateCallback() {
             @Override
             public void onStartConnect() {
                 progressDialog.show();
