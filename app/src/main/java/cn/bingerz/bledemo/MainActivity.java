@@ -264,7 +264,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void connect(Peripheral peripheral) {
-        peripheral.connect(new ConnectStateCallback() {
+        peripheral.connect(false, new ConnectStateCallback() {
             @Override
             public void onStartConnect() {
                 progressDialog.show();

@@ -62,8 +62,7 @@ public class Peripheral {
     private Map<String, ReadCallback> mReadCallbackMap = new ConcurrentHashMap<>();
 
     public Peripheral(BluetoothDevice device) {
-        ScanDevice scanDevice = new ScanDevice(device, 0, null);
-        this.mDevice = scanDevice;
+        this.mDevice = new ScanDevice(device, 0, null);
     }
 
     public Peripheral(ScanDevice device) {
@@ -264,33 +263,6 @@ public class Peripheral {
         mMtuChangedCallback = null;
     }
 
-    private boolean connect(boolean autoConnect, ConnectStateCallback callback) {
-        EasyLog.i("connect device:%s mac:%s autoConnect:%s", getName(), getAddress(), autoConnect);
-        addConnectionStateCallback(callback);
-
-        BluetoothDevice device = mDevice != null ? mDevice.getDevice() : null;
-        if (device == null) {
-            EasyLog.i("connect device fail, device is null.");
-            return false;
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mBluetoothGatt = device.connectGatt(CentralManager.getInstance().getContext(), autoConnect,
-                    coreGattCallback, BluetoothDevice.TRANSPORT_LE);
-        } else {
-            mBluetoothGatt = device.connectGatt(CentralManager.getInstance().getContext(), autoConnect, coreGattCallback);
-        }
-        if (mBluetoothGatt != null) {
-            if (mConnectStateCallback != null) {
-                mConnectStateCallback.onStartConnect();
-            }
-            mConnectState = ConnectionState.CONNECT_CONNECTING;
-            return true;
-        } else {
-            EasyLog.e("connect device fail, bluetoothGatt is null.");
-        }
-        return false;
-    }
-
     public synchronized boolean refreshDeviceCache() {
         try {
             final Method refresh = BluetoothGatt.class.getMethod("refresh");
@@ -304,6 +276,47 @@ public class Peripheral {
             e.printStackTrace();
         }
         return false;
+    }
+
+    /**
+     * connect a known device
+     */
+    public synchronized boolean connect(boolean autoConnect, ConnectStateCallback callback) {
+        if (callback == null) {
+            throw new IllegalArgumentException("BleGattCallback can not be Null!");
+        } else if (!CentralManager.getInstance().isBluetoothEnable()) {
+            CentralManager.getInstance().handleException(new OtherException("BT adapter is not turn on."));
+            return false;
+        } else {
+            if (CentralManager.getInstance().isScanning()) {
+                CentralManager.getInstance().handleException(
+                        new OtherException("When connecting the device, Recommended to stop scanning"));
+            }
+            EasyLog.i("connect device:%s mac:%s autoConnect:%s", getName(), getAddress(), autoConnect);
+            addConnectionStateCallback(callback);
+
+            BluetoothDevice device = mDevice != null ? mDevice.getDevice() : null;
+            if (device == null) {
+                EasyLog.i("connect device fail, device is null.");
+                return false;
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                mBluetoothGatt = device.connectGatt(CentralManager.getInstance().getContext(), autoConnect,
+                        coreGattCallback, BluetoothDevice.TRANSPORT_LE);
+            } else {
+                mBluetoothGatt = device.connectGatt(CentralManager.getInstance().getContext(), autoConnect, coreGattCallback);
+            }
+            if (mBluetoothGatt != null) {
+                if (mConnectStateCallback != null) {
+                    mConnectStateCallback.onStartConnect();
+                }
+                mConnectState = ConnectionState.CONNECT_CONNECTING;
+                return true;
+            } else {
+                EasyLog.e("connect device fail, bluetoothGatt is null.");
+            }
+            return false;
+        }
     }
 
     public synchronized void disconnect() {
@@ -371,24 +384,6 @@ public class Peripheral {
             return (charaProp & propertyType) > 0;
         } else {
             return false;
-        }
-    }
-
-    /**
-     * connect a known device
-     */
-    public synchronized boolean connect(ConnectStateCallback connectionStateCallback) {
-        if (connectionStateCallback == null) {
-            throw new IllegalArgumentException("BleGattCallback can not be Null!");
-        } else if (!CentralManager.getInstance().isBluetoothEnable()) {
-            CentralManager.getInstance().handleException(new OtherException("BT adapter is not turn on."));
-            return false;
-        } else {
-            if (CentralManager.getInstance().isScanning()) {
-                CentralManager.getInstance().handleException(
-                        new OtherException("When connecting the device, Recommended to stop scanning"));
-            }
-            return connect(false, connectionStateCallback);
         }
     }
 
