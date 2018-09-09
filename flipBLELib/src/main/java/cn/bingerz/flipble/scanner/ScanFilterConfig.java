@@ -18,6 +18,15 @@ public class ScanFilterConfig {
         return mDeviceMac;
     }
 
+    @Override
+    public String toString() {
+        return "ScanFilterConfig{" +
+                "mServiceUUID='" + mServiceUUID + '\'' +
+                ", mDeviceName='" + mDeviceName + '\'' +
+                ", mDeviceMac='" + mDeviceMac + '\'' +
+                '}';
+    }
+
     public static class Builder {
 
         private String mServiceUUID = null;

@@ -35,8 +35,12 @@ public abstract class CycledScannerPresenter implements LeScanCallback {
     public CycledScannerPresenter(Scanner scanner, ScanRuleConfig config) {
         this.mScanner = scanner;
         this.mBackgroundMode = config.isBackgroundMode();
-        setDuration(mBackgroundMode, config.getScanDuration());
-        setInterval(mBackgroundMode, config.getScanInterval());
+        if (config.getScanDuration() > 0) {
+            setDuration(mBackgroundMode, config.getScanDuration());
+        }
+        if (config.getScanInterval() > 0) {
+            setInterval(mBackgroundMode, config.getScanInterval());
+        }
     }
 
     private void setDuration(boolean backgroundMode, long duration) {

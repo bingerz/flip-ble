@@ -4,8 +4,6 @@ package cn.bingerz.flipble.scanner;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.bingerz.flipble.central.CentralManager;
-
 public class ScanRuleConfig {
 
     public static final int SCAN_MODE_LOW_POWER = 0;
@@ -38,12 +36,22 @@ public class ScanRuleConfig {
         return mScanFilterConfigs;
     }
 
-    public static class Builder {
+    @Override
+    public String toString() {
+        return "ScanRuleConfig{" +
+                "mScanMode=" + mScanMode +
+                ", mBackgroundMode=" + mBackgroundMode +
+                ", mScanDuration=" + mScanDuration +
+                ", mScanInterval=" + mScanInterval +
+                ", mScanFilterConfigs=" + mScanFilterConfigs +
+                '}';
+    }
 
+    public static class Builder {
         private int mScanMode = SCAN_MODE_HIGH_POWER;
-        private long mDuration = CentralManager.DEFAULT_BACKGROUND_SCAN_DURATION;
-        private long mInterval = CentralManager.DEFAULT_BACKGROUND_SCAN_INTERVAL;
         private boolean mBackgroundMode = false;
+        private long mDuration;
+        private long mInterval;
         private List<ScanFilterConfig> mScanFilterConfigs = new ArrayList<>();
 
         public Builder setScanMode(int scanMode) {
@@ -73,9 +81,9 @@ public class ScanRuleConfig {
 
         void applyConfig(ScanRuleConfig config) {
             config.mScanMode = this.mScanMode;
+            config.mBackgroundMode = this.mBackgroundMode;
             config.mScanDuration = this.mDuration;
             config.mScanInterval = this.mInterval;
-            config.mBackgroundMode = this.mBackgroundMode;
             config.mScanFilterConfigs = this.mScanFilterConfigs;
         }
 

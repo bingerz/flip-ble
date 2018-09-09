@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.scanner.lescanner.LeScanCallback;
 import cn.bingerz.flipble.utils.EasyLog;
 
@@ -29,6 +30,9 @@ public abstract class OnceScannerPresenter implements LeScanCallback {
     public OnceScannerPresenter(Scanner scanner, ScanRuleConfig config) {
         this.mScanner = scanner;
         this.mScanDuration = config.getScanDuration();
+        if (mScanDuration <= 0) {
+            mScanDuration = CentralManager.DEFAULT_BACKGROUND_SCAN_DURATION;
+        }
     }
 
     @Override

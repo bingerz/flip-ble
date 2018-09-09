@@ -248,7 +248,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void startScan() {
-        CentralManager.getInstance().startScan(true, mScanRuleConfig, new ScanCallback() {
+        CentralManager.getInstance().startScan(false, mScanRuleConfig, new ScanCallback() {
             @Override
             public void onScanStarted() {
                 mScanDeviceAdapter.clearScanDevice();

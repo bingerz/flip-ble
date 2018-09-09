@@ -1,5 +1,6 @@
 package cn.bingerz.flipble.central;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
@@ -61,7 +62,8 @@ public class CentralManager {
 
     private DefaultExceptionHandler mBLEExceptionHandler;
 
-    private CentralManager() {}
+    private CentralManager() {
+    }
 
     public static CentralManager getInstance() {
         return CentralManagerHolder.INSTANCE;
@@ -83,38 +85,48 @@ public class CentralManager {
         }
     }
 
-    /**
-     * Get the BleScanner
-     */
-    private Scanner getScanner() {
-        return mScanner;
-    }
-
     public boolean isScanning() {
-        Scanner scanner = getScanner();
-        return scanner != null && scanner.isScanning();
+        return mScanner != null && mScanner.isScanning();
     }
 
     public void startScan(boolean isCycled, ScanRuleConfig config, ScanCallback callback) {
-        mScanner = Scanner.createScanner(isCycled);
-        mScanner.initConfig(config);
-        mScanner.startScan(callback);
+        if (android.os.Build.VERSION.SDK_INT < 23 || checkLocationPermission()) {
+            if (mScanner != null) {
+                mScanner.stopScan();
+                mScanner.destroy();
+                mScanner = null;
+            }
+            mScanner = Scanner.createScanner(isCycled);
+            mScanner.initConfig(config);
+            mScanner.startScan(callback);
+        } else {
+            EasyLog.e("startScan is failure. Need to grant location permissions");
+        }
     }
 
     public void stopScan() {
-        Scanner scanner = getScanner();
-        if (scanner != null) {
-            if (scanner instanceof OnceScanner && scanner.isScanning()) {
-                scanner.stopScan();
-            } else if (scanner instanceof CycledScanner) {
-                scanner.stopScan();
+        if (mScanner != null) {
+            if (mScanner instanceof OnceScanner && mScanner.isScanning()) {
+                mScanner.stopScan();
+            } else if (mScanner instanceof CycledScanner) {
+                mScanner.stopScan();
             }
-            scanner.destroy();
+            mScanner.destroy();
+            mScanner = null;
         }
     }
 
     public Context getContext() {
         return mContext;
+    }
+
+    private boolean checkLocationPermission() {
+        return checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+                || checkPermission(Manifest.permission.ACCESS_FINE_LOCATION);
+    }
+
+    private boolean checkPermission(final String permission) {
+        return mContext.checkPermission(permission, android.os.Process.myPid(), android.os.Process.myUid()) == PackageManager.PERMISSION_GRANTED;
     }
 
     private BluetoothManager getBluetoothManager() {
@@ -215,8 +227,8 @@ public class CentralManager {
      */
     @SuppressWarnings({"MissingPermission"})
     public void enableBluetooth() {
-        if (mBluetoothAdapter != null) {
-            mBluetoothAdapter.enable();
+        if (getBluetoothAdapter() != null) {
+            getBluetoothAdapter().enable();
         }
     }
 
@@ -225,9 +237,8 @@ public class CentralManager {
      */
     @SuppressWarnings({"MissingPermission"})
     public void disableBluetooth() {
-        if (mBluetoothAdapter != null) {
-            if (mBluetoothAdapter.isEnabled())
-                mBluetoothAdapter.disable();
+        if (isBluetoothEnable()) {
+            getBluetoothAdapter().disable();
         }
     }
 
@@ -238,7 +249,7 @@ public class CentralManager {
     public boolean isBluetoothEnable() {
         boolean result = false;
         try {
-            result = mBluetoothAdapter != null && mBluetoothAdapter.isEnabled();
+            result = getBluetoothAdapter() != null && getBluetoothAdapter().isEnabled();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -246,15 +257,15 @@ public class CentralManager {
     }
 
     private BluetoothDevice retrieveDevice(String address) {
-        if (mBluetoothAdapter != null) {
-            return mBluetoothAdapter.getRemoteDevice(address);
+        if (getBluetoothAdapter() != null) {
+            return getBluetoothAdapter().getRemoteDevice(address);
         }
         return null;
     }
 
     private BluetoothDevice retrieveDevice(byte[] address) {
-        if (mBluetoothAdapter != null) {
-            return mBluetoothAdapter.getRemoteDevice(address);
+        if (getBluetoothAdapter() != null) {
+            return getBluetoothAdapter().getRemoteDevice(address);
         }
         return null;
     }
