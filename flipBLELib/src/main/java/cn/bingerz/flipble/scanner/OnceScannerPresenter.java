@@ -1,4 +1,4 @@
-package cn.bingerz.flipble.central;
+package cn.bingerz.flipble.scanner;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import cn.bingerz.flipble.scanner.ScanDevice;
-import cn.bingerz.flipble.scanner.ScanRuleConfig;
 import cn.bingerz.flipble.scanner.lescanner.LeScanCallback;
 import cn.bingerz.flipble.utils.EasyLog;
 
@@ -20,14 +18,16 @@ import cn.bingerz.flipble.utils.EasyLog;
  */
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-public abstract class CentralScannerPresenter implements LeScanCallback {
+public abstract class OnceScannerPresenter implements LeScanCallback {
 
+    private Scanner mScanner;
     private long mScanDuration;
     private List<ScanDevice> mScanDevices = new ArrayList<>();
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
 
-    public CentralScannerPresenter(ScanRuleConfig config) {
+    public OnceScannerPresenter(Scanner scanner, ScanRuleConfig config) {
+        this.mScanner = scanner;
         this.mScanDuration = config.getScanDuration();
     }
 
@@ -66,7 +66,9 @@ public abstract class CentralScannerPresenter implements LeScanCallback {
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    CentralManager.getInstance().getScanner().stopLeScan();
+                    if (mScanner != null) {
+                        mScanner.stopLeScan();
+                    }
                 }
             }, mScanDuration);
         }

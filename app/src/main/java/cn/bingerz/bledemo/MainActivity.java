@@ -71,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ScanDeviceAdapter mScanDeviceAdapter;
     private ProgressDialog progressDialog;
 
+    private ScanRuleConfig mScanRuleConfig;
     private String DEFAULT_SERVICE_UUID = "00001803-0000-1000-8000-00805f9b34fb";
 
     @Override
@@ -237,16 +238,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             scanFilterConfigs.add(filterBuilder.build());
         }
 
-        ScanRuleConfig scanRuleConfig = new ScanRuleConfig.Builder()
+        mScanRuleConfig = new ScanRuleConfig.Builder()
                 .setScanFilterConfigs(scanFilterConfigs)    // 只扫描指定的设备，可选
                 .setScanMode(ScanRuleConfig.SCAN_MODE_BALANCED)
-                .setScanDuration(6000)                      // 扫描持续时间，可选，默认10秒
+                .setScanDuration(6000)                      // 扫描持续时间，可选
+                .setScanInterval(6000)                      // 扫描间隔时间，可选
+                .setScanBackgroundMode(false)
                 .build();
-        CentralManager.getInstance().initScanRule(scanRuleConfig);
     }
 
     private void startScan() {
-        CentralManager.getInstance().scan(new ScanCallback() {
+        CentralManager.getInstance().startScan(true, mScanRuleConfig, new ScanCallback() {
             @Override
             public void onScanStarted() {
                 mScanDeviceAdapter.clearScanDevice();
@@ -258,10 +260,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onScanning(ScanDevice device) {
-                if (device.getRssi() > -65) {
-                    mScanDeviceAdapter.addDevice(device);
-                    mScanDeviceAdapter.notifyDataSetChanged();
-                }
+                mScanDeviceAdapter.addDevice(device);
+                mScanDeviceAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -274,9 +274,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void stopScan() {
-        if (CentralManager.getInstance().isScanning()) {
-            CentralManager.getInstance().cancelScan();
-        }
+        CentralManager.getInstance().stopScan();
     }
 
     private void connect(Peripheral peripheral) {

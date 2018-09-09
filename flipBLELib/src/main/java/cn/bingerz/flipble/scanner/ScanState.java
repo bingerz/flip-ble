@@ -1,15 +1,15 @@
-package cn.bingerz.flipble.central;
+package cn.bingerz.flipble.scanner;
 
 
 
-public enum CentralScanState {
+public enum ScanState {
 
     STATE_IDLE(-1),
     STATE_SCANNING(0X01);
 
     private int code;
 
-    CentralScanState(int code) {
+    ScanState(int code) {
         this.code = code;
     }
 

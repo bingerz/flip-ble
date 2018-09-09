@@ -17,7 +17,10 @@ import cn.bingerz.flipble.peripheral.MultiplePeripheralController;
 import cn.bingerz.flipble.peripheral.Peripheral;
 import cn.bingerz.flipble.exception.BLEException;
 import cn.bingerz.flipble.exception.hanlder.DefaultExceptionHandler;
+import cn.bingerz.flipble.scanner.CycledScanner;
+import cn.bingerz.flipble.scanner.OnceScanner;
 import cn.bingerz.flipble.scanner.ScanRuleConfig;
+import cn.bingerz.flipble.scanner.Scanner;
 import cn.bingerz.flipble.scanner.callback.ScanCallback;
 import cn.bingerz.flipble.utils.EasyLog;
 
@@ -28,16 +31,30 @@ import cn.bingerz.flipble.utils.EasyLog;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class CentralManager {
 
-    public static final int DEFAULT_SCAN_TIME = 10000;
+    /**
+     * The default duration in milliseconds of the Bluetooth scan duration when clients are in the foreground
+     */
+    public static final int DEFAULT_FOREGROUND_SCAN_DURATION = 6000;
+    /**
+     * The default duration in milliseconds of the Bluetooth scan interval when clients are in the foreground
+     */
+    public static final int DEFAULT_FOREGROUND_SCAN_INTERVAL = 6000;
+    /**
+     * The default duration in milliseconds of the Bluetooth scan duration when clients are in the background
+     */
+    public static final int DEFAULT_BACKGROUND_SCAN_DURATION = 10000;
+    /**
+     * The default duration in milliseconds of the Bluetooth scan interval when clients are in the background
+     */
+    public static final int DEFAULT_BACKGROUND_SCAN_INTERVAL = 5 * 60 * 1000;
+
     private static final int DEFAULT_MAX_MULTIPLE_DEVICE = 7;
     private static final int DEFAULT_OPERATE_TIME = 5000;
 
     private int operateTimeout = DEFAULT_OPERATE_TIME;
     private int maxConnectCount = DEFAULT_MAX_MULTIPLE_DEVICE;
 
-    private CentralScanner mCentralScanner;
-    private ScanRuleConfig mScanRuleConfig;
-
+    private Scanner mScanner;
     private Application mContext;
     private BluetoothAdapter mBluetoothAdapter;
     private MultiplePeripheralController mMultiPeripheralController;
@@ -63,61 +80,37 @@ public class CentralManager {
             EasyLog.setExplicitTag("FlipBLE");
             mBLEExceptionHandler = new DefaultExceptionHandler();
             mMultiPeripheralController = new MultiplePeripheralController();
-            mCentralScanner = CentralScanner.getInstance();
         }
     }
 
     /**
      * Get the BleScanner
      */
-    public CentralScanner getScanner() {
-        return mCentralScanner;
+    private Scanner getScanner() {
+        return mScanner;
     }
 
     public boolean isScanning() {
-        return mCentralScanner != null
-                && mCentralScanner.getScanState() == CentralScanState.STATE_SCANNING;
+        Scanner scanner = getScanner();
+        return scanner != null && scanner.isScanning();
     }
 
-    /**
-     * get the ScanRuleConfig
-     */
-    public ScanRuleConfig getScanRuleConfig() {
-        return mScanRuleConfig;
+    public void startScan(boolean isCycled, ScanRuleConfig config, ScanCallback callback) {
+        mScanner = Scanner.createScanner(isCycled);
+        mScanner.initConfig(config);
+        mScanner.startScan(callback);
     }
 
-    /**
-     * Configure scan and connection properties
-     */
-    public void initScanRule(ScanRuleConfig scanRuleConfig) {
-        this.mScanRuleConfig = scanRuleConfig;
-    }
-
-    /**
-     * scan device around
-     * Caution:Above Android 6.0,
-     * ensure ACCESS_FINE_LOCATION and ACCESS_COARSE_LOCATION permissions have been granted
-     */
-    public void scan(ScanCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("ScanCallback can not be null!");
+    public void stopScan() {
+        Scanner scanner = getScanner();
+        if (scanner != null) {
+            if (scanner instanceof OnceScanner && scanner.isScanning()) {
+                scanner.stopScan();
+            } else if (scanner instanceof CycledScanner) {
+                scanner.stopScan();
+            }
+            scanner.destroy();
         }
-        if (mCentralScanner == null) {
-            EasyLog.e("CentralScanner is null.");
-        } else {
-            mCentralScanner.scan(getScanRuleConfig(), callback);
-        }
-    }
-
-    /**
-     * Cancel scan
-     */
-    public void cancelScan() {
-        if (mCentralScanner == null) {
-            EasyLog.e("CentralScanner is null.");
-            return;
-        }
-        mCentralScanner.stopLeScan();
     }
 
     public Context getContext() {
@@ -323,8 +316,8 @@ public class CentralManager {
     }
 
     public void destroy() {
-        if (mCentralScanner != null) {
-            mCentralScanner.destroy();
+        if (mScanner != null) {
+            mScanner.destroy();
         }
         if (mMultiPeripheralController != null) {
             mMultiPeripheralController.destroy();

@@ -14,6 +14,8 @@ public class ScanRuleConfig {
 
     private int mScanMode;
     private long mScanDuration;
+    private long mScanInterval;
+    private boolean mBackgroundMode;
     private List<ScanFilterConfig> mScanFilterConfigs = new ArrayList<>();
 
     public int getScanMode() {
@@ -24,6 +26,14 @@ public class ScanRuleConfig {
         return mScanDuration;
     }
 
+    public long getScanInterval() {
+        return mScanInterval;
+    }
+
+    public boolean isBackgroundMode() {
+        return mBackgroundMode;
+    }
+
     public List<ScanFilterConfig> getScanFilterConfigs() {
         return mScanFilterConfigs;
     }
@@ -31,7 +41,9 @@ public class ScanRuleConfig {
     public static class Builder {
 
         private int mScanMode = SCAN_MODE_HIGH_POWER;
-        private long mDuration = CentralManager.DEFAULT_SCAN_TIME;
+        private long mDuration = CentralManager.DEFAULT_BACKGROUND_SCAN_DURATION;
+        private long mInterval = CentralManager.DEFAULT_BACKGROUND_SCAN_INTERVAL;
+        private boolean mBackgroundMode = false;
         private List<ScanFilterConfig> mScanFilterConfigs = new ArrayList<>();
 
         public Builder setScanMode(int scanMode) {
@@ -44,6 +56,16 @@ public class ScanRuleConfig {
             return this;
         }
 
+        public Builder setScanInterval(long interval) {
+            this.mInterval = interval;
+            return this;
+        }
+
+        public Builder setScanBackgroundMode(boolean backgroundMode) {
+            this.mBackgroundMode = backgroundMode;
+            return this;
+        }
+
         public Builder setScanFilterConfigs(List<ScanFilterConfig> scanFilterConfigs) {
             this.mScanFilterConfigs = scanFilterConfigs;
             return this;
@@ -52,6 +74,8 @@ public class ScanRuleConfig {
         void applyConfig(ScanRuleConfig config) {
             config.mScanMode = this.mScanMode;
             config.mScanDuration = this.mDuration;
+            config.mScanInterval = this.mInterval;
+            config.mBackgroundMode = this.mBackgroundMode;
             config.mScanFilterConfigs = this.mScanFilterConfigs;
         }
 
