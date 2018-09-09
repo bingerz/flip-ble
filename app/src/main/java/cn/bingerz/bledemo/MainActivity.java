@@ -37,21 +37,21 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import cn.bingerz.bledemo.adapter.ScanDeviceAdapter;
 import cn.bingerz.bledemo.comm.ObserverManager;
 import cn.bingerz.bledemo.operation.OperationActivity;
 import cn.bingerz.bledemo.util.EspressoIdlingResource;
 import cn.bingerz.flipble.central.CentralManager;
-import cn.bingerz.flipble.central.ScanDevice;
+import cn.bingerz.flipble.scanner.ScanDevice;
+import cn.bingerz.flipble.scanner.ScanFilterConfig;
 import cn.bingerz.flipble.exception.BLEException;
 import cn.bingerz.flipble.peripheral.Peripheral;
 import cn.bingerz.flipble.peripheral.callback.ConnectStateCallback;
 import cn.bingerz.flipble.peripheral.callback.MtuChangedCallback;
 import cn.bingerz.flipble.peripheral.callback.RssiCallback;
-import cn.bingerz.flipble.central.callback.ScanCallback;
-import cn.bingerz.flipble.central.ScanRuleConfig;
+import cn.bingerz.flipble.scanner.ScanRuleConfig;
+import cn.bingerz.flipble.scanner.callback.ScanCallback;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -134,6 +134,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         etUUID = findViewById(R.id.et_uuid);
         swAuto = findViewById(R.id.sw_auto);
 
+        etUUID.setText(DEFAULT_SERVICE_UUID);
+
         llSetting = findViewById(R.id.layout_setting);
         tvSetting = findViewById(R.id.txt_setting);
         tvSetting.setOnClickListener(this);
@@ -200,13 +202,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else {
             uuids = str_uuid.split(",");
         }
-        UUID[] serviceUuids = new UUID[]{ UUID.fromString(DEFAULT_SERVICE_UUID)};
-        if (uuids != null && uuids.length > 0) {
-            serviceUuids = new UUID[uuids.length];
-            for (int i = 0; i < uuids.length; i++) {
-                serviceUuids[i] = UUID.fromString(uuids[i]);
-            }
-        }
 
         String[] names;
         String str_name = etName.getText().toString();
@@ -216,13 +211,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             names = str_name.split(",");
         }
 
-        String mac = etMac.getText().toString();
+        String[] macs;
+        String str_mac = etMac.getText().toString();
+        if (TextUtils.isEmpty(str_mac)) {
+            macs = null;
+        } else {
+            macs = str_mac.split(",");
+        }
+
+        int macLength = macs == null ? 0 : macs.length;
+        int nameLength = names == null ? 0 : names.length;
+        int uuidLength = uuids == null ? 0 : uuids.length;
+
+        int length = Math.max(Math.max(uuidLength, nameLength), macLength);
+
+        List<ScanFilterConfig> scanFilterConfigs = new ArrayList<>();
+        for (int i = 0; i < length; i++) {
+            String mac = macs == null || i >= macs.length ? null : macs[i];
+            String name = names == null || i >= names.length ? null : names[i];
+            String uuid = uuids == null || i >= uuids.length ? null : uuids[i];
+            ScanFilterConfig.Builder filterBuilder = new ScanFilterConfig.Builder();
+            filterBuilder.setDeviceMac(mac);
+            filterBuilder.setDeviceName(name);
+            filterBuilder.setServiceUUID(uuid);
+            scanFilterConfigs.add(filterBuilder.build());
+        }
 
         ScanRuleConfig scanRuleConfig = new ScanRuleConfig.Builder()
-                .setServiceUuids(serviceUuids)      // 只扫描指定的服务的设备，可选
-                .setDeviceName(true, names)   // 只扫描指定广播名的设备，可选
-                .setDeviceMac(mac)                  // 只扫描指定mac的设备，可选
-                .setScanTimeOut(6000)              // 扫描超时时间，可选，默认10秒
+                .setScanFilterConfigs(scanFilterConfigs)    // 只扫描指定的设备，可选
+                .setScanMode(ScanRuleConfig.SCAN_MODE_BALANCED)
+                .setScanDuration(6000)                      // 扫描持续时间，可选，默认10秒
                 .build();
         CentralManager.getInstance().initScanRule(scanRuleConfig);
     }
@@ -230,7 +248,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void startScan() {
         CentralManager.getInstance().scan(new ScanCallback() {
             @Override
-            public void onScanStarted(boolean success) {
+            public void onScanStarted() {
                 mScanDeviceAdapter.clearScanDevice();
                 mScanDeviceAdapter.notifyDataSetChanged();
                 ivLoading.startAnimation(operatingAnim);

@@ -19,7 +19,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import cn.bingerz.flipble.central.CentralManager;
-import cn.bingerz.flipble.central.ScanDevice;
+import cn.bingerz.flipble.scanner.ScanDevice;
 import cn.bingerz.flipble.exception.ConnectException;
 import cn.bingerz.flipble.peripheral.callback.ConnectStateCallback;
 import cn.bingerz.flipble.peripheral.callback.IndicateCallback;

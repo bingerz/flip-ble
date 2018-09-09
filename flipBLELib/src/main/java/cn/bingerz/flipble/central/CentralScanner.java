@@ -5,10 +5,11 @@ import android.bluetooth.BluetoothAdapter;
 import android.os.Build;
 
 import java.util.List;
-import java.util.UUID;
 
-import cn.bingerz.flipble.exception.ScanException;
-import cn.bingerz.flipble.central.callback.ScanCallback;
+import cn.bingerz.flipble.scanner.callback.ScanCallback;
+import cn.bingerz.flipble.scanner.lescanner.LeScanner;
+import cn.bingerz.flipble.scanner.ScanDevice;
+import cn.bingerz.flipble.scanner.ScanRuleConfig;
 
 /**
  * Created by hanson on 10/01/2018.
@@ -16,6 +17,11 @@ import cn.bingerz.flipble.central.callback.ScanCallback;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class CentralScanner {
+
+    private LeScanner mLeScanner;
+    private ScanCallback mScanCallback;
+    private CentralScannerPresenter mScannerPresenter;
+    private CentralScanState scanState = CentralScanState.STATE_IDLE;
 
     public static CentralScanner getInstance() {
         return CentralScannerHolder.sCentralScanner;
@@ -25,90 +31,82 @@ public class CentralScanner {
         private static final CentralScanner sCentralScanner = new CentralScanner();
     }
 
-    private CentralScannerPresenter centralScannerPresenter;
-    private CentralScanState scanState = CentralScanState.STATE_IDLE;
+    public void scan(ScanRuleConfig config, final ScanCallback callback) {
+        if (config == null) {
+            throw new IllegalArgumentException("ScanRuleConfig is null.");
+        }
+        mScanCallback = callback;
+        mLeScanner = getLeScanner(config);
+        startLeScan();
+    }
 
-    public void scan(UUID[] serviceUUIDs, String[] names, String mac, boolean fuzzy, long timeOut,
-                     final ScanCallback callback) {
-        startLeScan(serviceUUIDs, new CentralScannerPresenter(names, mac, fuzzy, timeOut) {
-            @Override
-            public void onScanStarted(boolean success) {
-                if (callback != null) {
-                    callback.onScanStarted(success);
-                }
+    private LeScanner getLeScanner(ScanRuleConfig config) {
+        if (mLeScanner == null) {
+            BluetoothAdapter bluetoothAdapter = CentralManager.getInstance().getBluetoothAdapter();
+            if (bluetoothAdapter != null) {
+                mScannerPresenter = new myScannerPresenter(config);
+                mLeScanner = LeScanner.createScanner(bluetoothAdapter, config, mScannerPresenter);
             }
-
-            @Override
-            public void onScanning(ScanDevice result) {
-                if (callback != null) {
-                    callback.onScanning(result);
-                }
-            }
-
-            @Override
-            public void onScanFinished(List<ScanDevice> scanResultList) {
-                if (callback != null) {
-                    callback.onScanFinished(scanResultList);
-                }
-            }
-        });
+        }
+        return mLeScanner;
     }
 
     @SuppressWarnings({"MissingPermission"})
-    private synchronized void startLeScan(UUID[] serviceUUIDs, CentralScannerPresenter presenter) {
-        if (presenter == null) {
-            throw new IllegalArgumentException("CentralScannerPresenter is null.");
+    private synchronized void startLeScan() {
+        if (mLeScanner != null) {
+            mLeScanner.scanLeDevice(true);
         }
-
-        if (scanState == CentralScanState.STATE_SCANNING) {
-            throw new IllegalStateException("Central Scanner is running.");
+        scanState = CentralScanState.STATE_SCANNING;
+        if (mScannerPresenter != null) {
+            mScannerPresenter.notifyScanStarted();
         }
-
-        this.centralScannerPresenter = presenter;
-        boolean success = false;
-
-        if (CentralManager.getInstance().isBluetoothEnable()) {
-            //Add try catch code block, Binder(IPC) NullPointerException, Parcel.readException
-            try {
-                BluetoothAdapter adapter = CentralManager.getInstance().getBluetoothAdapter();
-                success = adapter.startLeScan(serviceUUIDs, presenter);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            CentralManager.getInstance().handleException(new ScanException("BT adapter is not turn on."));
-        }
-        scanState = success ? CentralScanState.STATE_SCANNING : CentralScanState.STATE_IDLE;
-        centralScannerPresenter.notifyScanStarted(success);
     }
 
-    @SuppressWarnings({"MissingPermission"})
     public synchronized void stopLeScan() {
-        if (centralScannerPresenter == null) {
-            return;
-        }
-
-        if (scanState == CentralScanState.STATE_IDLE) {
-            throw new IllegalStateException("Central Scanner is stopped.");
-        }
-
-        if (CentralManager.getInstance().isBluetoothEnable()) {
-            //Add try catch code block, Binder(IPC) NullPointerException, Parcel.readException
-            try {
-                BluetoothAdapter adapter = CentralManager.getInstance().getBluetoothAdapter();
-                adapter.stopLeScan(centralScannerPresenter);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            CentralManager.getInstance().handleException(new ScanException("BT adapter is not turn on."));
+        if (mLeScanner != null) {
+            mLeScanner.scanLeDevice(false);
         }
         scanState = CentralScanState.STATE_IDLE;
-        centralScannerPresenter.notifyScanStopped();
+        if (mScannerPresenter != null) {
+            mScannerPresenter.notifyScanStopped();
+        }
     }
 
     public CentralScanState getScanState() {
         return scanState;
     }
 
+    public void destroy() {
+        if (mLeScanner != null) {
+            mLeScanner.destroy();
+        }
+    }
+
+    private class myScannerPresenter extends CentralScannerPresenter {
+
+        public myScannerPresenter(ScanRuleConfig config) {
+            super(config);
+        }
+
+        @Override
+        public void onScanStarted() {
+            if (mScanCallback != null) {
+                mScanCallback.onScanStarted();
+            }
+        }
+
+        @Override
+        public void onScanning(ScanDevice result) {
+            if (mScanCallback != null) {
+                mScanCallback.onScanning(result);
+            }
+        }
+
+        @Override
+        public void onScanFinished(List<ScanDevice> scanResultList) {
+            if (mScanCallback != null) {
+                mScanCallback.onScanFinished(scanResultList);
+            }
+        }
+    }
 }

@@ -12,13 +12,13 @@ import android.os.Build;
 import android.text.TextUtils;
 
 import java.util.List;
-import java.util.UUID;
 
 import cn.bingerz.flipble.peripheral.MultiplePeripheralController;
 import cn.bingerz.flipble.peripheral.Peripheral;
-import cn.bingerz.flipble.central.callback.ScanCallback;
 import cn.bingerz.flipble.exception.BLEException;
 import cn.bingerz.flipble.exception.hanlder.DefaultExceptionHandler;
+import cn.bingerz.flipble.scanner.ScanRuleConfig;
+import cn.bingerz.flipble.scanner.callback.ScanCallback;
 import cn.bingerz.flipble.utils.EasyLog;
 
 /**
@@ -39,7 +39,6 @@ public class CentralManager {
     private ScanRuleConfig mScanRuleConfig;
 
     private Application mContext;
-    private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private MultiplePeripheralController mMultiPeripheralController;
 
@@ -62,14 +61,8 @@ public class CentralManager {
         if (mContext == null) {
             mContext = application;
             EasyLog.setExplicitTag("FlipBLE");
-            mBluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
-            if (mBluetoothManager != null) {
-                mBluetoothAdapter = mBluetoothManager.getAdapter();
-            }
             mBLEExceptionHandler = new DefaultExceptionHandler();
             mMultiPeripheralController = new MultiplePeripheralController();
-
-            mScanRuleConfig = new ScanRuleConfig();
             mCentralScanner = CentralScanner.getInstance();
         }
     }
@@ -111,15 +104,9 @@ public class CentralManager {
         }
         if (mCentralScanner == null) {
             EasyLog.e("CentralScanner is null.");
-            return;
+        } else {
+            mCentralScanner.scan(getScanRuleConfig(), callback);
         }
-        UUID[] serviceUUIDs  = mScanRuleConfig.getServiceUUIDs();
-        String[] deviceNames = mScanRuleConfig.getDeviceNames();
-        String deviceMac     = mScanRuleConfig.getDeviceMac();
-        boolean fuzzy        = mScanRuleConfig.isFuzzy();
-        long timeOut         = mScanRuleConfig.getScanTimeOut();
-
-        mCentralScanner.scan(serviceUUIDs, deviceNames, deviceMac, fuzzy, timeOut, callback);
     }
 
     /**
@@ -137,10 +124,29 @@ public class CentralManager {
         return mContext;
     }
 
+    private BluetoothManager getBluetoothManager() {
+        return mContext == null ? null :
+                (BluetoothManager) mContext.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
+    }
+
     /**
      * Get the BluetoothAdapter
      */
     public BluetoothAdapter getBluetoothAdapter() {
+        try {
+            if (mBluetoothAdapter == null) {
+                final BluetoothManager bluetoothManager = getBluetoothManager();
+                if (bluetoothManager != null) {
+                    mBluetoothAdapter = bluetoothManager.getAdapter();
+                    if (mBluetoothAdapter == null) {
+                        EasyLog.w("Failed to construct a BluetoothAdapter");
+                    }
+                }
+            }
+        } catch (SecurityException e) {
+            // Thrown by Samsung Knox devices if bluetooth access denied for an app
+            EasyLog.e("Cannot construct bluetooth adapter. Security Exception");
+        }
         return mBluetoothAdapter;
     }
 
@@ -291,7 +297,11 @@ public class CentralManager {
             return false;
         } else {
             BluetoothDevice device = retrieveDevice(address);
-            int state = mBluetoothManager.getConnectionState(device, BluetoothProfile.GATT);
+            BluetoothManager bluetoothManager = getBluetoothManager();
+            int state = BluetoothProfile.STATE_DISCONNECTED;
+            if (bluetoothManager != null) {
+                state = bluetoothManager.getConnectionState(device, BluetoothProfile.GATT);
+            }
             return state == BluetoothProfile.STATE_CONNECTED;
         }
     }
@@ -313,6 +323,9 @@ public class CentralManager {
     }
 
     public void destroy() {
+        if (mCentralScanner != null) {
+            mCentralScanner.destroy();
+        }
         if (mMultiPeripheralController != null) {
             mMultiPeripheralController.destroy();
         }

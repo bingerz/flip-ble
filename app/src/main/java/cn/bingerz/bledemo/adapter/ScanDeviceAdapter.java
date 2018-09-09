@@ -15,7 +15,7 @@ import java.util.List;
 
 import cn.bingerz.bledemo.R;
 import cn.bingerz.flipble.central.CentralManager;
-import cn.bingerz.flipble.central.ScanDevice;
+import cn.bingerz.flipble.scanner.ScanDevice;
 
 public class ScanDeviceAdapter extends RecyclerView.Adapter<ScanDeviceAdapter.ViewHolder> {
 

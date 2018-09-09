@@ -1,4 +1,4 @@
-package cn.bingerz.flipble.central;
+package cn.bingerz.flipble.scanner;
 
 /*
  * Copyright (C) 2014 The Android Open Source Project

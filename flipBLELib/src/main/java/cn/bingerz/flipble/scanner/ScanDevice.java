@@ -1,4 +1,4 @@
-package cn.bingerz.flipble.central;
+package cn.bingerz.flipble.scanner;
 
 import android.bluetooth.BluetoothDevice;
 import android.os.Parcel;
