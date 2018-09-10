@@ -43,5 +43,5 @@ dependencies {
     androidTestImplementation "com.android.support.test.espresso:espresso-contrib:$versions.espresso"
     androidTestImplementation "com.android.support.test.espresso:espresso-intents:$versions.espresso"
 
-    implementation project(':flipBLELib')
+    implementation project(':flipble')
 }

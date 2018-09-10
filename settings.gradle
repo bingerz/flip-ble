@@ -1,1 +1,1 @@
-include ':app', ':flipBLELib'
+include ':app', ':flipble'
