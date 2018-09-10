@@ -13,9 +13,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import cn.bingerz.easylog.EasyLog;
 import cn.bingerz.flipble.scanner.ScanFilterConfig;
 import cn.bingerz.flipble.scanner.ScanRuleConfig;
-import cn.bingerz.flipble.utils.EasyLog;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class LeScannerForJellyBeanMr2 extends LeScanner {

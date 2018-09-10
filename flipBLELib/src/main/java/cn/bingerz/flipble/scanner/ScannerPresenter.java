@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import cn.bingerz.easylog.EasyLog;
 import cn.bingerz.flipble.scanner.lescanner.LeScanCallback;
-import cn.bingerz.flipble.utils.EasyLog;
 
 /**
  * Created by hanson on 10/01/2018.

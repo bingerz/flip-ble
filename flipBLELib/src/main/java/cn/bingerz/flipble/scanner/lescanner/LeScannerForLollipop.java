@@ -16,9 +16,9 @@ import android.text.TextUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.bingerz.easylog.EasyLog;
 import cn.bingerz.flipble.scanner.ScanFilterConfig;
 import cn.bingerz.flipble.scanner.ScanRuleConfig;
-import cn.bingerz.flipble.utils.EasyLog;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class LeScannerForLollipop extends LeScanner {

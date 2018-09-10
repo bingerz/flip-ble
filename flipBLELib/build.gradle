@@ -1,4 +1,8 @@
 apply plugin: 'com.android.library'
+//Gradle Bintray Plugin
+apply plugin: 'com.jfrog.bintray'
+//Gradle Android Maven plugin
+apply plugin: 'com.github.dcendents.android-maven'
 
 android {
     compileSdkVersion 26
@@ -8,7 +12,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 22
         versionCode 13
-        versionName "0.3.0"
+        versionName version
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -39,6 +43,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "com.android.support:support-annotations:$versions.support"
+    implementation 'cn.bingerz.android:easylog:1.0.1'
 
     // Dependencies for local unit tests
     testImplementation "junit:junit:$versions.junit"
@@ -56,4 +61,95 @@ dependencies {
     androidTestImplementation "com.android.support.test.espresso:espresso-contrib:$versions.espresso"
     androidTestImplementation "com.android.support.test.espresso:espresso-intents:$versions.espresso"
 
+}
+
+version = "0.3.0"
+group = "cn.bingerz.android"
+def siteUrl = 'https://github.com/bingerz/flip-ble'
+def gitUrl = 'https://github.com/bingerz/flip-ble.git'
+
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+                name 'A stable, easy-to-use framework developed based on the Android Bluetooth Low Energy API.'
+                url siteUrl
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'bingerz'
+                        name 'bingerz'
+                        email 'hanbing0604@gmail.com'
+                    }
+                }
+
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+
+task javadoc(type: Javadoc) {
+    options.encoding = "UTF-8"
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+javadoc {
+    options {
+        encoding "UTF-8"
+        charSet 'UTF-8'
+        author true
+        version true
+        links "http://docs.oracle.com/javase/7/docs/api"
+        title 'A Library of FlipBLE'   // 文档标题
+    }
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    configurations = ['archives']
+    pkg {
+        userOrg = "bingerz"
+        repo = "maven"
+        name = "flip-ble"
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ["Apache-2.0"]
+        publish = true
+    }
 }

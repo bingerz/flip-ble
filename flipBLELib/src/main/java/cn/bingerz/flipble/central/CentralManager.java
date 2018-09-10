@@ -14,6 +14,7 @@ import android.text.TextUtils;
 
 import java.util.List;
 
+import cn.bingerz.easylog.EasyLog;
 import cn.bingerz.flipble.peripheral.MultiplePeripheralController;
 import cn.bingerz.flipble.peripheral.Peripheral;
 import cn.bingerz.flipble.exception.BLEException;
@@ -21,7 +22,6 @@ import cn.bingerz.flipble.exception.hanlder.DefaultExceptionHandler;
 import cn.bingerz.flipble.scanner.ScanRuleConfig;
 import cn.bingerz.flipble.scanner.Scanner;
 import cn.bingerz.flipble.scanner.callback.ScanCallback;
-import cn.bingerz.flipble.utils.EasyLog;
 
 /**
  * Created by hanson on 09/01/2018.

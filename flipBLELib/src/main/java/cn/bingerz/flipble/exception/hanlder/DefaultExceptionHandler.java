@@ -1,11 +1,11 @@
 package cn.bingerz.flipble.exception.hanlder;
 
+import cn.bingerz.easylog.EasyLog;
 import cn.bingerz.flipble.exception.GattException;
 import cn.bingerz.flipble.exception.ConnectException;
 import cn.bingerz.flipble.exception.OtherException;
 import cn.bingerz.flipble.exception.ScanException;
 import cn.bingerz.flipble.exception.TimeoutException;
-import cn.bingerz.flipble.utils.EasyLog;
 
 public class DefaultExceptionHandler extends BLEExceptionHandler {
 

@@ -9,8 +9,8 @@ import android.os.HandlerThread;
 import android.support.annotation.MainThread;
 import android.support.annotation.WorkerThread;
 
+import cn.bingerz.easylog.EasyLog;
 import cn.bingerz.flipble.scanner.ScanRuleConfig;
-import cn.bingerz.flipble.utils.EasyLog;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public abstract class LeScanner {

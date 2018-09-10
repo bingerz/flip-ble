@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import cn.bingerz.easylog.EasyLog;
 import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.scanner.ScanDevice;
 import cn.bingerz.flipble.exception.ConnectException;
@@ -30,7 +31,6 @@ import cn.bingerz.flipble.peripheral.callback.RssiCallback;
 import cn.bingerz.flipble.peripheral.callback.WriteCallback;
 import cn.bingerz.flipble.exception.GattException;
 import cn.bingerz.flipble.exception.OtherException;
-import cn.bingerz.flipble.utils.EasyLog;
 import cn.bingerz.flipble.utils.HexUtil;
 
 /**
