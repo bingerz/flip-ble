@@ -45,7 +45,7 @@ public final class SimpleCountingIdlingResource implements IdlingResource {
      * @param resourceName the resource name this resource should report to Espresso.
      */
     public SimpleCountingIdlingResource(String resourceName) {
-        mResourceName = Preconditions.checkNotNull(resourceName);
+        mResourceName = resourceName;
     }
 
     @Override
