@@ -18,8 +18,6 @@ import cn.bingerz.flipble.peripheral.MultiplePeripheralController;
 import cn.bingerz.flipble.peripheral.Peripheral;
 import cn.bingerz.flipble.exception.BLEException;
 import cn.bingerz.flipble.exception.hanlder.DefaultExceptionHandler;
-import cn.bingerz.flipble.scanner.CycledScanner;
-import cn.bingerz.flipble.scanner.OnceScanner;
 import cn.bingerz.flipble.scanner.ScanRuleConfig;
 import cn.bingerz.flipble.scanner.Scanner;
 import cn.bingerz.flipble.scanner.callback.ScanCallback;
@@ -90,12 +88,8 @@ public class CentralManager {
     }
 
     public void startScan(boolean isCycled, ScanRuleConfig config, ScanCallback callback) {
+        stopScan();
         if (android.os.Build.VERSION.SDK_INT < 23 || checkLocationPermission()) {
-            if (mScanner != null) {
-                mScanner.stopScan();
-                mScanner.destroy();
-                mScanner = null;
-            }
             mScanner = Scanner.createScanner(isCycled);
             mScanner.initConfig(config);
             mScanner.startScan(callback);
@@ -105,15 +99,10 @@ public class CentralManager {
     }
 
     public void stopScan() {
-        if (mScanner != null) {
-            if (mScanner instanceof OnceScanner && mScanner.isScanning()) {
-                mScanner.stopScan();
-            } else if (mScanner instanceof CycledScanner) {
-                mScanner.stopScan();
-            }
-            mScanner.destroy();
-            mScanner = null;
+        if (mScanner != null && mScanner.isScanning()) {
+            mScanner.stopScan();
         }
+        mScanner = null;
     }
 
     public Context getContext() {
@@ -327,9 +316,6 @@ public class CentralManager {
     }
 
     public void destroy() {
-        if (mScanner != null) {
-            mScanner.destroy();
-        }
         if (mMultiPeripheralController != null) {
             mMultiPeripheralController.destroy();
         }

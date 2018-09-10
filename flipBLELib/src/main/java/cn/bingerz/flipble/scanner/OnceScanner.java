@@ -3,8 +3,7 @@ package cn.bingerz.flipble.scanner;
 import android.annotation.TargetApi;
 import android.os.Build;
 
-import java.util.List;
-
+import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.scanner.callback.ScanCallback;
 
 /**
@@ -13,31 +12,50 @@ import cn.bingerz.flipble.scanner.callback.ScanCallback;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class OnceScanner extends Scanner {
 
-    private OnceScannerPresenter mScannerPresenter;
+    private long mScanDuration = CentralManager.DEFAULT_BACKGROUND_SCAN_DURATION;
 
     @Override
     public void initConfig(ScanRuleConfig config) {
         if (config == null) {
             throw new IllegalArgumentException("ScanRuleConfig is null.");
         }
-        mScannerPresenter = new OnceScanner.myScannerPresenter(config);
-        initLeScanner(config, mScannerPresenter);
+        long duration = config.getScanDuration();
+        if (duration > 0) {
+            mScanDuration = duration;
+        }
+        initLeScanner(config);
     }
 
     @Override
     public void startScan(final ScanCallback callback) {
         mScanCallback = callback;
         startLeScan();
+        mScanState = ScanState.STATE_SCANNING;
     }
 
     @Override
     public void stopScan() {
         stopLeScan();
+        destroy();
         mScanCallback = null;
+        mScanState = ScanState.STATE_IDLE;
+    }
+
+    private void delayScheduleStopScan() {
+        removeHandlerMsg();
+        if (mHandler != null) {
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    stopScan();
+                }
+            }, mScanDuration);
+        }
     }
 
     @Override
     protected void notifyScanStarted() {
+        delayScheduleStopScan();
         if (mScannerPresenter != null) {
             mScannerPresenter.notifyScanStarted();
         }
@@ -47,34 +65,6 @@ public class OnceScanner extends Scanner {
     protected void notifyScanStopped() {
         if (mScannerPresenter != null) {
             mScannerPresenter.notifyScanStopped();
-        }
-    }
-
-    private class myScannerPresenter extends OnceScannerPresenter {
-
-        public myScannerPresenter(ScanRuleConfig config) {
-            super(OnceScanner.this, config);
-        }
-
-        @Override
-        public void onScanStarted() {
-            if (mScanCallback != null) {
-                mScanCallback.onScanStarted();
-            }
-        }
-
-        @Override
-        public void onScanning(ScanDevice result) {
-            if (mScanCallback != null) {
-                mScanCallback.onScanning(result);
-            }
-        }
-
-        @Override
-        public void onScanFinished(List<ScanDevice> scanResultList) {
-            if (mScanCallback != null) {
-                mScanCallback.onScanFinished(scanResultList);
-            }
         }
     }
 }
