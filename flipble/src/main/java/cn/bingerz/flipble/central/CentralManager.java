@@ -2,7 +2,6 @@ package cn.bingerz.flipble.central;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -54,7 +53,7 @@ public class CentralManager {
     private int maxConnectCount = DEFAULT_MAX_MULTIPLE_DEVICE;
 
     private Scanner mScanner;
-    private Application mContext;
+    private Context mContext;
     private BluetoothAdapter mBluetoothAdapter;
     private MultiplePeripheralController mMultiPeripheralController;
 
@@ -71,12 +70,12 @@ public class CentralManager {
         private static final CentralManager INSTANCE = new CentralManager();
     }
 
-    public void init(Application application) {
-        if (application == null) {
+    public void init(Context context) {
+        if (context == null) {
             throw new IllegalArgumentException("Init exception, application is null.");
         }
         if (mContext == null) {
-            mContext = application;
+            mContext = context;
             EasyLog.setExplicitTag("FlipBLE");
             mBLEExceptionHandler = new DefaultExceptionHandler();
             mMultiPeripheralController = new MultiplePeripheralController();

@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         initView();
 
-        CentralManager.getInstance().init(getApplication());
+        CentralManager.getInstance().init(getApplicationContext());
 
         CentralManager.getInstance().enableLog(true).setMaxConnectCount(7).setOperateTimeout(5000);
     }
