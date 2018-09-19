@@ -22,7 +22,7 @@
 ## 使用：
 ### Android Gradle
 ```groovy
-compile 'cn.bingerz.android:flipble:0.3.0'
+compile 'cn.bingerz.android:flipble:0.3.1'
 ```
 
 ## 快速上手：
@@ -123,7 +123,7 @@ peripheral.connect(true, new ConnectStateCallback(){/*someCode*/});
 ps：实测效果：较低Android版本连接完成时间较慢，高版本会提高连接速度。
 
 ## 版本变化
-### v0.3.0
+### v0.3.1
  - Init First Commit
  
 ## BLE开发注意事项(坑)
