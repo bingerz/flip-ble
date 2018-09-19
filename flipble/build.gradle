@@ -11,7 +11,7 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 22
-        versionCode 13
+        versionCode 14
         versionName version
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -63,7 +63,7 @@ dependencies {
 
 }
 
-version = "0.3.0"
+version = "0.3.1"
 group = "cn.bingerz.android"
 def siteUrl = 'https://github.com/bingerz/flip-ble'
 def gitUrl = 'https://github.com/bingerz/flip-ble.git'
