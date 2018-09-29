@@ -27,11 +27,9 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.replaceText;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
-import static android.support.test.espresso.matcher.RootMatchers.isDialog;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.core.AllOf.allOf;
 
 @RunWith(AndroidJUnit4.class)
@@ -132,7 +130,7 @@ public class MainActivityTest {
         };
     }
 
-//    @Test
+    @Test
     public void clickScan_ScrollToEnd() {
         int itemCount = clickScanButton_ReturnItemCount();
         Assert.assertTrue(itemCount > 0);
@@ -265,7 +263,7 @@ public class MainActivityTest {
         }
     }
 
-//    @Test
+    @Test
     public void clickConnectFirst_IteratorAll() {
         int itemCount = clickScanButton_ReturnItemCount();
         Assert.assertTrue(itemCount > 0);
@@ -313,7 +311,7 @@ public class MainActivityTest {
         return true;
     }
 
-//    @Test
+    @Test
     public void clickConnect_Shutdown_IteratorAll() {
         int itemCount = clickScanButton_ReturnItemCount();
         Assert.assertTrue(itemCount > 0);
