@@ -335,10 +335,19 @@ public class PeripheralController {
      */
     public void readRemoteRssi(RssiCallback rssiCallback) {
         handleRSSIReadCallback(rssiCallback);
-        if (mBluetoothGatt != null && !mBluetoothGatt.readRemoteRssi()) {
-            rssiMsgInit();
-            if (rssiCallback != null) {
-                rssiCallback.onRssiFailure(new OtherException("gatt readRemoteRssi fail"));
+        if (mBluetoothGatt != null) {
+            boolean result = false;
+            //Fix DeadObjectException due to reading remote rssi
+            try {
+                result = mBluetoothGatt.readRemoteRssi();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if (!result) {
+                rssiMsgInit();
+                if (rssiCallback != null) {
+                    rssiCallback.onRssiFailure(new OtherException("gatt readRemoteRssi fail"));
+                }
             }
         }
     }

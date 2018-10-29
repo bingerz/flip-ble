@@ -122,6 +122,8 @@ peripheral.connect(true, new ConnectStateCallback(){/*someCode*/});
 ps：实测效果：较低Android版本连接完成时间较慢，高版本会提高连接速度。
 
 ## 版本变化
+### v0.3.3
+ - Bug fixs
 ### v0.3.2
  - Remove scan config's background mode
 ### v0.3.1

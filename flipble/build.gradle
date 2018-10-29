@@ -11,7 +11,7 @@ android {
     defaultConfig {
         minSdkVersion build_versions.min_sdk
         targetSdkVersion build_versions.target_sdk
-        versionCode 15
+        versionCode 16
         versionName version
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -63,7 +63,7 @@ dependencies {
 
 }
 
-version = "0.3.2"
+version = "0.3.3"
 group = "cn.bingerz.android"
 def siteUrl = 'https://github.com/bingerz/flip-ble'
 def gitUrl = 'https://github.com/bingerz/flip-ble.git'
@@ -73,8 +73,9 @@ install {
         // This generates POM.xml with proper parameters
         pom {
             project {
+                name 'FlipBLE'
                 packaging 'aar'
-                name 'A stable, easy-to-use framework developed based on the Android Bluetooth Low Energy API.'
+                description 'A stable, easy-to-use framework developed based on the Android Bluetooth Low Energy API.'
                 url siteUrl
                 licenses {
                     license {
