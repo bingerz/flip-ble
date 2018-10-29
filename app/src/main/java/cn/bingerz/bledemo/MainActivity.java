@@ -243,7 +243,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .setScanMode(ScanRuleConfig.SCAN_MODE_BALANCED)
                 .setScanDuration(6000)                      // 扫描持续时间，可选
                 .setScanInterval(6000)                      // 扫描间隔时间，可选
-                .setScanBackgroundMode(false)
                 .build();
     }
 

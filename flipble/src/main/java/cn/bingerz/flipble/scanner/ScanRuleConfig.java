@@ -13,7 +13,7 @@ public class ScanRuleConfig {
     private int mScanMode;
     private long mScanDuration;
     private long mScanInterval;
-    private boolean mBackgroundMode;
+
     private List<ScanFilterConfig> mScanFilterConfigs = new ArrayList<>();
 
     public int getScanMode() {
@@ -28,10 +28,6 @@ public class ScanRuleConfig {
         return mScanInterval;
     }
 
-    public boolean isBackgroundMode() {
-        return mBackgroundMode;
-    }
-
     public List<ScanFilterConfig> getScanFilterConfigs() {
         return mScanFilterConfigs;
     }
@@ -40,7 +36,6 @@ public class ScanRuleConfig {
     public String toString() {
         return "ScanRuleConfig{" +
                 "mScanMode=" + mScanMode +
-                ", mBackgroundMode=" + mBackgroundMode +
                 ", mScanDuration=" + mScanDuration +
                 ", mScanInterval=" + mScanInterval +
                 ", mScanFilterConfigs=" + mScanFilterConfigs +
@@ -49,7 +44,6 @@ public class ScanRuleConfig {
 
     public static class Builder {
         private int mScanMode = SCAN_MODE_HIGH_POWER;
-        private boolean mBackgroundMode = false;
         private long mDuration;
         private long mInterval;
         private List<ScanFilterConfig> mScanFilterConfigs = new ArrayList<>();
@@ -69,11 +63,6 @@ public class ScanRuleConfig {
             return this;
         }
 
-        public Builder setScanBackgroundMode(boolean backgroundMode) {
-            this.mBackgroundMode = backgroundMode;
-            return this;
-        }
-
         public Builder setScanFilterConfigs(List<ScanFilterConfig> scanFilterConfigs) {
             this.mScanFilterConfigs = scanFilterConfigs;
             return this;
@@ -81,7 +70,6 @@ public class ScanRuleConfig {
 
         void applyConfig(ScanRuleConfig config) {
             config.mScanMode = this.mScanMode;
-            config.mBackgroundMode = this.mBackgroundMode;
             config.mScanDuration = this.mDuration;
             config.mScanInterval = this.mInterval;
             config.mScanFilterConfigs = this.mScanFilterConfigs;

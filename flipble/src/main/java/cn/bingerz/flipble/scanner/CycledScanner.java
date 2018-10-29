@@ -10,50 +10,37 @@ import cn.bingerz.flipble.scanner.callback.ScanCallback;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class CycledScanner extends Scanner {
 
-    private boolean mBackgroundMode;
-
-    private long foregroundScanDuration = CentralManager.DEFAULT_FOREGROUND_SCAN_DURATION;
-    private long foregroundScanInterval = CentralManager.DEFAULT_FOREGROUND_SCAN_INTERVAL;
-    private long backgroundScanDuration = CentralManager.DEFAULT_BACKGROUND_SCAN_DURATION;
-    private long backgroundScanInterval = CentralManager.DEFAULT_BACKGROUND_SCAN_INTERVAL;
+    private long scanDuration = CentralManager.DEFAULT_FOREGROUND_SCAN_DURATION;
+    private long scanInterval = CentralManager.DEFAULT_FOREGROUND_SCAN_INTERVAL;
 
     @Override
     public void initConfig(ScanRuleConfig config) {
         if (config == null) {
             throw new IllegalArgumentException("ScanRuleConfig is null.");
         }
-        this.mBackgroundMode = config.isBackgroundMode();
         if (config.getScanDuration() > 0) {
-            setDuration(mBackgroundMode, config.getScanDuration());
+            setDuration(config.getScanDuration());
         }
         if (config.getScanInterval() > 0) {
-            setInterval(mBackgroundMode, config.getScanInterval());
+            setInterval(config.getScanInterval());
         }
         initLeScanner(config);
     }
 
-    private void setDuration(boolean backgroundMode, long duration) {
-        if (backgroundMode) {
-            backgroundScanDuration = duration;
-        } else {
-            foregroundScanDuration = duration;
-        }
+    private void setDuration(long duration) {
+        this.scanDuration = duration;
     }
 
     private long getDuration() {
-        return mBackgroundMode ? backgroundScanDuration : foregroundScanDuration;
+        return scanDuration;
     }
 
-    private void setInterval(boolean backgroundMode, long interval) {
-        if (backgroundMode) {
-            backgroundScanInterval = interval;
-        } else {
-            foregroundScanInterval = interval;
-        }
+    private void setInterval(long interval) {
+        this.scanInterval = interval;
     }
 
     private long getInterval() {
-        return mBackgroundMode ? backgroundScanInterval : foregroundScanInterval;
+        return scanInterval;
     }
 
     @Override

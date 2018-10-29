@@ -22,7 +22,7 @@
 ## 使用：
 ### Android Gradle
 ```groovy
-compile 'cn.bingerz.android:flipble:0.3.1'
+compile 'cn.bingerz.android:flipble:0.3.2'
 ```
 
 ## 快速上手：
@@ -55,7 +55,6 @@ compile 'cn.bingerz.android:flipble:0.3.1'
         .setScanMode(ScanRuleConfig.SCAN_MODE_BALANCED) // 扫描模式，可选 默认值：低间隔扫描
         .setScanDuration(6000)                          // 扫描持续时间，可选
         .setScanInterval(6000)                          // 扫描间隔时间，可选
-        .setScanBackgroundMode(false)                   // 设置后台运行蓝牙扫描，可选 默认值是false
         .build();
     
     //开始扫描
@@ -123,6 +122,8 @@ peripheral.connect(true, new ConnectStateCallback(){/*someCode*/});
 ps：实测效果：较低Android版本连接完成时间较慢，高版本会提高连接速度。
 
 ## 版本变化
+### v0.3.2
+ - Remove scan config's background mode
 ### v0.3.1
  - Init First Commit
  
