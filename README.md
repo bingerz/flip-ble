@@ -25,7 +25,7 @@
 ## 使用：
 ### Android Gradle
 ```groovy
-compile 'cn.bingerz.android:flipble:0.3.2'
+compile 'cn.bingerz.android:flipble:0.3.3'
 ```
 
 ## 快速上手：
