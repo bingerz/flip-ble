@@ -1,4 +1,7 @@
 # FlipBLE
+[![Maven Central](https://img.shields.io/maven-central/v/cn.bingerz.android/flipble.svg)](https://search.maven.org/artifact/cn.bingerz.android/flipble)
+[![Download](https://api.bintray.com/packages/bingerz/maven/flip-ble/images/download.svg)](https://bintray.com/bingerz/maven/flip-ble)
+
 一个稳定易用的Android平台蓝牙开发框架。
 
 ## 关于FlipBLE
