@@ -42,6 +42,7 @@ public class Peripheral {
 
     private static final int DEFAULT_MTU = 23;
     private static final int DEFAULT_MAX_MTU = 512;
+    private static final int DEFAULT_DELAY_DISCOVER_SERVICE = 600;
 
     private ConnectionState mConnectState = ConnectionState.CONNECT_IDLE;
     private Handler mMainHandler = new Handler(Looper.getMainLooper());
@@ -554,7 +555,12 @@ public class Peripheral {
                     status, newState, Thread.currentThread().getId());
 
             if (newState == BluetoothGatt.STATE_CONNECTED) {
-                gatt.discoverServices();
+                mMainHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        gatt.discoverServices();
+                    }
+                }, DEFAULT_DELAY_DISCOVER_SERVICE);
             } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
                 closeBluetoothGatt();
                 CentralManager.getInstance().getMultiplePeripheralController().removePeripheral(Peripheral.this);
@@ -568,7 +574,6 @@ public class Peripheral {
                             }
                         }
                     });
-
                 } else if (mConnectState == ConnectionState.CONNECT_CONNECTED) {
                     mConnectState = ConnectionState.CONNECT_DISCONNECT;
                     mMainHandler.post(new Runnable() {
