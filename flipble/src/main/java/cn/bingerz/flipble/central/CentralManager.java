@@ -21,6 +21,7 @@ import cn.bingerz.flipble.exception.hanlder.DefaultExceptionHandler;
 import cn.bingerz.flipble.scanner.ScanRuleConfig;
 import cn.bingerz.flipble.scanner.Scanner;
 import cn.bingerz.flipble.scanner.callback.ScanCallback;
+import cn.bingerz.flipble.utils.BLEConnectionCompat;
 
 /**
  * Created by hanson on 09/01/2018.
@@ -59,6 +60,8 @@ public class CentralManager {
 
     private DefaultExceptionHandler mBLEExceptionHandler;
 
+    private BLEConnectionCompat mConnectionCompat;
+
     private CentralManager() {
     }
 
@@ -79,6 +82,7 @@ public class CentralManager {
             EasyLog.setExplicitTag("FlipBLE");
             mBLEExceptionHandler = new DefaultExceptionHandler();
             mMultiPeripheralController = new MultiplePeripheralController();
+            mConnectionCompat = new BLEConnectionCompat(context);
         }
     }
 
@@ -156,6 +160,17 @@ public class CentralManager {
      */
     public MultiplePeripheralController getMultiplePeripheralController() {
         return mMultiPeripheralController;
+    }
+
+    public BLEConnectionCompat getConnectionCompat() {
+        if (mConnectionCompat == null) {
+            synchronized(CentralManager.class) {
+                if (mConnectionCompat == null) {
+                    mConnectionCompat = new BLEConnectionCompat(getContext());
+                }
+            }
+        }
+        return mConnectionCompat;
     }
 
     /**

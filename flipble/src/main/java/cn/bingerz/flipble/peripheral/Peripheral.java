@@ -31,6 +31,7 @@ import cn.bingerz.flipble.peripheral.callback.RssiCallback;
 import cn.bingerz.flipble.peripheral.callback.WriteCallback;
 import cn.bingerz.flipble.exception.GattException;
 import cn.bingerz.flipble.exception.OtherException;
+import cn.bingerz.flipble.utils.BLEConnectionCompat;
 import cn.bingerz.flipble.utils.HexUtil;
 
 /**
@@ -43,6 +44,7 @@ public class Peripheral {
     private static final int DEFAULT_MTU = 23;
     private static final int DEFAULT_MAX_MTU = 512;
     private static final int DEFAULT_DELAY_DISCOVER_SERVICE = 600;
+    private static final int DEFAULT_DELAY_CLOSE_GATT = 600;
 
     private ConnectionState mConnectState = ConnectionState.CONNECT_IDLE;
     private Handler mMainHandler = new Handler(Looper.getMainLooper());
@@ -301,11 +303,9 @@ public class Peripheral {
                 EasyLog.i("connect device fail, device is null.");
                 return false;
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                mBluetoothGatt = device.connectGatt(CentralManager.getInstance().getContext(), autoConnect,
-                        coreGattCallback, BluetoothDevice.TRANSPORT_LE);
-            } else {
-                mBluetoothGatt = device.connectGatt(CentralManager.getInstance().getContext(), autoConnect, coreGattCallback);
+            BLEConnectionCompat connectionCompat = CentralManager.getInstance().getConnectionCompat();
+            if (connectionCompat != null) {
+                mBluetoothGatt = connectionCompat.connectGatt(device, autoConnect, coreGattCallback);
             }
             if (mBluetoothGatt != null) {
                 if (mConnectStateCallback != null) {
@@ -562,18 +562,18 @@ public class Peripheral {
                     }
                 }, DEFAULT_DELAY_DISCOVER_SERVICE);
             } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
-                closeBluetoothGatt();
                 CentralManager.getInstance().getMultiplePeripheralController().removePeripheral(Peripheral.this);
                 if (mConnectState == ConnectionState.CONNECT_CONNECTING) {
                     mConnectState = ConnectionState.CONNECT_FAILURE;
-                    mMainHandler.post(new Runnable() {
+                    mMainHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
+                            closeBluetoothGatt();
                             if (mConnectStateCallback != null) {
                                 mConnectStateCallback.onConnectFail(new ConnectException(status));
                             }
                         }
-                    });
+                    }, DEFAULT_DELAY_CLOSE_GATT);
                 } else if (mConnectState == ConnectionState.CONNECT_CONNECTED) {
                     mConnectState = ConnectionState.CONNECT_DISCONNECT;
                     mMainHandler.post(new Runnable() {

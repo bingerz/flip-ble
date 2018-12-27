@@ -12,10 +12,13 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import cn.bingerz.bledemo.R;
+import cn.bingerz.bledemo.util.ConvertUtils;
 import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.scanner.ScanDevice;
+import cn.bingerz.flipble.scanner.ScanRecord;
 
 public class ScanDeviceAdapter extends RecyclerView.Adapter<ScanDeviceAdapter.ViewHolder> {
 
@@ -86,15 +89,23 @@ public class ScanDeviceAdapter extends RecyclerView.Adapter<ScanDeviceAdapter.Vi
             holder.tvName.setText(name);
             holder.tvMacAddress.setText(mac);
             holder.tvRssi.setText(String.valueOf(rssi));
+
+            ScanRecord record = device.getScanRecord();
+            if (record != null) {
+                int md = ConvertUtils.parseSparseArray(record.getManufacturerSpecificData(), 0);
+                holder.tvType.setText(String.format(Locale.getDefault(),"%d", md));
+            }
             if (isConnected) {
                 holder.ivBluetooth.setImageResource(R.mipmap.ic_blue_connected);
                 holder.tvName.setTextColor(0xFF4a90e2);
+                holder.tvType.setTextColor(0xFF4a90e2);
                 holder.tvMacAddress.setTextColor(0xFF4a90e2);
                 holder.llIdle.setVisibility(View.GONE);
                 holder.llConnected.setVisibility(View.VISIBLE);
             } else {
                 holder.ivBluetooth.setImageResource(R.mipmap.ic_blue_remote);
                 holder.tvName.setTextColor(0xFF000000);
+                holder.tvType.setTextColor(0xFF000000);
                 holder.tvMacAddress.setTextColor(0xFF000000);
                 holder.llIdle.setVisibility(View.VISIBLE);
                 holder.llConnected.setVisibility(View.GONE);
@@ -131,6 +142,7 @@ public class ScanDeviceAdapter extends RecyclerView.Adapter<ScanDeviceAdapter.Vi
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private ImageView ivBluetooth;
         private TextView tvName;
+        private TextView tvType;
         private TextView tvMacAddress;
         private TextView tvRssi;
         private LinearLayout llIdle;
@@ -143,6 +155,7 @@ public class ScanDeviceAdapter extends RecyclerView.Adapter<ScanDeviceAdapter.Vi
             super(itemView);
             ivBluetooth = itemView.findViewById(R.id.iv_bluetooth);
             tvName = itemView.findViewById(R.id.tv_name);
+            tvType = itemView.findViewById(R.id.tv_type);
             tvMacAddress = itemView.findViewById(R.id.tv_mac);
             tvRssi = itemView.findViewById(R.id.tv_rssi);
             llIdle = itemView.findViewById(R.id.layout_idle);

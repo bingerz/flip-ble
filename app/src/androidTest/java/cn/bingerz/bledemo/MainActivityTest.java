@@ -206,6 +206,35 @@ public class MainActivityTest {
         }
     }
 
+    @Test
+    public void clickConnect_Disconnect_Loop() {
+        int itemCount = clickScanButton_ReturnItemCount();
+        Assert.assertTrue(itemCount > 0);
+
+        Log.d("Item count is ", String.valueOf(itemCount));
+
+        for (int i = 0; i < itemCount; i++) {
+            clickConnectDeviceByIndexWhenScannedListNotNull(i);
+
+            clickDeviceDetailByIndex(itemCount - 1);
+
+            onView(withId(R.id.tv_name)).check(matches(isDisplayed()));
+            onView(withId(R.id.tv_mac)).check(matches(isDisplayed()));
+
+            Espresso.pressBack();
+
+            clickDisconnectDeviceByIndex(itemCount - 1);
+
+            itemCount--;
+        }
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     private int checkServiceListNotNull_GetCount() {
         onView(ViewMatchers.withId(R.id.rv_service_list)).check(matches(isDisplayed()));
         onView(withId(R.id.rv_service_list)).check(new ServiceItemNotNull());
@@ -276,7 +305,7 @@ public class MainActivityTest {
 
     private boolean iteratorExecuteWriteShutdown() {
         int serviceItemCount = checkServiceListNotNull_GetCount();
-        if (serviceItemCount != 6) {
+        if (serviceItemCount < 6 || serviceItemCount > 7) {
             Log.e(TAG, "service item count abnormal.");
             return false;
         }
