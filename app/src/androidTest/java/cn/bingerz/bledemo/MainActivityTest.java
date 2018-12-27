@@ -188,7 +188,6 @@ public class MainActivityTest {
 
             clickDeviceDetailByIndex(itemCount - 1);
 
-            onView(withId(R.id.tv_name)).check(matches(isDisplayed()));
             onView(withId(R.id.tv_mac)).check(matches(isDisplayed()));
             iteratorServiceCharacteristicProperty();
 
@@ -197,12 +196,6 @@ public class MainActivityTest {
             clickDisconnectDeviceByIndex(itemCount - 1);
 
             itemCount--;
-        }
-
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
@@ -218,7 +211,6 @@ public class MainActivityTest {
 
             clickDeviceDetailByIndex(itemCount - 1);
 
-            onView(withId(R.id.tv_name)).check(matches(isDisplayed()));
             onView(withId(R.id.tv_mac)).check(matches(isDisplayed()));
 
             Espresso.pressBack();
@@ -226,12 +218,6 @@ public class MainActivityTest {
             clickDisconnectDeviceByIndex(itemCount - 1);
 
             itemCount--;
-        }
-
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
