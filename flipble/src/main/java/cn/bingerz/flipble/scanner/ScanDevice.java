@@ -16,7 +16,7 @@ public class ScanDevice implements Parcelable{
         mRssi = rssi;
     }
 
-    public BluetoothDevice getDevice() {
+    public BluetoothDevice getBluetoothDevice() {
         return mDevice;
     }
 
