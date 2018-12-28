@@ -340,7 +340,7 @@ public class Peripheral {
         BluetoothGatt bluetoothGatt = null;
         BluetoothDevice device = getBluetoothDevice();
         if (device == null) {
-            EasyLog.i("connect device fail, device is null.");
+            EasyLog.i("connect device fail, bluetooth device is null.");
             return null;
         }
         BLEConnectionCompat connectionCompat = CentralManager.getInstance().getConnectionCompat();
@@ -572,13 +572,14 @@ public class Peripheral {
         EasyLog.d("Descriptor uuid：%s  value: %s", uuid, value);
     }
 
-    private void handleConnectRetry(final int status) {
+    private void handleConnectRetry(final BluetoothDevice device, final int status) {
         if (mConnectRetryCount > 0 && (status == 133 || status == 257)) {
             getMainHandler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    EasyLog.i("retry connect device status=%d", status);
                     mBluetoothGatt = connectGatt(false);
+                    String mac = device != null ? device.getAddress() : "null";
+                    EasyLog.i("retry connect device mac:%s status:%d", mac, status);
                     if (mBluetoothGatt == null) {
                         handleConnectFail(status);
                         mConnectRetryCount = 0;
@@ -593,16 +594,41 @@ public class Peripheral {
     }
 
     private void handleConnectFail(final int status) {
+        CentralManager.getInstance().getMultiplePeripheralController().removePeripheral(Peripheral.this);
+        mConnectState = ConnectionState.CONNECT_FAILURE;
         getMainHandler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                mConnectState = ConnectionState.CONNECT_FAILURE;
                 closeBluetoothGatt();
                 if (mConnectStateCallback != null) {
                     mConnectStateCallback.onConnectFail(new ConnectException(status));
                 }
             }
         }, DEFAULT_DELAY_CLOSE_GATT);
+    }
+
+    private void handleDiscoverService(final BluetoothGatt gatt) {
+        getMainHandler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (gatt != null) {
+                    gatt.discoverServices();
+                }
+            }
+        }, DEFAULT_DELAY_DISCOVER_SERVICE);
+    }
+
+    private void handleDisconnect(final int status) {
+        CentralManager.getInstance().getMultiplePeripheralController().removePeripheral(Peripheral.this);
+        mConnectState = ConnectionState.CONNECT_DISCONNECT;
+        getMainHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                if (mConnectStateCallback != null) {
+                    mConnectStateCallback.onDisConnected(isActivityDisconnect, Peripheral.this, status);
+                }
+            }
+        });
     }
 
     private BluetoothGattCallback coreGattCallback = new BluetoothGattCallback() {
@@ -614,26 +640,12 @@ public class Peripheral {
                     status, newState, Thread.currentThread().getId());
 
             if (newState == BluetoothGatt.STATE_CONNECTED) {
-                getMainHandler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        gatt.discoverServices();
-                    }
-                }, DEFAULT_DELAY_DISCOVER_SERVICE);
+                handleDiscoverService(gatt);
             } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
-                CentralManager.getInstance().getMultiplePeripheralController().removePeripheral(Peripheral.this);
                 if (mConnectState == ConnectionState.CONNECT_CONNECTING) {
-                    handleConnectRetry(status);
+                    handleConnectRetry(gatt.getDevice(), status);
                 } else if (mConnectState == ConnectionState.CONNECT_CONNECTED) {
-                    mConnectState = ConnectionState.CONNECT_DISCONNECT;
-                    getMainHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (mConnectStateCallback != null) {
-                                mConnectStateCallback.onDisConnected(isActivityDisconnect, Peripheral.this, status);
-                            }
-                        }
-                    });
+                    handleDisconnect(status);
                 }
             }
         }
