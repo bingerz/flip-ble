@@ -573,7 +573,7 @@ public class Peripheral {
     }
 
     private void handleConnectRetry(final BluetoothDevice device, final int status) {
-        if (mConnectRetryCount > 0 && (status == 133 || status == 257)) {
+        if (mConnectRetryCount > 0 && status == 0x85) {
             getMainHandler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -635,6 +635,11 @@ public class Peripheral {
 
         @Override
         public void onConnectionStateChange(final BluetoothGatt gatt, final int status, final int newState) {
+            /**
+             * Status Code Description:
+             * 0x85(133): GATT_ERROR
+             * 0x101(257): no connection to cancel
+             */
             super.onConnectionStateChange(gatt, status, newState);
             EasyLog.i("GattCallback：Connection State Change\nstatus: %d  newState: %d  currentThread: %d",
                     status, newState, Thread.currentThread().getId());
