@@ -103,5 +103,12 @@ public abstract class Scanner {
                 mScanCallback.onScanFinished(scanResultList);
             }
         }
+
+        @Override
+        public void onScanFailed(int errorCode) {
+            if (mScanCallback != null) {
+                mScanCallback.onScanFailed(errorCode);
+            }
+        }
     }
 }

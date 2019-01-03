@@ -269,6 +269,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ivLoading.setVisibility(View.INVISIBLE);
                 btnScan.setText(getString(R.string.start_scan));
             }
+
+            @Override
+            public void onScanFailed(int errorCode) {
+                Log.e(TAG, "onScanFailed errorCode = " + errorCode);
+                String text = getString(R.string.scan_fail, errorCode + "");
+                Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
+            }
         });
     }
 

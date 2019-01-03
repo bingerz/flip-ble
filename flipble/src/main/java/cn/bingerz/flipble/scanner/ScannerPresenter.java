@@ -25,6 +25,11 @@ public abstract class ScannerPresenter implements LeScanCallback {
         next(device, rssi, scanRecord);
     }
 
+    @Override
+    public void onLeScanFailed(int errorCode) {
+        onScanFailed(errorCode);
+    }
+
     @SuppressWarnings({"MissingPermission"})
     private void next(BluetoothDevice device, int rssi, byte[] scanRecord) {
         if (device == null) {
@@ -60,5 +65,7 @@ public abstract class ScannerPresenter implements LeScanCallback {
     public abstract void onScanning(ScanDevice device);
 
     public abstract void onScanFinished(List<ScanDevice> scanDevices);
+
+    public abstract void onScanFailed(int errorCode);
 
 }

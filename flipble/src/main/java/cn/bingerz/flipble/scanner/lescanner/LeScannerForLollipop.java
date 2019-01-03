@@ -182,8 +182,10 @@ public class LeScannerForLollipop extends LeScanner {
             mScanCallback = new ScanCallback() {
                 @Override
                 public void onScanResult(int callbackType, ScanResult scanResult) {
-                    mLeScanCallback.onLeScan(scanResult.getDevice(),
-                            scanResult.getRssi(), scanResult.getScanRecord().getBytes());
+                    if (mLeScanCallback != null) {
+                        mLeScanCallback.onLeScan(scanResult.getDevice(),
+                                scanResult.getRssi(), scanResult.getScanRecord().getBytes());
+                    }
                 }
 
                 @Override
@@ -191,8 +193,10 @@ public class LeScannerForLollipop extends LeScanner {
                     for (ScanResult scanResult : results) {
                         EasyLog.e("scanned device %s  rssi %d",
                                 scanResult.getDevice().getAddress(), scanResult.getRssi());
-                        mLeScanCallback.onLeScan(scanResult.getDevice(),
-                                scanResult.getRssi(), scanResult.getScanRecord().getBytes());
+                        if (mLeScanCallback != null) {
+                            mLeScanCallback.onLeScan(scanResult.getDevice(),
+                                    scanResult.getRssi(), scanResult.getScanRecord().getBytes());
+                        }
                     }
                 }
 
@@ -214,6 +218,9 @@ public class LeScannerForLollipop extends LeScanner {
                         default:
                             EasyLog.e("Scan failed with unknown error (errorCode=" + errorCode + ")");
                             break;
+                    }
+                    if (mLeScanCallback != null) {
+                        mLeScanCallback.onLeScanFailed(errorCode);
                     }
                 }
             };

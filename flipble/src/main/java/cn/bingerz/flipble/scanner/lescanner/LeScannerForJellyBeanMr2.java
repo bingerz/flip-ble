@@ -152,7 +152,9 @@ public class LeScannerForJellyBeanMr2 extends LeScanner {
                 @Override
                 public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
                     if (isNeedDevice(device)) {
-                        mLeScanCallback.onLeScan(device, rssi, scanRecord);
+                        if (mLeScanCallback != null) {
+                            mLeScanCallback.onLeScan(device, rssi, scanRecord);
+                        }
                     }
                 }
             };

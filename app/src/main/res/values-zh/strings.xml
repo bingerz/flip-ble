@@ -8,6 +8,7 @@
 
     <string name="start_scan">开始扫描</string>
     <string name="stop_scan">停止扫描</string>
+    <string name="scan_fail">扫描失败，ErrorCode = %1$s</string>
     <string name="expand_search_settings">展开搜索设置</string>
     <string name="retrieve_search_settings">收起搜索设置</string>
     <string name="connect_fail">连接失败</string>

@@ -8,6 +8,7 @@
 
     <string name="start_scan">Start Scan</string>
     <string name="stop_scan">Stop Scan</string>
+    <string name="scan_fail">Scan Failed, ErrorCode = %1$s</string>
     <string name="expand_search_settings">Expand scanning settings</string>
     <string name="retrieve_search_settings">Collapse scanning settings</string>
     <string name="connect_fail">Connection failed</string>
