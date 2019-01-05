@@ -55,7 +55,7 @@ public class CycledScanner extends Scanner {
         stopLeScan();
         destroy();
         mScanCallback = null;
-        mScanState = ScanState.STATE_SCANNING;
+        mScanState = ScanState.STATE_IDLE;
     }
 
     private void delayScheduleStartScan() {
