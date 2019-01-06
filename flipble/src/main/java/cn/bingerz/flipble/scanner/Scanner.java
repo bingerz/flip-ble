@@ -73,6 +73,7 @@ public abstract class Scanner {
         removeHandlerMsg();
         if (mLeScanner != null) {
             mLeScanner.destroy();
+            mLeScanner = null;
         }
     }
 

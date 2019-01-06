@@ -102,7 +102,7 @@ public class CentralManager {
     }
 
     public void stopScan() {
-        if (mScanner != null && mScanner.isScanning()) {
+        if (mScanner != null) {
             mScanner.stopScan();
         }
         mScanner = null;
