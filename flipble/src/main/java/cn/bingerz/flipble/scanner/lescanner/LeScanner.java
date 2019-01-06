@@ -23,7 +23,7 @@ public abstract class LeScanner {
     protected final Handler mScanHandler;
     private final HandlerThread mScanThread;
 
-    private boolean mScanning;
+    private LeScanState mScanState = LeScanState.STATE_IDLE;
 
     protected LeScanner(BluetoothAdapter bluetoothAdapter, ScanRuleConfig config, LeScanCallback callback) {
         mBluetoothAdapter = bluetoothAdapter;
@@ -67,8 +67,8 @@ public abstract class LeScanner {
     @MainThread
     public void scanLeDevice(boolean enable) {
         if (enable) {
-            if (!mScanning) {
-                mScanning = true;
+            if (getScanState() == LeScanState.STATE_IDLE) {
+                mScanState = LeScanState.STATE_SCANNING;
                 try {
                     startScan();
                 } catch (Exception e) {
@@ -78,9 +78,17 @@ public abstract class LeScanner {
                 EasyLog.d("LeScanner is already starting.");
             }
         } else {
-            mScanning = false;
+            mScanState = LeScanState.STATE_IDLE;
             stopScan();
         }
+    }
+
+    public LeScanState getScanState() {
+        return mScanState;
+    }
+
+    public boolean isScanning() {
+        return getScanState() == LeScanState.STATE_SCANNING;
     }
 
     @MainThread

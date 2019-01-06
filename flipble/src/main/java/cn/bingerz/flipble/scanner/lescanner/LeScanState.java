@@ -1,15 +1,14 @@
-package cn.bingerz.flipble.scanner;
+package cn.bingerz.flipble.scanner.lescanner;
 
 
-
-public enum ScanState {
+public enum LeScanState {
 
     STATE_IDLE(-1),
-    STATE_SCANNING(0X01);
+    STATE_SCANNING(0x01);
 
     private int code;
 
-    ScanState(int code) {
+    LeScanState(int code) {
         this.code = code;
     }
 

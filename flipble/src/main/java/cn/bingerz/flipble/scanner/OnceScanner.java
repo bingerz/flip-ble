@@ -30,7 +30,6 @@ public class OnceScanner extends Scanner {
     public void startScan(final ScanCallback callback) {
         mScanCallback = callback;
         startLeScan();
-        mScanState = ScanState.STATE_SCANNING;
     }
 
     @Override
@@ -38,7 +37,6 @@ public class OnceScanner extends Scanner {
         stopLeScan();
         destroy();
         mScanCallback = null;
-        mScanState = ScanState.STATE_IDLE;
     }
 
     private void delayScheduleStopScan() {

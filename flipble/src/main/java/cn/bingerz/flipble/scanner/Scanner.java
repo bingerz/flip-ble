@@ -14,7 +14,6 @@ public abstract class Scanner {
     protected LeScanner mLeScanner;
     protected ScanCallback mScanCallback;
     protected ScannerPresenter mScannerPresenter;
-    protected ScanState mScanState = ScanState.STATE_IDLE;
 
     protected Handler mHandler = new Handler(Looper.getMainLooper());
 
@@ -60,12 +59,8 @@ public abstract class Scanner {
         notifyScanStopped();
     }
 
-    public ScanState getScanState() {
-        return mScanState;
-    }
-
     public boolean isScanning() {
-        return getScanState() == ScanState.STATE_SCANNING;
+        return mLeScanner != null && mLeScanner.isScanning();
     }
 
     public final void removeHandlerMsg() {
