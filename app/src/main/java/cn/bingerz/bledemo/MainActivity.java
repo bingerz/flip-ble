@@ -283,48 +283,50 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         CentralManager.getInstance().stopScan();
     }
 
+    private ConnectStateCallback mConnectStateCallback = new ConnectStateCallback() {
+        @Override
+        public void onStartConnect() {
+            progressDialog.show();
+        }
+
+        @Override
+        public void onConnectFail(BLEException exception) {
+            EspressoIdlingResource.decrement();
+            ivLoading.clearAnimation();
+            ivLoading.setVisibility(View.INVISIBLE);
+            btnScan.setText(getString(R.string.start_scan));
+            progressDialog.dismiss();
+            Toast.makeText(MainActivity.this, getString(R.string.connect_fail), Toast.LENGTH_LONG).show();
+        }
+
+        @Override
+        public void onConnectSuccess(Peripheral peripheral, int status) {
+            EspressoIdlingResource.decrement();
+            progressDialog.dismiss();
+            mScanDeviceAdapter.addDevice(peripheral.getDevice());
+            mScanDeviceAdapter.notifyDataSetChanged();
+
+            readRssi(peripheral);
+            setMtu(peripheral, 23);
+        }
+
+        @Override
+        public void onDisConnected(boolean isActiveDisConnected, Peripheral peripheral, int status) {
+            progressDialog.dismiss();
+
+            mScanDeviceAdapter.removeDevice(peripheral.getDevice());
+            mScanDeviceAdapter.notifyDataSetChanged();
+
+            if (!isActiveDisConnected) {
+                Toast.makeText(MainActivity.this, getString(R.string.disconnected), Toast.LENGTH_LONG).show();
+                ObserverManager.getInstance().notifyObserver(peripheral);
+            }
+        }
+    };
+
     private void connect(Peripheral peripheral) {
         boolean isAutoConnect = swAuto.isChecked();
-        peripheral.connect(isAutoConnect, new ConnectStateCallback() {
-            @Override
-            public void onStartConnect() {
-                progressDialog.show();
-            }
-
-            @Override
-            public void onConnectFail(BLEException exception) {
-                EspressoIdlingResource.decrement();
-                ivLoading.clearAnimation();
-                ivLoading.setVisibility(View.INVISIBLE);
-                btnScan.setText(getString(R.string.start_scan));
-                progressDialog.dismiss();
-                Toast.makeText(MainActivity.this, getString(R.string.connect_fail), Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onConnectSuccess(Peripheral peripheral, int status) {
-                EspressoIdlingResource.decrement();
-                progressDialog.dismiss();
-                mScanDeviceAdapter.addDevice(peripheral.getDevice());
-                mScanDeviceAdapter.notifyDataSetChanged();
-
-                readRssi(peripheral);
-                setMtu(peripheral, 23);
-            }
-
-            @Override
-            public void onDisConnected(boolean isActiveDisConnected, Peripheral peripheral, int status) {
-                progressDialog.dismiss();
-
-                mScanDeviceAdapter.removeDevice(peripheral.getDevice());
-                mScanDeviceAdapter.notifyDataSetChanged();
-
-                if (!isActiveDisConnected) {
-                    Toast.makeText(MainActivity.this, getString(R.string.disconnected), Toast.LENGTH_LONG).show();
-                    ObserverManager.getInstance().notifyObserver(peripheral);
-                }
-            }
-        });
+        peripheral.connect(isAutoConnect, mConnectStateCallback);
     }
 
     private void readRssi(Peripheral peripheral) {

@@ -14,6 +14,7 @@ import android.text.TextUtils;
 import java.util.List;
 
 import cn.bingerz.easylog.EasyLog;
+import cn.bingerz.flipble.peripheral.ConnectionState;
 import cn.bingerz.flipble.peripheral.MultiplePeripheralController;
 import cn.bingerz.flipble.peripheral.Peripheral;
 import cn.bingerz.flipble.exception.BLEException;
@@ -314,7 +315,8 @@ public class CentralManager {
     }
 
     public boolean isConnected(String address) {
-        return mMultiPeripheralController != null && mMultiPeripheralController.isContainDevice(address);
+        Peripheral p = getPeripheral(address);
+        return p != null && p.getConnectState() == ConnectionState.CONNECT_CONNECTED;
     }
 
     public Peripheral getPeripheral(String address) {
