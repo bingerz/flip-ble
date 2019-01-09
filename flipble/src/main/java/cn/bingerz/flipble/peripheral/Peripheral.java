@@ -51,6 +51,7 @@ public class Peripheral {
 
     private ConnectionState mConnectState = ConnectionState.CONNECT_IDLE;
     private Handler mMainHandler;
+    //Client actively performs the disconnect method
     private boolean isActivityDisconnect = false;
 
     private float mRssi;
@@ -317,6 +318,10 @@ public class Peripheral {
             if (CentralManager.getInstance().isScanning()) {
                 CentralManager.getInstance().handleException(
                         new OtherException("When connecting the device, Recommended to stop scanning"));
+            }
+            if (mConnectState == ConnectionState.CONNECT_CONNECTING) {
+                EasyLog.w("After connect(true/false) to retry connect is dangerous");
+                closeBluetoothGatt();
             }
             EasyLog.i("connect device:%s mac:%s autoConnect:%s", getName(), getAddress(), autoConnect);
             addConnectionStateCallback(callback);

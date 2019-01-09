@@ -314,6 +314,11 @@ public class CentralManager {
         }
     }
 
+    public boolean isConnecting(String address) {
+        Peripheral p = getPeripheral(address);
+        return p != null && p.getConnectState() == ConnectionState.CONNECT_CONNECTING;
+    }
+
     public boolean isConnected(String address) {
         Peripheral p = getPeripheral(address);
         return p != null && p.getConnectState() == ConnectionState.CONNECT_CONNECTED;
