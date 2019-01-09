@@ -130,13 +130,9 @@ public class MainActivityTest {
         };
     }
 
-    @Test
-    public void clickScan_ScrollToEnd() {
-        int itemCount = clickScanButton_ReturnItemCount();
-        Assert.assertTrue(itemCount > 0);
-        onView(withId(R.id.rv_list)).perform(RecyclerViewActions.scrollToPosition(itemCount - 1));
+    private void sleep(long millis) {
         try {
-            Thread.sleep(5000);
+            Thread.sleep(millis);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -148,15 +144,30 @@ public class MainActivityTest {
         return recyclerView.getAdapter().getItemCount();
     }
 
+    @Test
+    public void clickScan_ScrollToEnd() {
+        int itemCount = clickScanButton_ReturnItemCount();
+        Assert.assertTrue(itemCount > 0);
+        onView(withId(R.id.rv_list)).perform(RecyclerViewActions.scrollToPosition(itemCount - 1));
+        sleep(5000);
+    }
+
+    @Test
+    public void clickScan_Loop() {
+        int scanLoopCount = 50;
+        for (int i = 0; i < scanLoopCount; i++) {
+            int itemCount = clickScanButton_ReturnItemCount();
+            Assert.assertTrue(itemCount > 0);
+            sleep(5000);
+        }
+    }
+
     private void clickConnectDeviceByIndexWhenScannedListNotNull(int index) {
         onView(ViewMatchers.withId(R.id.rv_list)).perform(
                 RecyclerViewActions.actionOnItemAtPosition(index, clickChildViewWithId(R.id.btn_connect)));
-        try {
-            //触发连接后，idlingResource不能马上increment，添加延时确保increment执行。
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
+        //触发连接后，idlingResource不能马上increment，添加延时确保increment执行。
+        sleep(500);
     }
 
     private void clickDeviceDetailByIndex(int index) {
@@ -265,11 +276,7 @@ public class MainActivityTest {
                 for (int k = 0; k < propertyItemCount; k++) {
                     clickProperty(k);
                     onView(allOf(withId(R.id.btn), withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE))).perform(click());
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    sleep(1000);
                     Espresso.pressBack();
                 }
                 Espresso.pressBack();
@@ -317,11 +324,8 @@ public class MainActivityTest {
 
         onView(allOf(withId(R.id.et), withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE))).perform(replaceText("06"));
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        sleep(500);
+
         onView(allOf(withId(R.id.btn), withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE))).perform(click());
         return true;
     }
@@ -337,11 +341,7 @@ public class MainActivityTest {
 
             boolean result = iteratorExecuteWriteShutdown();
             if (result) {
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                sleep(5000);
             } else {
                 Espresso.pressBack();
                 clickDisconnectDeviceByIndex(itemCount - 1);

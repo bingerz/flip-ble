@@ -20,7 +20,7 @@ public abstract class LeScanner {
     protected final ScanRuleConfig mScanRuleConfig;
     protected final LeScanCallback mLeScanCallback;
 
-    protected final Handler mScanHandler;
+    private final Handler mScanHandler;
     private final HandlerThread mScanThread;
 
     private LeScanState mScanState = LeScanState.STATE_IDLE;
@@ -44,11 +44,11 @@ public abstract class LeScanner {
         }
 
         if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            EasyLog.i("This is pre Android 5.0.  We are using old scanning APIs");
+            EasyLog.i("This is pre Android 5.0. We are using old scanning APIs");
             useAndroidLScanner = false;
 
         } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            EasyLog.i("This is Android 5.0.  We are using new scanning APIs");
+            EasyLog.i("This is Android 5.0. We are using new scanning APIs");
             useAndroidLScanner = true;
         } else {
             EasyLog.i("Using Android O scanner");
@@ -66,6 +66,10 @@ public abstract class LeScanner {
 
     @MainThread
     public void scanLeDevice(boolean enable) {
+        if (!isBluetoothOn()) {
+            EasyLog.d(String.format("Not %s scan because bluetooth is off", enable ? "starting" : "stopping"));
+            return;
+        }
         if (enable) {
             if (getScanState() == LeScanState.STATE_IDLE) {
                 mScanState = LeScanState.STATE_SCANNING;
@@ -83,18 +87,13 @@ public abstract class LeScanner {
         }
     }
 
-    public LeScanState getScanState() {
-        return mScanState;
-    }
-
-    public boolean isScanning() {
-        return getScanState() == LeScanState.STATE_SCANNING;
-    }
-
     @MainThread
     public void destroy() {
         EasyLog.d("Destroying");
-        mScanHandler.post(new Runnable() {
+        if (isScanning()) {
+            stopScan();
+        }
+        postToWorkerThread(false, new Runnable() {
             @WorkerThread
             @Override
             public void run() {
@@ -102,6 +101,15 @@ public abstract class LeScanner {
                 mScanThread.quit();
             }
         });
+    }
+
+    protected void postToWorkerThread(boolean isRemovePending, Runnable r) {
+        if (mScanHandler != null) {
+            if (isRemovePending) {
+                mScanHandler.removeCallbacksAndMessages(null);
+            }
+            mScanHandler.post(r);
+        }
     }
 
     protected abstract void startScan();
@@ -124,5 +132,13 @@ public abstract class LeScanner {
             EasyLog.w("SecurityException checking if bluetooth is on");
         }
         return false;
+    }
+
+    public LeScanState getScanState() {
+        return mScanState;
+    }
+
+    public boolean isScanning() {
+        return getScanState() == LeScanState.STATE_SCANNING;
     }
 }

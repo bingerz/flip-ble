@@ -95,17 +95,12 @@ public class LeScannerForLollipop extends LeScanner {
     }
 
     private void postStartLeScan(final List<ScanFilter> filters, final ScanSettings settings) {
-        if (!isBluetoothOn()) {
-            EasyLog.d("Not starting scan because bluetooth is off");
-            return;
-        }
         final BluetoothLeScanner scanner = getScanner();
         if (scanner == null) {
             return;
         }
         final ScanCallback scanCallback = getNewLeScanCallback();
-        mScanHandler.removeCallbacksAndMessages(null);
-        mScanHandler.post(new Runnable() {
+        postToWorkerThread(true, new Runnable() {
             @SuppressLint("MissingPermission")
             @WorkerThread
             @Override
@@ -121,23 +116,17 @@ public class LeScannerForLollipop extends LeScanner {
                     // Thrown by Samsung Knox devices if bluetooth access denied for an app
                     EasyLog.e("Cannot start scan.  Security Exception");
                 }
-
             }
         });
     }
 
     private void postStopLeScan() {
-        if (!isBluetoothOn()) {
-            EasyLog.d("Not stopping scan because bluetooth is off");
-            return;
-        }
         final BluetoothLeScanner scanner = getScanner();
         if (scanner == null) {
             return;
         }
         final ScanCallback scanCallback = getNewLeScanCallback();
-        mScanHandler.removeCallbacksAndMessages(null);
-        mScanHandler.post(new Runnable() {
+        postToWorkerThread(true, new Runnable() {
             @SuppressLint("MissingPermission")
             @WorkerThread
             @Override
@@ -152,9 +141,8 @@ public class LeScannerForLollipop extends LeScanner {
                     EasyLog.e(npe, "Cannot stop scan. Unexpected NPE.");
                 } catch (SecurityException e) {
                     // Thrown by Samsung Knox devices if bluetooth access denied for an app
-                    EasyLog.e("Cannot stop scan.  Security Exception");
+                    EasyLog.e("Cannot stop scan. Security Exception");
                 }
-
             }
         });
     }

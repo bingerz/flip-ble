@@ -63,17 +63,12 @@ public class LeScannerForJellyBeanMr2 extends LeScanner {
     }
 
     private void postStartLeScan(final UUID[] serviceUUIds) {
-        if (!isBluetoothOn()) {
-            EasyLog.d("Not starting scan because bluetooth is off");
-            return;
-        }
         final BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
         if (bluetoothAdapter == null) {
             return;
         }
         final BluetoothAdapter.LeScanCallback leScanCallback = getLeScanCallback();
-        mScanHandler.removeCallbacksAndMessages(null);
-        mScanHandler.post(new Runnable() {
+        postToWorkerThread(true, new Runnable() {
             @SuppressLint("MissingPermission")
             @WorkerThread
             @Override
@@ -89,17 +84,12 @@ public class LeScannerForJellyBeanMr2 extends LeScanner {
     }
 
     private void postStopLeScan() {
-        if (!isBluetoothOn()) {
-            EasyLog.d("Not stopping scan because bluetooth is off");
-            return;
-        }
         final BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
         if (bluetoothAdapter == null) {
             return;
         }
         final BluetoothAdapter.LeScanCallback leScanCallback = getLeScanCallback();
-        mScanHandler.removeCallbacksAndMessages(null);
-        mScanHandler.post(new Runnable() {
+        postToWorkerThread(true, new Runnable() {
             @SuppressLint("MissingPermission")
             @WorkerThread
             @Override
