@@ -19,6 +19,7 @@ import java.util.List;
 import cn.bingerz.easylog.EasyLog;
 import cn.bingerz.flipble.scanner.ScanFilterConfig;
 import cn.bingerz.flipble.scanner.ScanRuleConfig;
+import cn.bingerz.flipble.utils.BLEHackingMethod;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class LeScannerForLollipop extends LeScanner {
@@ -196,6 +197,8 @@ public class LeScannerForLollipop extends LeScanner {
                             break;
                         case SCAN_FAILED_APPLICATION_REGISTRATION_FAILED:
                             EasyLog.e("Scan failed: app cannot be registered");
+                            //Fix application registration failed issue
+                            BLEHackingMethod.releaseAllScanClient();
                             break;
                         case SCAN_FAILED_FEATURE_UNSUPPORTED:
                             EasyLog.e("Scan failed: power optimized scan feature is not supported");
