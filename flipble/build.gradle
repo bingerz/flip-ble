@@ -11,7 +11,7 @@ android {
     defaultConfig {
         minSdkVersion build_versions.min_sdk
         targetSdkVersion build_versions.target_sdk
-        versionCode 25
+        versionCode 26
         versionName version
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -29,7 +29,7 @@ android {
         from('build/intermediates/intermediate-jars/release/')
         into('release/')
         include('classes.jar')
-        rename ('classes.jar', 'flipble-v0.3.12.jar')
+        rename ('classes.jar', 'flipble-v0.3.13.jar')
     }
 
     tasks.whenTaskAdded { task ->
@@ -63,7 +63,7 @@ dependencies {
 
 }
 
-version = "0.3.12"
+version = "0.3.13"
 group = "cn.bingerz.android"
 def siteUrl = 'https://github.com/bingerz/flip-ble'
 def gitUrl = 'https://github.com/bingerz/flip-ble.git'

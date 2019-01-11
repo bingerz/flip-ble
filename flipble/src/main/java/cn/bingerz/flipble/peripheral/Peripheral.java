@@ -359,6 +359,7 @@ public class Peripheral {
         if (mBluetoothGatt != null) {
             isActivityDisconnect = true;
             mBluetoothGatt.disconnect();
+            mBluetoothGatt.close();
         }
         getMainHandler().removeCallbacksAndMessages(null);
     }
