@@ -30,14 +30,14 @@ public class ScanDeviceAdapter extends RecyclerView.Adapter<ScanDeviceAdapter.Vi
 
 
     public void addDevice(ScanDevice device) {
-        removeDevice(device);
+        removeDevice(device.getAddress());
         mScanDevices.add(device);
     }
 
-    public void removeDevice(ScanDevice scanDevice) {
+    public void removeDevice(String address) {
         for (int i = 0; i < mScanDevices.size(); i++) {
             ScanDevice device = mScanDevices.get(i);
-            if (device.getAddress().equals(scanDevice.getAddress())) {
+            if (device.getAddress().equals(address)) {
                 mScanDevices.remove(i);
             }
         }

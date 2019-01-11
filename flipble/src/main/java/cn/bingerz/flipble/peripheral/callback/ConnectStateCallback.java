@@ -17,8 +17,8 @@ public abstract class ConnectStateCallback extends BluetoothGattCallback {
 
     public abstract void onConnectFail(BLEException exception);
 
-    public abstract void onConnectSuccess(Peripheral peripheral, int status);
+    public abstract void onConnectSuccess(String address, int status);
 
-    public abstract void onDisConnected(boolean isActiveDisConnected, Peripheral peripheral, int status);
+    public abstract void onDisConnected(boolean isActiveDisConnected, String address, int status);
 
 }

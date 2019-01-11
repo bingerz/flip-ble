@@ -71,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ScanDeviceAdapter mScanDeviceAdapter;
     private ProgressDialog progressDialog;
 
+    private Peripheral mPeripheral;
     private ScanRuleConfig mScanRuleConfig;
     private String DEFAULT_SERVICE_UUID = "00001803-0000-1000-8000-00805f9b34fb";
 
@@ -300,26 +301,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         @Override
-        public void onConnectSuccess(Peripheral peripheral, int status) {
+        public void onConnectSuccess(String address, int status) {
             EspressoIdlingResource.decrement();
             progressDialog.dismiss();
-            mScanDeviceAdapter.addDevice(peripheral.getDevice());
+            mPeripheral = CentralManager.getInstance().getPeripheral(address);
+            mScanDeviceAdapter.addDevice(mPeripheral.getDevice());
             mScanDeviceAdapter.notifyDataSetChanged();
 
-            readRssi(peripheral);
-            setMtu(peripheral, 23);
+            readRssi(mPeripheral);
+            setMtu(mPeripheral, 23);
         }
 
         @Override
-        public void onDisConnected(boolean isActiveDisConnected, Peripheral peripheral, int status) {
+        public void onDisConnected(boolean isActiveDisConnected, String address, int status) {
             progressDialog.dismiss();
-
-            mScanDeviceAdapter.removeDevice(peripheral.getDevice());
+            mScanDeviceAdapter.removeDevice(address);
             mScanDeviceAdapter.notifyDataSetChanged();
 
             if (!isActiveDisConnected) {
                 Toast.makeText(MainActivity.this, getString(R.string.disconnected), Toast.LENGTH_LONG).show();
-                ObserverManager.getInstance().notifyObserver(peripheral);
+                ObserverManager.getInstance().notifyObserver(mPeripheral);
             }
         }
     };

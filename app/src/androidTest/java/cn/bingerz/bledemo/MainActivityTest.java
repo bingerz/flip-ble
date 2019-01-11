@@ -192,9 +192,10 @@ public class MainActivityTest {
         int itemCount = clickScanButton_ReturnItemCount();
         Assert.assertTrue(itemCount > 0);
 
-        Log.d("Item count is ", String.valueOf(itemCount));
+        Log.d(TAG,"Item count is " + itemCount);
 
         for (int i = 0; i < itemCount; i++) {
+            Log.d(TAG, "Connect index " + i);
             clickConnectDeviceByIndexWhenScannedListNotNull(i);
 
             clickDeviceDetailByIndex(itemCount - 1);
@@ -207,6 +208,8 @@ public class MainActivityTest {
             clickDisconnectDeviceByIndex(itemCount - 1);
 
             itemCount--;
+            // Waiting for the device to be disconnected
+            sleep(2000);
         }
     }
 
@@ -218,6 +221,7 @@ public class MainActivityTest {
         Log.d("Item count is ", String.valueOf(itemCount));
 
         for (int i = 0; i < itemCount; i++) {
+            Log.d(TAG, "Connect index " + i);
             clickConnectDeviceByIndexWhenScannedListNotNull(i);
 
             clickDeviceDetailByIndex(itemCount - 1);
