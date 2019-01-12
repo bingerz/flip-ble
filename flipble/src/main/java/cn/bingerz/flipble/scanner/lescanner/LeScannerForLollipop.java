@@ -197,8 +197,6 @@ public class LeScannerForLollipop extends LeScanner {
                             break;
                         case SCAN_FAILED_APPLICATION_REGISTRATION_FAILED:
                             EasyLog.e("Scan failed: app cannot be registered");
-                            //Fix application registration failed issue
-                            BLEHackingMethod.releaseAllScanClient();
                             break;
                         case SCAN_FAILED_FEATURE_UNSUPPORTED:
                             EasyLog.e("Scan failed: power optimized scan feature is not supported");
