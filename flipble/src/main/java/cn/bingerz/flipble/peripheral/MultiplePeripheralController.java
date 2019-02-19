@@ -23,7 +23,7 @@ public class MultiplePeripheralController {
         bleLruHashMap = new BleLruHashMap<>(CentralManager.getInstance().getMaxConnectCount());
     }
 
-    public synchronized void addPeripheral(Peripheral peripheral) {
+    public void addPeripheral(Peripheral peripheral) {
         if (peripheral == null) {
             return;
         }
@@ -32,23 +32,21 @@ public class MultiplePeripheralController {
         }
     }
 
-    public synchronized void removePeripheral(Peripheral peripheral) {
+    public void removePeripheral(Peripheral peripheral) {
         if (peripheral == null) {
             return;
         }
-        if (bleLruHashMap.containsKey(peripheral.getAddress())) {
-            bleLruHashMap.remove(peripheral.getAddress());
-        }
+        bleLruHashMap.remove(peripheral.getAddress());
     }
 
-    public synchronized boolean isContainDevice(String key) {
+    public boolean isContainDevice(String key) {
         if (TextUtils.isEmpty(key) || !bleLruHashMap.containsKey(key)) {
             return false;
         }
         return true;
     }
 
-    public synchronized Peripheral getPeripheral(String key) {
+    public Peripheral getPeripheral(String key) {
         if (!TextUtils.isEmpty(key)) {
             if (bleLruHashMap.containsKey(key)) {
                 return bleLruHashMap.get(key);
@@ -57,21 +55,21 @@ public class MultiplePeripheralController {
         return null;
     }
 
-    public synchronized void disconnectAllDevice() {
+    public void disconnectAllDevice() {
         for (Map.Entry<String, Peripheral> stringPeripheralEntry : bleLruHashMap.entrySet()) {
             stringPeripheralEntry.getValue().disconnect();
         }
         bleLruHashMap.clear();
     }
 
-    public synchronized void destroy() {
+    public void destroy() {
         for (Map.Entry<String, Peripheral> stringPeripheralEntry : bleLruHashMap.entrySet()) {
             stringPeripheralEntry.getValue().destroy();
         }
         bleLruHashMap.clear();
     }
 
-    public synchronized List<Peripheral> getPeripheralList() {
+    public List<Peripheral> getPeripheralList() {
         final List<Peripheral> bleBluetoothList = new ArrayList<>(bleLruHashMap.values());
         Collections.sort(bleBluetoothList, new Comparator<Peripheral>() {
             @Override
