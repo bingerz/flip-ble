@@ -2,129 +2,140 @@
 [![Maven Central](https://img.shields.io/maven-central/v/cn.bingerz.android/flipble.svg)](https://search.maven.org/artifact/cn.bingerz.android/flipble)
 [![Download](https://api.bintray.com/packages/bingerz/maven/flip-ble/images/download.svg)](https://bintray.com/bingerz/maven/flip-ble)
 
-一个稳定易用的Android平台蓝牙开发框架。
+A stable and simple Bluetooth development framework for the Android platform.
 
-## 关于FlipBLE
-一直从事Android手机端蓝牙相关的APP开发工作，使用蓝牙API过程中，会遇到一些莫名的bug。
- - 有些只在特定品牌和特定系统版本出现；  
-   例如：三星的Android5.x版本，重复调用startLeScan会导致Crash。
- - 有些是系统版本的新特性导致。  
-   例如：Android8.1要求扫描设备必须含有ServiceUuid参数，不然锁屏无法扫描到设备。 
-    
- 为了避坑做了这个框架，受限于个人能力，有些顽疾还是没有好的避坑的办法，欢迎加入让Android BLE的使用轻松一点。
+## About FlipBLE
+This framework is already in production. After several iterations, it has been relatively stable 
+and reliable. I have been engaged in Android Bluetooth related app development for a long time, 
+studied the Bluetooth protocol stack under Android, and also worked on the firmware development 
+of Bluetooth chip. This framework was developed to increase the ease of use and stability of using 
+the Android Bluetooth API.
 
-## 基本功能
- - 支持BLE设备进行扫描、连接、读、写、通知订阅与取消等基本操作；
- - 支持自定义扫描模式(省电、平衡、耗电)、前台后台扫描模式、过滤规则等；
- - 支持周期性扫描功能；
+## Feature
+ - Support BLE devices for basic operations such as scanning, connect, read, write, notification subscription and cancellation.
+ - Support custom scan mode (power saving, balance, power consumption), foreground background scanning mode, filtering rules, etc.
+ - Support for periodic scanning function.
 
-## 特性
- - 屏蔽了一些由于Android BLE API使用不当等导致的Crash;
- - 支持多个Android版本的BLE相关API特性；
-
-## 使用：
-### Android Gradle
+## Getting Started
+### Add FlipBLE in your build.gradle
 ```groovy
-compile 'cn.bingerz.android:flipble:0.3.3'
+dependencies {
+    implementation 'cn.bingerz.android:flipble:0.4.3'
+}
 ```
 
-## 快速上手：
- - 关于Central/Peripheral: 顾名思义，蓝牙分为主从设备。
- 比如手机和运动手环的使用关系，手机是central、手环是peripheral；
- FlipBLE只支持手机是Central的工作模式，不支持作为peripheral的工作模式
+## About Central/Peripheral：
+ - As the name suggests, Bluetooth is a master-slave device.
+   For example, the use of mobile phones and sports bracelets, the mobile phone is central, the bracelet is peripheral;
+   FlipBLE only supports mobile phones that are Central's working mode and do not support working mode as a peripheral.
  
-### 初始化
+### Initialization instance
 
 ```java
-    \\鉴于CentralManager的使用生命周期，最好使用ApplicationContext
-    \\可以在Activity和Service的onCreate()方法进行初始化操作
-    CentralManager.getInstance().init(getApplicationContext());
-    CentralManager.getInstance()
-                    .enableLog(true)    \\开启Log日志
-                    .setMaxConnectCount(7)  \\设置最大连接数，当前默认值7
-                    .setOperateTimeout(5000);   \\设置蓝牙读、写等操作的超时时间
+\\ Given the lifecycle of CentralManager, it is best to use the Application Context
+\\ Can be initialized in the Activity and Service onCreate() method
+CentralManager.getInstance().init(getApplicationContext());
+CentralManager.getInstance()
+              .enableLog(true) //Enable ble log
+              .setOperateTimeout(5000) //Set the timeout period for Read and Write operations
+              .setMaxConnectCount(7); //Set max number of connections, Default value:7
+                                      //This is the maximum value defined in the Bluetooth protocol doc.
 ```
-### 开启扫描
+### Start/Stop Scanning
 ```java
-    List<ScanFilterConfig> scanFilterConfigs = new ArrayList<>();
-    ScanFilterConfig.Builder filterBuilder = new ScanFilterConfig.Builder();
-    filterBuilder.setDeviceMac(mac);    //要过滤的Mac地址
-    filterBuilder.setDeviceName(name);  //要过滤的设备名字
-    filterBuilder.setServiceUUID(uuid); //要过滤的ServiceUuid
-    scanFilterConfigs.add(filterBuilder.build());
+List<ScanFilterConfig> scanFilterConfigs = new ArrayList<>();
+ScanFilterConfig.Builder filterBuilder = new ScanFilterConfig.Builder();
+filterBuilder.setDeviceMac(mac);    //Mac address you want to filter
+filterBuilder.setDeviceName(name);  //The deviceName you want to filter
+filterBuilder.setServiceUUID(uuid); //The ServiceUuid you want to filter
+scanFilterConfigs.add(filterBuilder.build());
 
-    ScanRuleConfig mScanRuleConfig = new ScanRuleConfig.Builder()
-        .setScanFilterConfigs(scanFilterConfigs)        // 只扫描指定的设备，可选
-        .setScanMode(ScanRuleConfig.SCAN_MODE_BALANCED) // 扫描模式，可选 默认值：低间隔扫描
-        .setScanDuration(6000)                          // 扫描持续时间，可选
-        .setScanInterval(6000)                          // 扫描间隔时间，可选
-        .build();
+ScanRuleConfig mScanRuleConfig = new ScanRuleConfig.Builder()
+    .setScanFilterConfigs(scanFilterConfigs)        // Scan only the specified device, optional
+    .setScanMode(ScanRuleConfig.SCAN_MODE_BALANCED) // Scan mode, optional Default: low interval scan
+    .setScanDuration(6000)                          // Scan duration, optional
+    .setScanInterval(6000)                          // Scan interval, optional
+    .build();
     
-    //开始扫描
-    //startScan的第一个参数，表示此次是单次还是周期扫描
+    //Start scanning
+    //The first parameter of startScan, indicating whether this is a single or periodic scan
     CentralManager.getInstance().startScan(false, mScanRuleConfig, new ScanCallback() {
                 @Override
                 public void onScanStarted() {
-                    //扫描开始的处理
+                    //Processing start of scanning
                 }
     
                 @Override
                 public void onScanning(ScanDevice device) {
-                    //处理扫描到的新设备
+                    //Handling scanned new devices
                 }
     
                 @Override
                 public void onScanFinished(List<ScanDevice> scanResultList) {
-                    //扫描完成，返回扫描到的设备列表
+                    //Scan completed, return to the list of scanned devices
                 }
             });
     
-    //停止扫描
+    //Stop scanning
     CentralManager.getInstance().stopScan();
 ```
-特别说明：
-1、ScanInterval和ScanBackgroundMode的配置只与周期扫描(CycledScanner)相关，对于单次扫描OnceScanner并没有作用。
-2、ScanBackgroundMode只是一个省电的Tips，所谓的Background是说的App所处于的前台还是后台运行模式。
+Mark:
+1、The ScanInterval configuration is only relevant for periodic scans (CycledScanner) 
+    and does not work for a single scan of OnceScanner.
 
-### 连接/断开外围设备
+### Connect/Disconnect Peripherals
 ```java
     Peripheral peripheral = new Peripheral(scanDevice);
-    //isAutoConnect是否执行autoConnect连接，关于此可以参考Android官方文档
+    //isAutoConnect performs autoConnect connection, 
+    // for which you can refer to the official Android documentation.
+    // 
     peripheral.connect(isAutoConnect, new ConnectStateCallback() {
         @Override
         public void onStartConnect() {
-            //连接设备开始的处理
+            // Processing of connecting devices
         }
 
         @Override
         public void onConnectFail(BLEException exception) {
-            //连接失败的处理
+            // Connection failure processing
         }
 
         @Override
         public void onConnectSuccess(Peripheral peripheral, int status) {
-            //连接成功的处理
+            //Handling the connection successfully
         }
 
         @Override
         public void onDisConnected(boolean isActiveDisConnected, Peripheral peripheral, int status) {
-            //断开连接的处理
+            //Processing device disconnected
         }
     });
     
-    peripheral.disconnect() //断开外围设备
+    peripheral.disconnect() // Disconnect peripherals
 ```
-关于AutoConnect参数，所谓的自动连接，就是把连接交给系统来做。
-使用方法举例：
-APP初始化完成了，已知要连接某设备的Mac地址，通过CentralManager的方法取到peripheral，然后执行autoConnect连接:
+
+Regarding the AutoConnect parameters, according to the interpretation of the Bluetooth core protocol,
+the following distinction can be made simply. This concurrency talks about the problem of the Bluetooth 
+channel communication protocol level.
+AutoConnect=false   Connection procedures cannot be concurrent.
+AutoConnect=true    Connection procedures can be concurrent.
+
+Example：
+The APP initialization is completed. It is known to connect to the Mac address of a device, obtain 
+the peripheral through the CentralManager method, and then perform the autoConnect connection.
+
 ```java
 Peripheral peripheral = CentralManager.getInstance().retrievePeripheral(address);
-peripheral.connect(true, new ConnectStateCallback(){/*someCode*/});
+peripheral.connect(true, new ConnectStateCallback(){
+    /*someCode*/
+});
 ```
-等系统连上设备后，就会回调ConnectStateCallback方法。
-ps：实测效果：较低Android版本连接完成时间较慢，高版本会提高连接速度。
+After the system is connected to the device, the ConnectStateCallback method is called back.
+Tips：The lower Android version connection completion time is slower, and the higher version will increase the connection speed.
 
-## 版本变化
+## Release Changes
+### v0.4.3
+ - Bug fixs
 ### v0.3.3
  - Bug fixs
 ### v0.3.2
@@ -132,18 +143,39 @@ ps：实测效果：较低Android版本连接完成时间较慢，高版本会�
 ### v0.3.1
  - Init First Commit
  
-## BLE开发注意事项(坑)
- - 在三星机型中，尤其是Android5.0版本上容易出现关于startLeScan的crash，异常发生原因：
-	当startLeScan已经执行过，在蓝牙扫描已经运行中，重复调用startLeScan；
-	当stopLeScan已经执行过，在蓝牙扫描已经停止，重复调用stopLeScan；
- - Android6.0以上机型，在调用startLeScan之前一定要授权ACCESS_FINE_LOCATION和
-   	ACCESS_COARSE_LOCATION权限，否则Android蓝牙接口调用内部直接发生并不抛出的异常，
-   	现象就是开始扫描但是并不会返回扫描到的设备。
- - 调用startLeScan和stopLeScan，一定要确保蓝牙已处于开启状态，否则在部分机型会直接Crash。
- - Android8.1及其以上开启蓝牙扫描，必须指定serviceUuid，要不然锁屏就会无法扫描到设备。
- - 不要在onServicesDiscovered等回调里执行读、写、通知等操作，要放到主线程去执行。
- - 指令避免同时发送出去，采用串行发送，即：前一个操作回调成功后再执行下一个操作。
- - 设备连接出现不可恢复的异常，一定要执行Gatt.disconnect(), Gatt.close()。
- - 个别机型Device的getName方法获取名字会得到空，所以通过此方法过滤设备也是有些不可靠。
+## Android BLE API usage notes:
+ - Some APIs must be paired, used in order, if they do not appear in pairs, causing Crash, resource 
+   usage exceptions, and internal state exceptions. As a result, the device cannot be scanned and the 
+   device cannot be connected. In severe cases, the phone needs to be restarted before it can be restored.
+
+    startScan() & stopScan()
+    
+    connectGatt() & close()
+    
+    Tips: You can call disconnect() first, wait for the callback to be disconnected (onConnectionStateChange), and then execute close().
+ 
+ - The BluetoothGatt class's read/write XXX set XXX and other APIs, when calling these methods, 
+   to determine the completion of the previous operation, and then execute the next call, while 
+   executing two, will cause the execution to fail.
+ 
+  - BluetoothGatt method call, consider adding a retry operation, because the Android Bluetooth API 
+    is internally executed by mDeviceBusy for a limited time. If an execution error occurs, you can 
+    delay the attempt again.
+ 
+  - The implementation of BluetoothGatt's readRemoteRssi method too frequently (such as a few hundred 
+    milliseconds) will cause DeadObjects to be abnormal.
+  
+  - For Android6.0 and above, you must authorize ACCESS_FINE_LOCATION and ACCESS_COARSE_LOCATION 
+    permission before calling startLeScan.Otherwise, the Android Bluetooth interface calls an exception 
+    that occurs directly inside the call and is not thrown.
+    The phenomenon is to start scanning but does not return to the scanned device.
+ 
+  - Call startLeScan and stopLeScan, make sure that Bluetooth is turned on, otherwise it will crash directly on some models.
+ 
+  - Android8.1 and above to enable Bluetooth scanning, you must specify serviceUuid, or you will not
+    be able to scan the device if you lock the screen.
+ 
+  - Do not perform read, write, notify, etc. operations in callbacks such as onServicesDiscovered, 
+    and put them on the main thread to execute.
 
 
