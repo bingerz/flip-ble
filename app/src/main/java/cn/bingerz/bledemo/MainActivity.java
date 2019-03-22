@@ -300,10 +300,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         @Override
-        public void onConnectSuccess(String address, int status) {
+        public void onConnectSuccess(Peripheral peripheral, int status) {
             EspressoIdlingResource.decrement();
             progressDialog.dismiss();
-            mPeripheral = CentralManager.getInstance().getPeripheral(address);
+            mPeripheral = peripheral;
             mScanDeviceAdapter.addDevice(mPeripheral.getDevice());
             mScanDeviceAdapter.notifyDataSetChanged();
 

@@ -783,7 +783,7 @@ public class Peripheral {
                     @Override
                     public void run() {
                         if (mConnectStateCallback != null) {
-                            mConnectStateCallback.onConnectSuccess(getAddress(), status);
+                            mConnectStateCallback.onConnectSuccess(Peripheral.this, status);
                         }
                     }
                 });

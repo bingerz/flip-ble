@@ -134,6 +134,8 @@ After the system is connected to the device, the ConnectStateCallback method is 
 Tips：The lower Android version connection completion time is slower, and the higher version will increase the connection speed.
 
 ## Release Changes
+### v0.4.4
+ - Bug fixs
 ### v0.4.3
  - Bug fixs
 ### v0.3.3
