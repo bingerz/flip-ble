@@ -27,9 +27,7 @@ public class MultiplePeripheralController {
         if (peripheral == null) {
             return;
         }
-        if (!bleLruHashMap.containsKey(peripheral.getAddress())) {
-            bleLruHashMap.put(peripheral.getAddress(), peripheral);
-        }
+        bleLruHashMap.put(peripheral.getAddress(), peripheral);
     }
 
     public void removePeripheral(Peripheral peripheral) {

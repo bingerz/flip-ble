@@ -11,7 +11,7 @@ android {
     defaultConfig {
         minSdkVersion build_versions.min_sdk
         targetSdkVersion build_versions.target_sdk
-        versionCode 30
+        versionCode 31
         versionName version
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -22,19 +22,6 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
-
-    task makeJar(type: Copy) {
-        from('build/intermediates/intermediate-jars/release/')
-        into('release/')
-        include('classes.jar')
-        rename ('classes.jar', 'flipble-v0.4.4.jar')
-    }
-
-    tasks.whenTaskAdded { task ->
-        if (task.name == 'assembleRelease') {
-            task.finalizedBy 'makeJar'
         }
     }
 
@@ -63,7 +50,7 @@ dependencies {
 
 }
 
-version = "0.4.4"
+version = "0.4.5"
 group = "cn.bingerz.android"
 def siteUrl = 'https://github.com/bingerz/flip-ble'
 def gitUrl = 'https://github.com/bingerz/flip-ble.git'
