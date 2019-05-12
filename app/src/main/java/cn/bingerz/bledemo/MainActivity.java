@@ -135,8 +135,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         etUUID = findViewById(R.id.et_uuid);
         swAuto = findViewById(R.id.sw_auto);
 
-        etUUID.setText(DEFAULT_SERVICE_UUID);
-
         llSetting = findViewById(R.id.layout_setting);
         tvSetting = findViewById(R.id.txt_setting);
         tvSetting.setOnClickListener(this);
