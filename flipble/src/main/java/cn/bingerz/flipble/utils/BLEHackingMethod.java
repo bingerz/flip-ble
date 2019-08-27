@@ -1,13 +1,10 @@
 package cn.bingerz.flipble.utils;
 
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -62,84 +59,6 @@ public class BLEHackingMethod {
 
     public static Field getDeclaredField(Object obj, String name) throws NoSuchFieldException {
         return getFieldFromClass(obj.getClass(), name);
-    }
-
-    /**
-     * This Method only support Android 21 and above
-     * @param address
-     * @return
-     */
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    @SuppressLint("PrivateApi")
-    public static int getInternalConnectionState(String address) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return CONNECTION_STATE_UN_SUPPORT;
-        }
-        //Does not support OPPO phone, no solution.
-        if(Build.MANUFACTURER.equalsIgnoreCase("OPPO")){
-            return CONNECTION_STATE_UN_SUPPORT;
-        }
-        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        BluetoothDevice remoteDevice = adapter.getRemoteDevice(address);
-        Object mIBluetooth = null;
-        try {
-            Field sService = BluetoothDevice.class.getDeclaredField("sService");
-            sService.setAccessible(true);
-            mIBluetooth = sService.get(null);
-        } catch (Exception e) {
-            return CONNECTION_STATE_UN_SUPPORT;
-        }
-        if (mIBluetooth == null) return CONNECTION_STATE_UN_SUPPORT;
-
-        boolean isConnected;
-        try {
-            Method isConnectedMethod = BluetoothDevice.class.getDeclaredMethod("isConnected");
-            isConnectedMethod.setAccessible(true);
-            isConnected = (Boolean) isConnectedMethod.invoke(remoteDevice);
-            isConnectedMethod.setAccessible(false);
-        } catch (Exception e) {
-            try {
-                Method getConnectionState = mIBluetooth.getClass().getDeclaredMethod("getConnectionState", BluetoothDevice.class);
-                getConnectionState.setAccessible(true);
-                int state = (Integer) getConnectionState.invoke(mIBluetooth, remoteDevice);
-                getConnectionState.setAccessible(false);
-                isConnected = state == CONNECTION_STATE_CONNECTED;
-            } catch (Exception e1) {
-                return CONNECTION_STATE_UN_SUPPORT;
-            }
-        }
-        return isConnected ? CONNECTION_STATE_CONNECTED : CONNECTION_STATE_DISCONNECTED;
-    }
-
-    /**
-     * Try BLE Service Enable or Disable
-     * @param isEnable
-     */
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public static void setLeServiceEnable(boolean isEnable) {
-        Object mIBluetooth;
-        try {
-            Field sService = BluetoothDevice.class.getDeclaredField("sService");
-            sService.setAccessible(true);
-            mIBluetooth = sService.get(null);
-        } catch (Exception e) {
-            return;
-        }
-        if (mIBluetooth == null) return;
-
-        try {
-            if (isEnable) {
-                Method onLeServiceUp = mIBluetooth.getClass().getDeclaredMethod("onLeServiceUp");
-                onLeServiceUp.setAccessible(true);
-                onLeServiceUp.invoke(mIBluetooth);
-            } else {
-                Method onLeServiceUp = mIBluetooth.getClass().getDeclaredMethod("onBrEdrDown");
-                onLeServiceUp.setAccessible(true);
-                onLeServiceUp.invoke(mIBluetooth);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     /**

@@ -13,7 +13,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 
-import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
@@ -400,21 +399,6 @@ public class Peripheral {
         mMtuChangedCallback = null;
     }
 
-    public synchronized boolean refreshDeviceCache() {
-        try {
-            final Method refresh = BluetoothGatt.class.getMethod("refresh");
-            if (refresh != null) {
-                boolean success = (Boolean) refresh.invoke(getBluetoothGatt());
-                EasyLog.i("refreshDeviceCache, is success: " + success);
-                return success;
-            }
-        } catch (Exception e) {
-            EasyLog.i("exception occur while refreshing device: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return false;
-    }
-
     /**
      * connect a known device
      */
@@ -484,7 +468,6 @@ public class Peripheral {
         //Add try catch code block, Binder(IPC) NullPointerException, Parcel.readException
         try {
             mBluetoothGatt.disconnect();
-            refreshDeviceCache();
             mBluetoothGatt.close();
         } catch (Exception e) {
             e.printStackTrace();
