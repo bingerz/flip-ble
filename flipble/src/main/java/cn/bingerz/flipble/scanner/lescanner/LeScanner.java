@@ -89,7 +89,7 @@ public abstract class LeScanner {
 
     @MainThread
     public void destroy() {
-        EasyLog.d("Destroying");
+        EasyLog.d("LeScanner Destroying");
         if (isScanning()) {
             stopScan();
         }

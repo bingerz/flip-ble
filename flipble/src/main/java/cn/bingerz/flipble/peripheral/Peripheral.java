@@ -273,9 +273,7 @@ public class Peripheral {
     }
 
     public synchronized void removeNotifyCallback(String uuid) {
-        if (mNotifyCallbackMap.containsKey(uuid)) {
-            mNotifyCallbackMap.remove(uuid);
-        }
+        mNotifyCallbackMap.remove(uuid);
     }
 
     private NotifyCallback findNotifyCallback(String uuid) {
@@ -298,9 +296,7 @@ public class Peripheral {
     }
 
     public synchronized void removeIndicateCallback(String uuid) {
-        if (mIndicateCallbackMap.containsKey(uuid)) {
-            mIndicateCallbackMap.remove(uuid);
-        }
+        mIndicateCallbackMap.remove(uuid);
     }
 
     private IndicateCallback findIndicateCallback(String uuid) {
@@ -323,9 +319,7 @@ public class Peripheral {
     }
 
     public synchronized void removeWriteCallback(String uuid) {
-        if (mWriteCallbackMap.containsKey(uuid)) {
-            mWriteCallbackMap.remove(uuid);
-        }
+        mWriteCallbackMap.remove(uuid);
     }
 
     private WriteCallback findWriteCallback(String uuid) {
@@ -348,9 +342,7 @@ public class Peripheral {
     }
 
     public synchronized void removeReadCallback(String uuid) {
-        if (mReadCallbackMap.containsKey(uuid)) {
-            mReadCallbackMap.remove(uuid);
-        }
+        mReadCallbackMap.remove(uuid);
     }
 
     private ReadCallback findReadCallback(String uuid) {
@@ -414,7 +406,7 @@ public class Peripheral {
                         new OtherException("When connecting the device, Recommended to stop scanning"));
             }
             if (mConnectState == ConnectionState.CONNECT_CONNECTING) {
-                EasyLog.w("After connect(true/false) to retry connect is dangerous");
+                EasyLog.w("When Connect(true/false) is called, retrying Connect is dangerous");
                 closeBluetoothGatt();
             }
             EasyLog.i("connect device:%s mac:%s autoConnect:%s", getName(), getAddress(), autoConnect);
@@ -453,6 +445,7 @@ public class Peripheral {
         if (mBluetoothGatt != null) {
             isActivityDisconnect = true;
             mBluetoothGatt.disconnect();
+            mConnectState = ConnectionState.CONNECT_DISCONNECTING;
         }
         getMainHandler().removeCallbacksAndMessages(null);
     }
@@ -708,7 +701,7 @@ public class Peripheral {
 
     private void handleDisconnect(final int status) {
         CentralManager.getInstance().getMultiplePeripheralController().removePeripheral(Peripheral.this);
-        mConnectState = ConnectionState.CONNECT_DISCONNECT;
+        mConnectState = ConnectionState.CONNECT_DISCONNECTED;
         getMainHandler().post(new Runnable() {
             @Override
             public void run() {

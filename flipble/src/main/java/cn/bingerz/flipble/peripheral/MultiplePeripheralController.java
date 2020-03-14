@@ -38,10 +38,7 @@ public class MultiplePeripheralController {
     }
 
     public boolean isContainDevice(String key) {
-        if (TextUtils.isEmpty(key) || !bleLruHashMap.containsKey(key)) {
-            return false;
-        }
-        return true;
+        return !TextUtils.isEmpty(key) && bleLruHashMap.containsKey(key);
     }
 
     public Peripheral getPeripheral(String key) {

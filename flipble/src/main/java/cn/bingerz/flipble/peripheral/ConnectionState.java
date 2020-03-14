@@ -11,7 +11,8 @@ public enum ConnectionState {
     CONNECT_CONNECTED(0x02),
     CONNECT_FAILURE(0x03),
     CONNECT_TIMEOUT(0x04),
-    CONNECT_DISCONNECT(0x05);
+    CONNECT_DISCONNECTING(0x05),
+    CONNECT_DISCONNECTED(0x06);
 
     private int code;
 
