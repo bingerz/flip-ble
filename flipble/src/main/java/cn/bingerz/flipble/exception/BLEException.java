@@ -9,6 +9,8 @@ public abstract class BLEException implements Serializable {
     public static final int ERR_CODE_TIMEOUT = 100;
     public static final int ERR_CODE_GATT = 101;
     public static final int ERR_CODE_SCAN_FAILED = 102;
+    public static final int ERR_CODE_PROPERTY = 103;
+    public static final int ERR_CODE_OPERATION = 104;
     public static final int ERR_CODE_OTHER = 110;
 
 

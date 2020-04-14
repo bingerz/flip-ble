@@ -12,6 +12,8 @@ import android.os.Message;
 import java.util.UUID;
 
 import cn.bingerz.flipble.central.CentralManager;
+import cn.bingerz.flipble.exception.NoSuchPropertyException;
+import cn.bingerz.flipble.exception.OperationException;
 import cn.bingerz.flipble.peripheral.callback.IndicateCallback;
 import cn.bingerz.flipble.peripheral.callback.MtuChangedCallback;
 import cn.bingerz.flipble.peripheral.callback.NotifyCallback;
@@ -140,12 +142,11 @@ public class PeripheralController {
     public void enableCharacteristicNotify(NotifyCallback notifyCallback, String notifyUUID) {
         if (mCharacteristic != null
                 && (mCharacteristic.getProperties() | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
-
             handleCharacteristicNotifyCallback(notifyCallback, notifyUUID);
             setCharacteristicNotification(mBluetoothGatt, mCharacteristic, true, notifyCallback);
         } else {
             if (notifyCallback != null) {
-                notifyCallback.onNotifyFailure(new OtherException("this mCharacteristic not support notify!"));
+                notifyCallback.onNotifyFailure(new NoSuchPropertyException("This characteristic not support notify!"));
             }
         }
     }
@@ -170,7 +171,7 @@ public class PeripheralController {
         if (gatt == null || characteristic == null) {
             notifyMsgInit();
             if (notifyCallback != null) {
-                notifyCallback.onNotifyFailure(new OtherException("gatt or mCharacteristic equal null"));
+                notifyCallback.onNotifyFailure(new OtherException("Gatt or characteristic equal null"));
             }
             return false;
         }
@@ -179,7 +180,7 @@ public class PeripheralController {
         if (!success1) {
             notifyMsgInit();
             if (notifyCallback != null) {
-                notifyCallback.onNotifyFailure(new OtherException("gatt setCharacteristicNotification fail"));
+                notifyCallback.onNotifyFailure(new OperationException("Gatt setCharacteristicNotification fail"));
             }
             return false;
         }
@@ -188,7 +189,7 @@ public class PeripheralController {
         if (descriptor == null) {
             notifyMsgInit();
             if (notifyCallback != null) {
-                notifyCallback.onNotifyFailure(new OtherException("descriptor equals null"));
+                notifyCallback.onNotifyFailure(new OtherException("Descriptor equals null"));
             }
             return false;
         } else {
@@ -198,7 +199,7 @@ public class PeripheralController {
             if (!success2) {
                 notifyMsgInit();
                 if (notifyCallback != null) {
-                    notifyCallback.onNotifyFailure(new OtherException("gatt writeDescriptor fail"));
+                    notifyCallback.onNotifyFailure(new OperationException("Gatt writeDescriptor fail"));
                 }
             }
             return success2;
@@ -215,7 +216,7 @@ public class PeripheralController {
             setCharacteristicIndication(mBluetoothGatt, mCharacteristic, true, indicateCallback);
         } else {
             if (indicateCallback != null) {
-                indicateCallback.onIndicateFailure(new OtherException("this mCharacteristic not support indicate!"));
+                indicateCallback.onIndicateFailure(new NoSuchPropertyException("This characteristic not support indicate!"));
             }
         }
     }
@@ -241,7 +242,7 @@ public class PeripheralController {
         if (gatt == null || characteristic == null) {
             indicateMsgInit();
             if (indicateCallback != null) {
-                indicateCallback.onIndicateFailure(new OtherException("gatt or mCharacteristic equal null"));
+                indicateCallback.onIndicateFailure(new OtherException("Gatt or characteristic equal null"));
             }
             return false;
         }
@@ -250,7 +251,7 @@ public class PeripheralController {
         if (!success1) {
             indicateMsgInit();
             if (indicateCallback != null) {
-                indicateCallback.onIndicateFailure(new OtherException("gatt setCharacteristicNotification fail"));
+                indicateCallback.onIndicateFailure(new OperationException("Gatt setCharacteristicNotification fail"));
             }
             return false;
         }
@@ -259,7 +260,7 @@ public class PeripheralController {
         if (descriptor == null) {
             indicateMsgInit();
             if (indicateCallback != null) {
-                indicateCallback.onIndicateFailure(new OtherException("descriptor equals null"));
+                indicateCallback.onIndicateFailure(new OtherException("Descriptor equals null"));
             }
             return false;
         } else {
@@ -269,7 +270,7 @@ public class PeripheralController {
             if (!success2) {
                 indicateMsgInit();
                 if (indicateCallback != null) {
-                    indicateCallback.onIndicateFailure(new OtherException("gatt writeDescriptor fail"));
+                    indicateCallback.onIndicateFailure(new OperationException("Gatt writeDescriptor fail"));
                 }
             }
             return success2;
@@ -282,14 +283,14 @@ public class PeripheralController {
     public void writeCharacteristic(byte[] data, WriteCallback writeCallback, String writeUUID) {
         if (data == null || data.length <= 0) {
             if (writeCallback != null)
-                writeCallback.onWriteFailure(new OtherException("the data to be written is empty"));
+                writeCallback.onWriteFailure(new OtherException("The data to be written is empty"));
             return;
         }
 
         if (mCharacteristic == null
                 || (mCharacteristic.getProperties() & (BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE)) == 0) {
             if (writeCallback != null) {
-                writeCallback.onWriteFailure(new OtherException("this mCharacteristic not support write!"));
+                writeCallback.onWriteFailure(new NoSuchPropertyException("This characteristic not support write!"));
             }
             return;
         }
@@ -299,7 +300,7 @@ public class PeripheralController {
             if (mBluetoothGatt != null && !mBluetoothGatt.writeCharacteristic(mCharacteristic)) {
                 writeMsgInit();
                 if (writeCallback != null) {
-                    writeCallback.onWriteFailure(new OtherException("gatt writeCharacteristic fail"));
+                    writeCallback.onWriteFailure(new OperationException("Gatt writeCharacteristic fail"));
                 }
             }
         } else {
@@ -320,12 +321,12 @@ public class PeripheralController {
             if (mBluetoothGatt != null && !mBluetoothGatt.readCharacteristic(mCharacteristic)) {
                 readMsgInit();
                 if (readCallback != null) {
-                    readCallback.onReadFailure(new OtherException("gatt readCharacteristic fail"));
+                    readCallback.onReadFailure(new OperationException("Gatt readCharacteristic fail"));
                 }
             }
         } else {
             if (readCallback != null) {
-                readCallback.onReadFailure(new OtherException("this mCharacteristic not support read!"));
+                readCallback.onReadFailure(new NoSuchPropertyException("This characteristic not support read!"));
             }
         }
     }
@@ -346,7 +347,7 @@ public class PeripheralController {
             if (!result) {
                 rssiMsgInit();
                 if (rssiCallback != null) {
-                    rssiCallback.onRssiFailure(new OtherException("gatt readRemoteRssi fail"));
+                    rssiCallback.onRssiFailure(new OperationException("Gatt readRemoteRssi fail"));
                 }
             }
         }
@@ -361,7 +362,7 @@ public class PeripheralController {
             if (mBluetoothGatt != null && !mBluetoothGatt.requestMtu(requiredMtu)) {
                 mtuChangedMsgInit();
                 if (mtuChangedCallback != null) {
-                    mtuChangedCallback.onSetMTUFailure(new OtherException("gatt requestMtu fail"));
+                    mtuChangedCallback.onSetMTUFailure(new OperationException("Gatt requestMtu fail"));
                 }
             }
         } else {
