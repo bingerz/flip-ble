@@ -13,7 +13,7 @@ import android.text.TextUtils;
 
 import java.util.List;
 
-import cn.bingerz.easylog.EasyLog;
+import cn.bingerz.flipble.utils.EasyLog;
 import cn.bingerz.flipble.peripheral.ConnectionState;
 import cn.bingerz.flipble.peripheral.MultiplePeripheralController;
 import cn.bingerz.flipble.peripheral.Peripheral;
@@ -185,8 +185,9 @@ public class CentralManager {
      * Set the maximum number of connections
      */
     public CentralManager setMaxConnectCount(int maxCount) {
-        if (maxCount > DEFAULT_MAX_MULTIPLE_DEVICE)
+        if (maxCount > DEFAULT_MAX_MULTIPLE_DEVICE) {
             maxCount = DEFAULT_MAX_MULTIPLE_DEVICE;
+        }
         this.maxConnectCount = maxCount;
         return this;
     }
@@ -261,17 +262,11 @@ public class CentralManager {
     }
 
     private BluetoothDevice retrieveDevice(String address) {
-        if (getBluetoothAdapter() != null) {
-            return getBluetoothAdapter().getRemoteDevice(address);
-        }
-        return null;
+        return getBluetoothAdapter() != null ? getBluetoothAdapter().getRemoteDevice(address) : null;
     }
 
     private BluetoothDevice retrieveDevice(byte[] address) {
-        if (getBluetoothAdapter() != null) {
-            return getBluetoothAdapter().getRemoteDevice(address);
-        }
-        return null;
+        return getBluetoothAdapter() != null ? getBluetoothAdapter().getRemoteDevice(address) : null;
     }
 
     public Peripheral retrievePeripheral(String address) {
@@ -283,7 +278,8 @@ public class CentralManager {
     }
 
     public Peripheral retrievePeripheral(byte[] address) {
-        if (!(address == null || address.length != 6)) {
+        int macAddressLength = 6;
+        if (!(address == null || address.length != macAddressLength)) {
             BluetoothDevice device = retrieveDevice(address);
             return new Peripheral(device);
         }
@@ -291,9 +287,7 @@ public class CentralManager {
     }
 
     public List<Peripheral> getAllConnectedDevice() {
-        if (mMultiPeripheralController == null)
-            return null;
-        return mMultiPeripheralController.getPeripheralList();
+        return mMultiPeripheralController != null ? mMultiPeripheralController.getPeripheralList() : null;
     }
 
     @SuppressWarnings({"MissingPermission"})
@@ -325,9 +319,7 @@ public class CentralManager {
     }
 
     public Peripheral getPeripheral(String address) {
-        if (mMultiPeripheralController == null)
-            return null;
-        return mMultiPeripheralController.getPeripheral(address);
+        return mMultiPeripheralController != null ? mMultiPeripheralController.getPeripheral(address) : null;
     }
 
     public void disconnectAllDevice() {

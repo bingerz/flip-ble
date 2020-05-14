@@ -109,7 +109,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     stopScan();
                 }
                 break;
-
             case R.id.txt_setting:
                 if (llSetting.getVisibility() == View.VISIBLE) {
                     llSetting.setVisibility(View.GONE);
@@ -118,6 +117,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     llSetting.setVisibility(View.VISIBLE);
                     tvSetting.setText(getString(R.string.retrieve_search_settings));
                 }
+                break;
+            default:
                 break;
         }
     }
@@ -195,27 +196,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void setScanRule() {
         String[] uuids;
-        String str_uuid = etUUID.getText().toString();
-        if (TextUtils.isEmpty(str_uuid)) {
+        String strUUID = etUUID.getText().toString();
+        //strUUID = DEFAULT_SERVICE_UUID;
+        if (TextUtils.isEmpty(strUUID)) {
             uuids = null;
         } else {
-            uuids = str_uuid.split(",");
+            uuids = strUUID.split(",");
         }
 
         String[] names;
-        String str_name = etName.getText().toString();
-        if (TextUtils.isEmpty(str_name)) {
+        String strName = etName.getText().toString();
+        if (TextUtils.isEmpty(strName)) {
             names = null;
         } else {
-            names = str_name.split(",");
+            names = strName.split(",");
         }
 
         String[] macs;
-        String str_mac = etMac.getText().toString();
-        if (TextUtils.isEmpty(str_mac)) {
+        String strMac = etMac.getText().toString();
+        if (TextUtils.isEmpty(strMac)) {
             macs = null;
         } else {
-            macs = str_mac.split(",");
+            macs = strMac.split(",");
         }
 
         int macLength = macs == null ? 0 : macs.length;
@@ -294,6 +296,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ivLoading.setVisibility(View.INVISIBLE);
             btnScan.setText(getString(R.string.start_scan));
             progressDialog.dismiss();
+            Log.e(TAG, "Connection failed: " + exception.toString());
             Toast.makeText(MainActivity.this, getString(R.string.connect_fail), Toast.LENGTH_LONG).show();
         }
 
@@ -370,6 +373,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 }
                 break;
+            default:
+                break;
         }
     }
 
@@ -426,14 +431,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     startScan();
                 }
                 break;
+            default:
+                break;
         }
     }
 
     private boolean checkGPSIsOpen() {
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        if (locationManager == null)
-            return false;
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        return locationManager != null && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
     }
 
     @Override

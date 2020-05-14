@@ -282,8 +282,9 @@ public class PeripheralController {
      */
     public void writeCharacteristic(byte[] data, WriteCallback writeCallback, String writeUUID) {
         if (data == null || data.length <= 0) {
-            if (writeCallback != null)
+            if (writeCallback != null) {
                 writeCallback.onWriteFailure(new OtherException("The data to be written is empty"));
+            }
             return;
         }
 

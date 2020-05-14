@@ -68,10 +68,13 @@ public class BLEHackingMethod {
     public static boolean releaseAllScanClient() {
         try {
             Object mIBluetoothManager = getIBluetoothManager();
-            if (mIBluetoothManager == null) return false;
+            if (mIBluetoothManager == null) {
+                return false;
+            }
             Object iGatt = getIBluetoothGatt(mIBluetoothManager);
-            if (iGatt == null) return false;
-
+            if (iGatt == null) {
+                return false;
+            }
             Method unregisterClient = getDeclaredMethod(iGatt, "unregisterClient", int.class);
             Method stopScan;
             int type;

@@ -57,8 +57,9 @@ public class HexUtil {
                 hex = '0' + hex;
             }
             sb.append(hex);
-            if (addSpace)
+            if (addSpace) {
                 sb.append(" ");
+            }
         }
         return sb.toString().trim();
     }

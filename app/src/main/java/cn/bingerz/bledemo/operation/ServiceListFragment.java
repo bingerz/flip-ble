@@ -36,8 +36,8 @@ public class ServiceListFragment extends Fragment {
     }
 
     private void initView(View v) {
-        tvName = (TextView) v.findViewById(R.id.tv_name);
-        tvMacAddress = (TextView) v.findViewById(R.id.tv_mac);
+        tvName = (TextView) v.findViewById(R.id.tv_service_list_name);
+        tvMacAddress = (TextView) v.findViewById(R.id.tv_service_list_mac);
 
         mResultAdapter = new ResultAdapter();
         RecyclerView recyclerView = (RecyclerView) v.findViewById(R.id.rv_service_list);

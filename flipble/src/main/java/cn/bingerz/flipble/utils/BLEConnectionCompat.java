@@ -13,7 +13,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import cn.bingerz.easylog.EasyLog;
+import cn.bingerz.flipble.utils.EasyLog;
 
 import static android.bluetooth.BluetoothDevice.TRANSPORT_LE;
 

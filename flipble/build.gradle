@@ -11,7 +11,7 @@ android {
     defaultConfig {
         minSdkVersion build_versions.min_sdk
         targetSdkVersion build_versions.target_sdk
-        versionCode 32
+        versionCode 33
         versionName version
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -30,7 +30,6 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "com.android.support:support-annotations:$versions.support"
-    implementation 'cn.bingerz.android:easylog:1.0.2'
 
     // Dependencies for local unit tests
     testImplementation "junit:junit:$versions.junit"
@@ -50,7 +49,7 @@ dependencies {
 
 }
 
-version = "0.4.8"
+version = "0.5.0"
 group = "cn.bingerz.android"
 def siteUrl = 'https://github.com/bingerz/flip-ble'
 def gitUrl = 'https://github.com/bingerz/flip-ble.git'

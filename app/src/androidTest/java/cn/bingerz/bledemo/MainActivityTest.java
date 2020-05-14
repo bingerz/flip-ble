@@ -200,7 +200,7 @@ public class MainActivityTest {
 
             clickDeviceDetailByIndex(itemCount - 1);
 
-            onView(withId(R.id.tv_mac)).check(matches(isDisplayed()));
+            onView(withId(R.id.tv_service_list_mac)).check(matches(isDisplayed()));
             iteratorServiceCharacteristicProperty();
 
             Espresso.pressBack();
@@ -226,13 +226,15 @@ public class MainActivityTest {
 
             clickDeviceDetailByIndex(itemCount - 1);
 
-            onView(withId(R.id.tv_mac)).check(matches(isDisplayed()));
+            onView(withId(R.id.tv_service_list_mac)).check(matches(isDisplayed()));
 
             Espresso.pressBack();
 
             clickDisconnectDeviceByIndex(itemCount - 1);
 
             itemCount--;
+
+            sleep(2000);
         }
     }
 

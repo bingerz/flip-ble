@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import cn.bingerz.easylog.EasyLog;
+import cn.bingerz.flipble.utils.EasyLog;
 import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.exception.ConnectException;
 import cn.bingerz.flipble.exception.GattException;
@@ -41,18 +41,21 @@ import cn.bingerz.flipble.utils.HexUtil;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class Peripheral {
 
-    private static final int MSG_CONNECT_FAILURE = 0x11;
-    private static final int MSG_CONNECT_SUCCESS = 0x12;
-    private static final int MSG_DISCOVER_SERVICE = 0x13;
-    private static final int MSG_WRITE_CALLBACK = 0x14;
-    private static final int MSG_NOTIFY_CALLBACK = 0x15;
-    private static final int MSG_INDICATE_CALLBACK = 0x16;
-    private static final int MSG_RSSI_CALLBACK = 0x17;
-    private static final int MSG_MTU_CHANGE = 0x18;
+    private static final int MSG_CONNECT_FAILURE    = 0x11;
+    private static final int MSG_CONNECT_SUCCESS    = 0x12;
+    private static final int MSG_DISCOVER_SERVICE   = 0x13;
+    private static final int MSG_READ_CALLBACK      = 0x14;
+    private static final int MSG_WRITE_CALLBACK     = 0x15;
+    private static final int MSG_NOTIFY_CALLBACK    = 0x16;
+    private static final int MSG_INDICATE_CALLBACK  = 0x17;
+    private static final int MSG_RSSI_CALLBACK      = 0x18;
+    private static final int MSG_MTU_CHANGE         = 0x19;
+    private static final int MSG_RETRY_CONNECT      = 0x1A;
 
     private static final int DEFAULT_MTU = 23;
     private static final int DEFAULT_MAX_MTU = 512;
     private static final int DEFAULT_DELAY_DISCOVER_SERVICE = 600;
+    private static final int DEFAULT_DELAY_CONNECT_EVENT = 600;
 
     private static final int DEFAULT_CONNECT_RETRY_COUNT = 2;
     private static final int DEFAULT_DELAY_RETRY_CONNECT = 500;
@@ -105,6 +108,15 @@ public class Peripheral {
                         gatt.discoverServices();
                     }
                     msg.obj = null;
+                    break;
+                case MSG_CONNECT_SUCCESS:
+                    status = msg.arg1;
+                    Peripheral peripheral = (Peripheral) msg.obj;
+                    peripheral.handleConnectSuccess(status);
+                    msg.obj = null;
+                    break;
+                case MSG_READ_CALLBACK:
+                    //TODO because of too many parameters。
                     break;
                 case MSG_WRITE_CALLBACK:
                     status = msg.arg1;
@@ -168,6 +180,14 @@ public class Peripheral {
                     }
                     msg.obj = null;
                     break;
+                case MSG_RETRY_CONNECT:
+                    status = msg.arg1;
+                    peripheral = (Peripheral) msg.obj;
+                    if (peripheral != null) {
+                        peripheral.handleRetryConnectCallback(status);
+                    }
+                    msg.obj = null;
+                    break;
                 default:
                     super.handleMessage(msg);
                     break;
@@ -200,6 +220,11 @@ public class Peripheral {
 
     private void sendMsgToMainH(int what, int arg1, int arg2, Object obj) {
         getMainHandler().sendMessage(getMainHandler().obtainMessage(what, arg1, arg2, obj));
+    }
+
+    private void sendMsgDelayedToMainH(int what, int arg1, int arg2, Object obj, long delayMillis) {
+        Message msg = getMainHandler().obtainMessage(what, arg1, arg2, obj);
+        getMainHandler().sendMessageDelayed(msg, delayMillis);
     }
 
     public ScanDevice getDevice() {
@@ -520,20 +545,6 @@ public class Peripheral {
     }
 
     /**
-     * indicate
-     */
-    public void indicate(String serviceUUID, String indicateUUID, IndicateCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("BleIndicateCallback can not be Null!");
-        }
-        PeripheralController controller = newPeripheralController();
-        if (controller != null) {
-            controller.withUUIDString(serviceUUID, indicateUUID)
-                    .enableCharacteristicIndicate(callback, indicateUUID);
-        }
-    }
-
-    /**
      * stop notify, remove callback
      */
     public boolean stopNotify(String serviceUUID, String notifyUUID) {
@@ -547,6 +558,20 @@ public class Peripheral {
             }
         }
         return success;
+    }
+
+    /**
+     * indicate
+     */
+    public void indicate(String serviceUUID, String indicateUUID, IndicateCallback callback) {
+        if (callback == null) {
+            throw new IllegalArgumentException("BleIndicateCallback can not be Null!");
+        }
+        PeripheralController controller = newPeripheralController();
+        if (controller != null) {
+            controller.withUUIDString(serviceUUID, indicateUUID)
+                    .enableCharacteristicIndicate(callback, indicateUUID);
+        }
     }
 
     /**
@@ -664,33 +689,40 @@ public class Peripheral {
     }
 
     private void handleConnectRetry(final int status) {
-        if (mConnectRetryCount > 0 && (status == 0x3E | status == 0x85)) {
-            getMainHandler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mBluetoothGatt = connectGatt(false);
-                    if (mBluetoothGatt == null) {
-                        handleConnectFail(status);
-                        mConnectRetryCount = 0;
-                    } else {
-                        String address = mBluetoothGatt.getDevice().getAddress();
-                        EasyLog.i("Retry connect device mac:%s status:%d", address, status);
-                        mConnectRetryCount--;
-                    }
-                }
-            }, DEFAULT_DELAY_RETRY_CONNECT);
+        //蓝牙协议栈预定义错误码
+        int GATT_ERROR = 0x85;
+        int GATT_CONN_FAIL_ESTABLISH = 0x3E;
+        if (mConnectRetryCount > 0 && (status == GATT_CONN_FAIL_ESTABLISH | status == GATT_ERROR)) {
+            sendMsgDelayedToMainH(MSG_RETRY_CONNECT, status, 0, Peripheral.this, DEFAULT_DELAY_RETRY_CONNECT);
         } else {
             handleConnectFail(status);
         }
     }
 
+    private void handleRetryConnectCallback(int status) {
+        mBluetoothGatt = connectGatt(false);
+        if (mBluetoothGatt == null) {
+            handleConnectFail(status);
+            mConnectRetryCount = 0;
+        } else {
+            String address = mBluetoothGatt.getDevice().getAddress();
+            EasyLog.i("Retry connect device mac:%s status:%d", address, status);
+            mConnectRetryCount--;
+        }
+    }
+
     private void sendDiscoverServiceMsg(BluetoothGatt gatt) {
-        Message msg = getMainHandler().obtainMessage(MSG_DISCOVER_SERVICE, gatt);
-        getMainHandler().sendMessageDelayed(msg, DEFAULT_DELAY_DISCOVER_SERVICE);
+        sendMsgDelayedToMainH(MSG_DISCOVER_SERVICE, 0, 0, gatt, DEFAULT_DELAY_DISCOVER_SERVICE);
     }
 
     private void discoverServiceMsgInit() {
         getMainHandler().removeMessages(MSG_DISCOVER_SERVICE);
+    }
+
+    private void handleConnectSuccess(int status) {
+        if (mConnectStateCallback != null) {
+            mConnectStateCallback.onConnectSuccess(Peripheral.this, status);
+        }
     }
 
     private void handleConnectFail(int status) {
@@ -735,7 +767,8 @@ public class Peripheral {
                 if (mConnectState == ConnectionState.CONNECT_CONNECTING) {
                     discoverServiceMsgInit();
                     handleConnectRetry(status);
-                } else if (mConnectState == ConnectionState.CONNECT_CONNECTED) {
+                } else if (mConnectState == ConnectionState.CONNECT_CONNECTED
+                            || mConnectState == ConnectionState.CONNECT_DISCONNECTING) {
                     handleDisconnect(status);
                 }
             }
@@ -755,14 +788,7 @@ public class Peripheral {
                 mConnectState = ConnectionState.CONNECT_CONNECTED;
                 isActivityDisconnect = false;
                 CentralManager.getInstance().getMultiplePeripheralController().addPeripheral(Peripheral.this);
-                getMainHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mConnectStateCallback != null) {
-                            mConnectStateCallback.onConnectSuccess(Peripheral.this, status);
-                        }
-                    }
-                });
+                sendMsgDelayedToMainH(MSG_CONNECT_SUCCESS, status, 0, Peripheral.this, DEFAULT_DELAY_CONNECT_EVENT);
             } else {
                 if (gatt != null) {
                     gatt.close();

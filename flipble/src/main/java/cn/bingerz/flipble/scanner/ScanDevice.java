@@ -26,15 +26,11 @@ public class ScanDevice implements Parcelable{
 
     @SuppressWarnings({"MissingPermission"})
     public String getName() {
-        if (mDevice != null)
-            return mDevice.getName();
-        return null;
+        return mDevice != null ? mDevice.getName() : null;
     }
 
     public String getAddress() {
-        if (mDevice != null)
-            return mDevice.getAddress();
-        return null;
+        return mDevice != null ? mDevice.getAddress() : null;
     }
 
     public byte[] getScanRecordRaw() {

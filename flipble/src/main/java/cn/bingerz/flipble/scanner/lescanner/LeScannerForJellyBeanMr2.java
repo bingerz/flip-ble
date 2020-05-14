@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import cn.bingerz.easylog.EasyLog;
+import cn.bingerz.flipble.utils.EasyLog;
 import cn.bingerz.flipble.scanner.ScanFilterConfig;
 import cn.bingerz.flipble.scanner.ScanRuleConfig;
 
