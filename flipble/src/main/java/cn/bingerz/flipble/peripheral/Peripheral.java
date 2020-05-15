@@ -13,11 +13,13 @@ import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import cn.bingerz.flipble.peripheral.command.Command;
 import cn.bingerz.flipble.utils.EasyLog;
 import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.exception.ConnectException;
@@ -54,11 +56,13 @@ public class Peripheral {
 
     private static final int DEFAULT_MTU = 23;
     private static final int DEFAULT_MAX_MTU = 512;
-    private static final int DEFAULT_DELAY_DISCOVER_SERVICE = 600;
     private static final int DEFAULT_DELAY_CONNECT_EVENT = 600;
+    private static final int DEFAULT_DELAY_DISCOVER_SERVICE = 600;
 
     private static final int DEFAULT_CONNECT_RETRY_COUNT = 2;
-    private static final int DEFAULT_DELAY_RETRY_CONNECT = 500;
+    private static final int DEFAULT_DELAY_CONNECT_RETRY = 500;
+
+    private static final int DEFAULT_DELAY_NEXT_COMMAND = 500;
 
     private ConnectionState mConnectState = ConnectionState.CONNECT_IDLE;
 
@@ -72,6 +76,9 @@ public class Peripheral {
 
     private ScanDevice mDevice;
     private BluetoothGatt mBluetoothGatt;
+
+    private final Object mStateLock = new Object();
+    private Boolean mPeripheralBusy = false;
 
     private ConnectStateCallback mConnectStateCallback;
     private RssiCallback mRssiCallback;
@@ -285,6 +292,28 @@ public class Peripheral {
         return mBluetoothGatt;
     }
 
+    public boolean isBusyState() {
+        return mPeripheralBusy;
+    }
+
+    public void setBusyState() {
+        synchronized (mPeripheralBusy) {
+            mPeripheralBusy = true;
+        }
+    }
+
+    public void resetBusyState() {
+        synchronized (mPeripheralBusy) {
+            mPeripheralBusy = false;
+        }
+        getMainHandler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                CentralManager.getInstance().getMultiplePeripheralController().executeNextCommand();
+            }
+        }, DEFAULT_DELAY_NEXT_COMMAND);
+    }
+
     public synchronized void addConnectionStateCallback(ConnectStateCallback callback) {
         this.mConnectStateCallback = callback;
     }
@@ -436,10 +465,12 @@ public class Peripheral {
             }
             EasyLog.i("connect device:%s mac:%s autoConnect:%s", getName(), getAddress(), autoConnect);
             addConnectionStateCallback(callback);
-
+            setBusyState();
             mBluetoothGatt = connectGatt(autoConnect);
             if (mBluetoothGatt != null) {
-                mConnectState = ConnectionState.CONNECT_CONNECTING;
+                synchronized (mStateLock) {
+                    mConnectState = ConnectionState.CONNECT_CONNECTING;
+                }
                 mConnectRetryCount = DEFAULT_CONNECT_RETRY_COUNT;
                 if (mConnectStateCallback != null) {
                     mConnectStateCallback.onStartConnect();
@@ -447,6 +478,7 @@ public class Peripheral {
                 return true;
             } else {
                 EasyLog.e("connect device fail, bluetoothGatt is null.");
+                resetBusyState();
             }
             return false;
         }
@@ -470,8 +502,11 @@ public class Peripheral {
         if (mBluetoothGatt != null) {
             isActivityDisconnect = true;
             mBluetoothGatt.disconnect();
-            mConnectState = ConnectionState.CONNECT_DISCONNECTING;
+            synchronized (mStateLock) {
+                mConnectState = ConnectionState.CONNECT_DISCONNECTING;
+            }
         }
+        resetBusyState();
         getMainHandler().removeCallbacksAndMessages(null);
     }
 
@@ -482,7 +517,9 @@ public class Peripheral {
     }
 
     public synchronized void destroy() {
-        mConnectState = ConnectionState.CONNECT_IDLE;
+        synchronized (mStateLock) {
+            mConnectState = ConnectionState.CONNECT_IDLE;
+        }
         //Add try catch code block, Binder(IPC) NullPointerException, Parcel.readException
         try {
             mBluetoothGatt.disconnect();
@@ -490,6 +527,7 @@ public class Peripheral {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        resetBusyState();
         removeConnectionStateCallback();
         removeRssiCallback();
         removeMtuChangedCallback();
@@ -530,6 +568,37 @@ public class Peripheral {
         }
     }
 
+    private Command createCommand(int priority, int method, String serviceUUID, String charactUUID, Object callback, byte[] data) {
+        return  new Command(priority, getAddress(), method, serviceUUID, charactUUID, callback, data);
+    }
+
+    public Command createNotify(int priority, String serviceUUID, String charactUUID, NotifyCallback callback, boolean isEnable) {
+        byte[] data = isEnable ? Command.ENABLE : Command.DISABLE;
+        return createCommand(priority, Command.Method.NOTIFY, serviceUUID, charactUUID, callback, data);
+    }
+
+    public Command createIndicate(int priority, String serviceUUID, String charactUUID, IndicateCallback callback, boolean isEnable) {
+        byte[] data = isEnable ? Command.ENABLE : Command.DISABLE;
+        return createCommand(priority, Command.Method.NOTIFY, serviceUUID, charactUUID, callback, data);
+    }
+
+    public Command createWrite(int priority, String serviceUUID, String charactUUID, WriteCallback callback, byte[] data) {
+        return createCommand(priority, Command.Method.WRITE, serviceUUID, charactUUID, callback, data);
+    }
+
+    public Command createRead(int priority, String serviceUUID, String charactUUID, ReadCallback callback) {
+        return createCommand(priority, Command.Method.READ, serviceUUID, charactUUID, callback, null);
+    }
+
+    public Command createReadRssi(int priority, RssiCallback callback) {
+        return createCommand(priority, Command.Method.READ_RSSI, null, null, callback, null);
+    }
+
+    public Command createSetMtu(int priority, int mtu, MtuChangedCallback callback) {
+        byte[] data = ByteBuffer.allocate(4).putInt(mtu).array();
+        return createCommand(priority, Command.Method.SET_MTU, null, null, callback, data);
+    }
+
     /**
      * notify
      */
@@ -554,10 +623,37 @@ public class Peripheral {
             success = controller.withUUIDString(serviceUUID, notifyUUID)
                     .disableCharacteristicNotify();
             if (success) {
+                getMainHandler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        resetBusyState();
+                    }
+                }, 2 * 1000);
                 removeNotifyCallback(notifyUUID);
             }
         }
         return success;
+    }
+
+    public void notify(Command command) {
+        if (command == null || !command.isValid() ||
+                command.getMethod() != Command.Method.NOTIFY ||
+                !(command.getCallback() != null && command.getCallback() instanceof NotifyCallback)) {
+            throw new IllegalArgumentException("BleNotify Command is invalid!");
+        }
+
+        NotifyCallback callback = (NotifyCallback) command.getCallback();
+        if (CentralManager.getInstance().getMultiplePeripheralController().isContainBusyDevice()) {
+            CentralManager.getInstance().getMultiplePeripheralController().cacheCommand(command);
+        } else {
+            String serviceUUID = command.getServiceUUID();
+            String charactUUID = command.getCharactUUID();
+            if (command.isEnable()) {
+                notify(serviceUUID, charactUUID, callback);
+            } else {
+                stopNotify(serviceUUID, charactUUID);
+            }
+        }
     }
 
     /**
@@ -584,10 +680,37 @@ public class Peripheral {
             success = controller.withUUIDString(serviceUUID, indicateUUID)
                     .disableCharacteristicIndicate();
             if (success) {
+                getMainHandler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        resetBusyState();
+                    }
+                }, 2 * 1000);
                 removeIndicateCallback(indicateUUID);
             }
         }
         return success;
+    }
+
+    public void indicate(Command command) {
+        if (command == null || !command.isValid() ||
+                command.getMethod() != Command.Method.INDICATE ||
+                !(command.getCallback() != null && command.getCallback() instanceof IndicateCallback)) {
+            throw new IllegalArgumentException("BleIndicate Command is invalid!");
+        }
+
+        IndicateCallback callback = (IndicateCallback) command.getCallback();
+        if (CentralManager.getInstance().getMultiplePeripheralController().isContainBusyDevice()) {
+            CentralManager.getInstance().getMultiplePeripheralController().cacheCommand(command);
+        } else {
+            String serviceUUID = command.getServiceUUID();
+            String charactUUID = command.getCharactUUID();
+            if (command.isEnable()) {
+                indicate(serviceUUID, charactUUID, callback);
+            } else {
+                stopIndicate(serviceUUID, charactUUID);
+            }
+        }
     }
 
     /**
@@ -614,6 +737,35 @@ public class Peripheral {
         }
     }
 
+    public void write(Command command) {
+        if (command == null || !command.isValid() ||
+                command.getMethod() != Command.Method.WRITE ||
+                !(command.getCallback() != null && command.getCallback() instanceof WriteCallback)) {
+            throw new IllegalArgumentException("BleWrite Command is invalid!");
+        }
+
+        WriteCallback callback = (WriteCallback) command.getCallback();
+        if (command.getData() == null) {
+            EasyLog.e("data is Null!");
+            callback.onWriteFailure(new OtherException("data is Null !"));
+            return;
+        }
+        if (command.getData().length > 20) {
+            EasyLog.w("data's length beyond 20!");
+        }
+        if (CentralManager.getInstance().getMultiplePeripheralController().isContainBusyDevice()) {
+            CentralManager.getInstance().getMultiplePeripheralController().cacheCommand(command);
+        } else {
+            String serviceUUID = command.getServiceUUID();
+            String charactUUID = command.getCharactUUID();
+            PeripheralController controller = newPeripheralController();
+            if (controller != null) {
+                controller.withUUIDString(serviceUUID, charactUUID)
+                        .writeCharacteristic(command.getData(), callback, charactUUID);
+            }
+        }
+    }
+
     /**
      * read
      */
@@ -629,6 +781,27 @@ public class Peripheral {
         }
     }
 
+    public void read(Command command) {
+        if (command == null || !command.isValid() ||
+                command.getMethod() != Command.Method.READ ||
+                !(command.getCallback() != null && command.getCallback() instanceof ReadCallback)) {
+            throw new IllegalArgumentException("BleRead Command is invalid!");
+        }
+
+        ReadCallback callback = (ReadCallback) command.getCallback();
+        if (CentralManager.getInstance().getMultiplePeripheralController().isContainBusyDevice()) {
+            CentralManager.getInstance().getMultiplePeripheralController().cacheCommand(command);
+        } else {
+            String serviceUUID = command.getServiceUUID();
+            String charactUUID = command.getCharactUUID();
+            PeripheralController controller = newPeripheralController();
+            if (controller != null) {
+                controller.withUUIDString(serviceUUID, charactUUID)
+                        .readCharacteristic(callback, charactUUID);
+            }
+        }
+    }
+
     /**
      * read Rssi
      */
@@ -639,6 +812,21 @@ public class Peripheral {
         PeripheralController controller = newPeripheralController();
         if (controller != null) {
             controller.readRemoteRssi(callback);
+        }
+    }
+
+    public void readRssi(Command command) {
+        if (command == null || !command.isValid() ||
+                command.getMethod() != Command.Method.READ_RSSI ||
+                !(command.getCallback() != null && command.getCallback() instanceof RssiCallback)) {
+            throw new IllegalArgumentException("BleReadRssi Command is invalid!");
+        }
+
+        RssiCallback callback = (RssiCallback) command.getCallback();
+        if (CentralManager.getInstance().getMultiplePeripheralController().isContainBusyDevice()) {
+            CentralManager.getInstance().getMultiplePeripheralController().cacheCommand(command);
+        } else {
+            readRssi(callback);
         }
     }
 
@@ -668,6 +856,27 @@ public class Peripheral {
         }
     }
 
+    public void setMtu(Command command) {
+        if (command == null || !command.isValid() ||
+                command.getMethod() != Command.Method.SET_MTU ||
+                !(command.getCallback() != null && command.getCallback() instanceof MtuChangedCallback)) {
+            throw new IllegalArgumentException("BleSetMtu Command is invalid!");
+        }
+
+        MtuChangedCallback callback = (MtuChangedCallback) command.getCallback();
+        if (command.getData() == null) {
+            EasyLog.e("data is Null!");
+            callback.onSetMTUFailure(new OtherException("data is Null !"));
+            return;
+        }
+        if (CentralManager.getInstance().getMultiplePeripheralController().isContainBusyDevice()) {
+            CentralManager.getInstance().getMultiplePeripheralController().cacheCommand(command);
+        } else {
+            int mtu = ByteBuffer.wrap(command.getData()).getInt();
+            setMtu(mtu, callback);
+        }
+    }
+
     private void printCharacteristic(BluetoothGattCharacteristic characteristic) {
         if (characteristic == null) {
             return;
@@ -693,7 +902,7 @@ public class Peripheral {
         int GATT_ERROR = 0x85;
         int GATT_CONN_FAIL_ESTABLISH = 0x3E;
         if (mConnectRetryCount > 0 && (status == GATT_CONN_FAIL_ESTABLISH | status == GATT_ERROR)) {
-            sendMsgDelayedToMainH(MSG_RETRY_CONNECT, status, 0, Peripheral.this, DEFAULT_DELAY_RETRY_CONNECT);
+            sendMsgDelayedToMainH(MSG_RETRY_CONNECT, status, 0, Peripheral.this, DEFAULT_DELAY_CONNECT_RETRY);
         } else {
             handleConnectFail(status);
         }
@@ -727,13 +936,18 @@ public class Peripheral {
 
     private void handleConnectFail(int status) {
         CentralManager.getInstance().getMultiplePeripheralController().removePeripheral(Peripheral.this);
-        mConnectState = ConnectionState.CONNECT_FAILURE;
+        synchronized (mStateLock) {
+            mConnectState = ConnectionState.CONNECT_FAILURE;
+        }
         sendMsgToMainH(MSG_CONNECT_FAILURE, status, 0, mConnectStateCallback);
+        resetBusyState();
     }
 
     private void handleDisconnect(final int status) {
         CentralManager.getInstance().getMultiplePeripheralController().removePeripheral(Peripheral.this);
-        mConnectState = ConnectionState.CONNECT_DISCONNECTED;
+        synchronized (mStateLock) {
+            mConnectState = ConnectionState.CONNECT_DISCONNECTED;
+        }
         getMainHandler().post(new Runnable() {
             @Override
             public void run() {
@@ -742,6 +956,7 @@ public class Peripheral {
                 }
             }
         });
+        resetBusyState();
     }
 
     private BluetoothGattCallback coreGattCallback = new BluetoothGattCallback() {
@@ -764,12 +979,14 @@ public class Peripheral {
                 if (gatt != null) {
                     gatt.close();
                 }
-                if (mConnectState == ConnectionState.CONNECT_CONNECTING) {
-                    discoverServiceMsgInit();
-                    handleConnectRetry(status);
-                } else if (mConnectState == ConnectionState.CONNECT_CONNECTED
+                synchronized (mStateLock) {
+                    if (mConnectState == ConnectionState.CONNECT_CONNECTING) {
+                        discoverServiceMsgInit();
+                        handleConnectRetry(status);
+                    } else if (mConnectState == ConnectionState.CONNECT_CONNECTED
                             || mConnectState == ConnectionState.CONNECT_DISCONNECTING) {
-                    handleDisconnect(status);
+                        handleDisconnect(status);
+                    }
                 }
             }
         }
@@ -785,7 +1002,9 @@ public class Peripheral {
             }
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 mBluetoothGatt = gatt;
-                mConnectState = ConnectionState.CONNECT_CONNECTED;
+                synchronized (mStateLock) {
+                    mConnectState = ConnectionState.CONNECT_CONNECTED;
+                }
                 isActivityDisconnect = false;
                 CentralManager.getInstance().getMultiplePeripheralController().addPeripheral(Peripheral.this);
                 sendMsgDelayedToMainH(MSG_CONNECT_SUCCESS, status, 0, Peripheral.this, DEFAULT_DELAY_CONNECT_EVENT);
@@ -795,6 +1014,7 @@ public class Peripheral {
                 }
                 handleConnectFail(status);
             }
+            resetBusyState();
         }
 
         @Override
@@ -832,6 +1052,7 @@ public class Peripheral {
 
             final WriteCallback writeCallback = findWriteCallback(characteristic.getUuid().toString());
             if (writeCallback != null) {
+                resetBusyState();
                 writeCallback.getPeripheralConnector().writeMsgInit();
                 sendMsgToMainH(MSG_WRITE_CALLBACK, status, 0, writeCallback);
             }
@@ -845,6 +1066,7 @@ public class Peripheral {
 
             final ReadCallback readCallback = findReadCallback(characteristic.getUuid().toString());
             if (readCallback != null) {
+                resetBusyState();
                 readCallback.getPeripheralConnector().readMsgInit();
                 getMainHandler().post(new Runnable() {
                     @Override
@@ -868,12 +1090,14 @@ public class Peripheral {
             String uuid = descriptor.getCharacteristic().getUuid().toString();
             final NotifyCallback notifyCallback = findNotifyCallback(uuid);
             if (notifyCallback != null) {
+                resetBusyState();
                 notifyCallback.getPeripheralConnector().notifyMsgInit();
                 sendMsgToMainH(MSG_NOTIFY_CALLBACK, status, 0, notifyCallback);
             }
 
             final IndicateCallback indicateCallback = findIndicateCallback(uuid);
             if (indicateCallback != null) {
+                resetBusyState();
                 indicateCallback.getPeripheralConnector().indicateMsgInit();
                 sendMsgToMainH(MSG_INDICATE_CALLBACK, status, 0, indicateCallback);
             }
@@ -892,6 +1116,7 @@ public class Peripheral {
             super.onReadRemoteRssi(gatt, rssi, status);
             EasyLog.i("GattCallback：onReadRemoteRssi value: %d  status: %d", rssi, status);
             if (mRssiCallback != null) {
+                resetBusyState();
                 mRssiCallback.getPeripheralConnector().rssiMsgInit();
                 sendMsgToMainH(MSG_RSSI_CALLBACK, status, rssi, mRssiCallback);
             }
@@ -902,6 +1127,7 @@ public class Peripheral {
             super.onMtuChanged(gatt, mtu, status);
             EasyLog.i("GattCallback：onMtuChanged value: %d  status: %d", mtu, status);
             if (mMtuChangedCallback != null) {
+                resetBusyState();
                 mMtuChangedCallback.getPeripheralConnector().mtuChangedMsgInit();
                 sendMsgToMainH(MSG_MTU_CHANGE, status, mtu, mMtuChangedCallback);
             }

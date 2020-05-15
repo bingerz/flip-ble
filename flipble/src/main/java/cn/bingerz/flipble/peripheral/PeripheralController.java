@@ -55,6 +55,7 @@ public class PeripheralController {
                 case MSG_NOTIFY_CHA:
                     NotifyCallback notifyCallback = (NotifyCallback) msg.obj;
                     if (notifyCallback != null) {
+                        notifyCallback.getPeripheralConnector().resetBusyState();
                         notifyCallback.onNotifyFailure(new TimeoutException());
                     }
                     msg.obj = null;
@@ -63,6 +64,7 @@ public class PeripheralController {
                 case MSG_INDICATE_DES:
                     IndicateCallback indicateCallback = (IndicateCallback) msg.obj;
                     if (indicateCallback != null) {
+                        indicateCallback.getPeripheralConnector().resetBusyState();
                         indicateCallback.onIndicateFailure(new TimeoutException());
                     }
                     msg.obj = null;
@@ -71,6 +73,7 @@ public class PeripheralController {
                 case MSG_WRITE_CHA:
                     WriteCallback writeCallback = (WriteCallback) msg.obj;
                     if (writeCallback != null) {
+                        writeCallback.getPeripheralConnector().resetBusyState();
                         writeCallback.onWriteFailure(new TimeoutException());
                     }
                     msg.obj = null;
@@ -79,6 +82,7 @@ public class PeripheralController {
                 case MSG_READ_CHA:
                     ReadCallback readCallback = (ReadCallback) msg.obj;
                     if (readCallback != null) {
+                        readCallback.getPeripheralConnector().resetBusyState();
                         readCallback.onReadFailure(new TimeoutException());
                     }
                     msg.obj = null;
@@ -87,6 +91,7 @@ public class PeripheralController {
                 case MSG_READ_RSSI:
                     RssiCallback rssiCallback = (RssiCallback) msg.obj;
                     if (rssiCallback != null) {
+                        rssiCallback.getPeripheralConnector().resetBusyState();
                         rssiCallback.onRssiFailure(new TimeoutException());
                     }
                     msg.obj = null;
@@ -95,6 +100,7 @@ public class PeripheralController {
                 case MSG_SET_MTU:
                     MtuChangedCallback mtuChangedCallback = (MtuChangedCallback) msg.obj;
                     if (mtuChangedCallback != null) {
+                        mtuChangedCallback.getPeripheralConnector().resetBusyState();
                         mtuChangedCallback.onSetMTUFailure(new TimeoutException());
                     }
                     msg.obj = null;
@@ -115,6 +121,17 @@ public class PeripheralController {
         this.mBluetoothGatt = mPeripheral.getBluetoothGatt();
     }
 
+    private void setBusyState() {
+        if (mPeripheral != null) {
+            mPeripheral.setBusyState();
+        }
+    }
+
+    private void resetBusyState() {
+        if (mPeripheral != null) {
+            mPeripheral.resetBusyState();
+        }
+    }
 
     public PeripheralController withUUID(UUID serviceUUID, UUID charactUUID) {
         if (serviceUUID != null && mBluetoothGatt != null) {
@@ -175,10 +192,11 @@ public class PeripheralController {
             }
             return false;
         }
-
+        setBusyState();
         boolean success1 = gatt.setCharacteristicNotification(characteristic, enable);
         if (!success1) {
             notifyMsgInit();
+            resetBusyState();
             if (notifyCallback != null) {
                 notifyCallback.onNotifyFailure(new OperationException("Gatt setCharacteristicNotification fail"));
             }
@@ -188,6 +206,7 @@ public class PeripheralController {
         BluetoothGattDescriptor descriptor = characteristic.getDescriptor(formUUID(UUID_CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR));
         if (descriptor == null) {
             notifyMsgInit();
+            resetBusyState();
             if (notifyCallback != null) {
                 notifyCallback.onNotifyFailure(new OtherException("Descriptor equals null"));
             }
@@ -198,6 +217,7 @@ public class PeripheralController {
             boolean success2 = gatt.writeDescriptor(descriptor);
             if (!success2) {
                 notifyMsgInit();
+                resetBusyState();
                 if (notifyCallback != null) {
                     notifyCallback.onNotifyFailure(new OperationException("Gatt writeDescriptor fail"));
                 }
@@ -246,10 +266,11 @@ public class PeripheralController {
             }
             return false;
         }
-
+        setBusyState();
         boolean success1 = gatt.setCharacteristicNotification(characteristic, enable);
         if (!success1) {
             indicateMsgInit();
+            resetBusyState();
             if (indicateCallback != null) {
                 indicateCallback.onIndicateFailure(new OperationException("Gatt setCharacteristicNotification fail"));
             }
@@ -259,6 +280,7 @@ public class PeripheralController {
         BluetoothGattDescriptor descriptor = characteristic.getDescriptor(formUUID(UUID_CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR));
         if (descriptor == null) {
             indicateMsgInit();
+            resetBusyState();
             if (indicateCallback != null) {
                 indicateCallback.onIndicateFailure(new OtherException("Descriptor equals null"));
             }
@@ -269,6 +291,7 @@ public class PeripheralController {
             boolean success2 = gatt.writeDescriptor(descriptor);
             if (!success2) {
                 indicateMsgInit();
+                resetBusyState();
                 if (indicateCallback != null) {
                     indicateCallback.onIndicateFailure(new OperationException("Gatt writeDescriptor fail"));
                 }
@@ -298,10 +321,15 @@ public class PeripheralController {
 
         if (mCharacteristic.setValue(data)) {
             handleCharacteristicWriteCallback(writeCallback, writeUUID);
-            if (mBluetoothGatt != null && !mBluetoothGatt.writeCharacteristic(mCharacteristic)) {
-                writeMsgInit();
-                if (writeCallback != null) {
-                    writeCallback.onWriteFailure(new OperationException("Gatt writeCharacteristic fail"));
+            if (mBluetoothGatt != null) {
+                setBusyState();
+                boolean result = mBluetoothGatt.writeCharacteristic(mCharacteristic);
+                if (!result) {
+                    writeMsgInit();
+                    resetBusyState();
+                    if (writeCallback != null) {
+                        writeCallback.onWriteFailure(new OperationException("Gatt writeCharacteristic fail"));
+                    }
                 }
             }
         } else {
@@ -319,10 +347,15 @@ public class PeripheralController {
                 && (mCharacteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
 
             handleCharacteristicReadCallback(readCallback, readUUID);
-            if (mBluetoothGatt != null && !mBluetoothGatt.readCharacteristic(mCharacteristic)) {
-                readMsgInit();
-                if (readCallback != null) {
-                    readCallback.onReadFailure(new OperationException("Gatt readCharacteristic fail"));
+            if (mBluetoothGatt != null) {
+                setBusyState();
+                boolean result = mBluetoothGatt.readCharacteristic(mCharacteristic);
+                if (!result) {
+                    readMsgInit();
+                    resetBusyState();
+                    if (readCallback != null) {
+                        readCallback.onReadFailure(new OperationException("Gatt readCharacteristic fail"));
+                    }
                 }
             }
         } else {
@@ -339,6 +372,7 @@ public class PeripheralController {
         handleRSSIReadCallback(rssiCallback);
         if (mBluetoothGatt != null) {
             boolean result = false;
+            setBusyState();
             //Fix DeadObjectException due to reading remote rssi
             try {
                 result = mBluetoothGatt.readRemoteRssi();
@@ -347,6 +381,7 @@ public class PeripheralController {
             }
             if (!result) {
                 rssiMsgInit();
+                resetBusyState();
                 if (rssiCallback != null) {
                     rssiCallback.onRssiFailure(new OperationException("Gatt readRemoteRssi fail"));
                 }
@@ -360,10 +395,15 @@ public class PeripheralController {
     public void setMtu(int requiredMtu, MtuChangedCallback mtuChangedCallback) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             handleSetMtuCallback(mtuChangedCallback);
-            if (mBluetoothGatt != null && !mBluetoothGatt.requestMtu(requiredMtu)) {
-                mtuChangedMsgInit();
-                if (mtuChangedCallback != null) {
-                    mtuChangedCallback.onSetMTUFailure(new OperationException("Gatt requestMtu fail"));
+            if (mBluetoothGatt != null) {
+                setBusyState();
+                boolean result = mBluetoothGatt.requestMtu(requiredMtu);
+                if (!result) {
+                    mtuChangedMsgInit();
+                    resetBusyState();
+                    if (mtuChangedCallback != null) {
+                        mtuChangedCallback.onSetMTUFailure(new OperationException("Gatt requestMtu fail"));
+                    }
                 }
             }
         } else {

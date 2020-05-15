@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">flipBLE</string>
 
+    <string name="action_test">压测</string>
+
     <string name="notifyTitle">提示</string>
     <string name="gpsNotifyMsg">当前手机扫描蓝牙需要打开定位功能。</string>
     <string name="setting">前往设置</string>
