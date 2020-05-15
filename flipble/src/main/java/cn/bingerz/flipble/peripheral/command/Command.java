@@ -41,30 +41,30 @@ public class Command implements Comparator<Command> {
 
     private String charactUUID;
 
-    private Object callback;
-
     private byte[] data;
 
+    private Object callback;
+
     public Command(int priority, String key, int method, Object callback) {
-        this(priority, key, method, callback, null);
+        this(priority, key, method, null, callback);
     }
 
-    public Command(int priority, String key, int method, Object callback, byte[] data) {
-        this(priority, key, method, null, null, callback, data);
+    public Command(int priority, String key, int method, byte[] data, Object callback) {
+        this(priority, key, method, null, null, data, callback);
     }
 
     public Command(int priority, String key, int method, String serviceUUID, String charactUUID, Object callback) {
-        this(priority, key, method, serviceUUID, charactUUID, callback, null);
+        this(priority, key, method, serviceUUID, charactUUID, null, callback);
     }
 
-    public Command(int priority, String key, int method, String serviceUUID, String charactUUID, Object callback, byte[] data) {
+    public Command(int priority, String key, int method, String serviceUUID, String charactUUID, byte[] data, Object callback) {
         setPriority(priority);
         setKey(key);
         setMethod(method);
         setServiceUUID(serviceUUID);
         setCharactUUID(charactUUID);
-        setCallback(callback);
         setData(data);
+        setCallback(callback);
     }
 
     /** Return the priority for this command. Can be one of the values in {@link Priority}. */
@@ -110,14 +110,6 @@ public class Command implements Comparator<Command> {
         this.charactUUID = uuid;
     }
 
-    public void setCallback(Object callback) {
-        this.callback = callback;
-    }
-
-    public Object getCallback() {
-        return this.callback;
-    }
-
     public void setData(byte[] value) {
         if (value != null && value.length > 0) {
             data = new byte[value.length];
@@ -134,6 +126,14 @@ public class Command implements Comparator<Command> {
             return this.data[0] == 1;
         }
         return false;
+    }
+
+    public void setCallback(Object callback) {
+        this.callback = callback;
+    }
+
+    public Object getCallback() {
+        return this.callback;
     }
 
     public boolean isValid() {

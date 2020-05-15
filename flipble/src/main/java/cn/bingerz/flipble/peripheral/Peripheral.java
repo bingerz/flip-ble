@@ -568,39 +568,40 @@ public class Peripheral {
         }
     }
 
-    private Command createCommand(int priority, int method, String serviceUUID, String charactUUID, Object callback, byte[] data) {
-        return  new Command(priority, getAddress(), method, serviceUUID, charactUUID, callback, data);
+    private Command createCommand(int priority, int method, String serviceUUID, String charactUUID, byte[] data, Object callback) {
+        return  new Command(priority, getAddress(), method, serviceUUID, charactUUID, data, callback);
     }
 
-    public Command createNotify(int priority, String serviceUUID, String charactUUID, NotifyCallback callback, boolean isEnable) {
+    public Command createNotify(int priority, String serviceUUID, String charactUUID, boolean isEnable, NotifyCallback callback) {
         byte[] data = isEnable ? Command.ENABLE : Command.DISABLE;
-        return createCommand(priority, Command.Method.NOTIFY, serviceUUID, charactUUID, callback, data);
+        return createCommand(priority, Command.Method.NOTIFY, serviceUUID, charactUUID, data, callback);
     }
 
-    public Command createIndicate(int priority, String serviceUUID, String charactUUID, IndicateCallback callback, boolean isEnable) {
+    public Command createIndicate(int priority, String serviceUUID, String charactUUID, boolean isEnable, IndicateCallback callback) {
         byte[] data = isEnable ? Command.ENABLE : Command.DISABLE;
-        return createCommand(priority, Command.Method.NOTIFY, serviceUUID, charactUUID, callback, data);
+        return createCommand(priority, Command.Method.NOTIFY, serviceUUID, charactUUID, data, callback);
     }
 
-    public Command createWrite(int priority, String serviceUUID, String charactUUID, WriteCallback callback, byte[] data) {
-        return createCommand(priority, Command.Method.WRITE, serviceUUID, charactUUID, callback, data);
+    public Command createWrite(int priority, String serviceUUID, String charactUUID, byte[] data, WriteCallback callback) {
+        return createCommand(priority, Command.Method.WRITE, serviceUUID, charactUUID, data, callback);
     }
 
     public Command createRead(int priority, String serviceUUID, String charactUUID, ReadCallback callback) {
-        return createCommand(priority, Command.Method.READ, serviceUUID, charactUUID, callback, null);
+        return createCommand(priority, Command.Method.READ, serviceUUID, charactUUID, null, callback);
     }
 
     public Command createReadRssi(int priority, RssiCallback callback) {
-        return createCommand(priority, Command.Method.READ_RSSI, null, null, callback, null);
+        return createCommand(priority, Command.Method.READ_RSSI, null, null, null, callback);
     }
 
     public Command createSetMtu(int priority, int mtu, MtuChangedCallback callback) {
         byte[] data = ByteBuffer.allocate(4).putInt(mtu).array();
-        return createCommand(priority, Command.Method.SET_MTU, null, null, callback, data);
+        return createCommand(priority, Command.Method.SET_MTU, null, null, data, callback);
     }
 
     /**
      * notify
+     * This operation will be performed immediately
      */
     public void notify(String serviceUUID, String notifyUUID, NotifyCallback callback) {
         if (callback == null) {
@@ -615,6 +616,7 @@ public class Peripheral {
 
     /**
      * stop notify, remove callback
+     * This operation will be performed immediately
      */
     public boolean stopNotify(String serviceUUID, String notifyUUID) {
         boolean success = false;
@@ -635,6 +637,11 @@ public class Peripheral {
         return success;
     }
 
+    /**
+     * notify
+     * Support priority and cache features
+     * @param command
+     */
     public void notify(Command command) {
         if (command == null || !command.isValid() ||
                 command.getMethod() != Command.Method.NOTIFY ||
@@ -658,6 +665,7 @@ public class Peripheral {
 
     /**
      * indicate
+     * This operation will be performed immediately
      */
     public void indicate(String serviceUUID, String indicateUUID, IndicateCallback callback) {
         if (callback == null) {
@@ -672,6 +680,7 @@ public class Peripheral {
 
     /**
      * stop indicate, remove callback
+     * This operation will be performed immediately
      */
     public boolean stopIndicate(String serviceUUID, String indicateUUID) {
         boolean success = false;
@@ -692,6 +701,11 @@ public class Peripheral {
         return success;
     }
 
+    /**
+     * indicate
+     * Support priority and cache features
+     * @param command
+     */
     public void indicate(Command command) {
         if (command == null || !command.isValid() ||
                 command.getMethod() != Command.Method.INDICATE ||
@@ -715,6 +729,7 @@ public class Peripheral {
 
     /**
      * write
+     * This operation will be performed immediately
      */
     public void write(String serviceUUID, String writeUUID, byte[] data, WriteCallback callback) {
         if (callback == null) {
@@ -737,6 +752,11 @@ public class Peripheral {
         }
     }
 
+    /**
+     * write
+     * Support priority and cache features
+     * @param command
+     */
     public void write(Command command) {
         if (command == null || !command.isValid() ||
                 command.getMethod() != Command.Method.WRITE ||
@@ -768,6 +788,7 @@ public class Peripheral {
 
     /**
      * read
+     * This operation will be performed immediately
      */
     public void read(String serviceUUID, String readUUID, ReadCallback callback) {
         if (callback == null) {
@@ -781,6 +802,11 @@ public class Peripheral {
         }
     }
 
+    /**
+     * read
+     * Support priority and cache features
+     * @param command
+     */
     public void read(Command command) {
         if (command == null || !command.isValid() ||
                 command.getMethod() != Command.Method.READ ||
@@ -804,6 +830,7 @@ public class Peripheral {
 
     /**
      * read Rssi
+     * This operation will be performed immediately
      */
     public void readRssi(RssiCallback callback) {
         if (callback == null) {
@@ -815,6 +842,11 @@ public class Peripheral {
         }
     }
 
+    /**
+     * readRssi
+     * Support priority and cache features
+     * @param command
+     */
     public void readRssi(Command command) {
         if (command == null || !command.isValid() ||
                 command.getMethod() != Command.Method.READ_RSSI ||
@@ -832,6 +864,7 @@ public class Peripheral {
 
     /**
      * set Mtu
+     * This operation will be performed immediately
      */
     public void setMtu(int mtu, MtuChangedCallback callback) {
         if (callback == null) {
@@ -856,6 +889,11 @@ public class Peripheral {
         }
     }
 
+    /**
+     * setMtu
+     * Support priority and cache features
+     * @param command
+     */
     public void setMtu(Command command) {
         if (command == null || !command.isValid() ||
                 command.getMethod() != Command.Method.SET_MTU ||

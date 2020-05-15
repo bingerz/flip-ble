@@ -1,6 +1,5 @@
 package cn.bingerz.bledemo.operation;
 
-
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -357,7 +356,7 @@ public class OperationActivity extends AppCompatActivity implements Observer {
         if (charact != null) {
             String serviceUUID = service.getUuid().toString();
             String charactUUID = charact.getUuid().toString();
-            Command command = mPeripheral.createNotify(Command.Priority.HIGH, serviceUUID, charactUUID, new NotifyCallback() {
+            Command command = mPeripheral.createNotify(Command.Priority.HIGH, serviceUUID, charactUUID, true, new NotifyCallback() {
                 @Override
                 public void onNotifySuccess() {
                     Log.d(TAG, "Battery level notify enable test success.");
@@ -372,14 +371,14 @@ public class OperationActivity extends AppCompatActivity implements Observer {
                 public void onCharacteristicChanged(byte[] data) {
 
                 }
-            }, true);
+            });
             mPeripheral.notify(command);
         }
         charact = service.getCharacteristic(UUID.fromString(ServiceUUID.BATTERY_LEVEL));
         if (charact != null) {
             String serviceUUID = service.getUuid().toString();
             String charactUUID = charact.getUuid().toString();
-            Command command = mPeripheral.createNotify(Command.Priority.MEDIUM, serviceUUID, charactUUID, new NotifyCallback() {
+            Command command = mPeripheral.createNotify(Command.Priority.MEDIUM, serviceUUID, charactUUID, false, new NotifyCallback() {
                 @Override
                 public void onNotifySuccess() {
                     Log.d(TAG, "Battery level notify disable test success.");
@@ -394,7 +393,7 @@ public class OperationActivity extends AppCompatActivity implements Observer {
                 public void onCharacteristicChanged(byte[] data) {
 
                 }
-            }, false);
+            });
             mPeripheral.notify(command);
         }
     }

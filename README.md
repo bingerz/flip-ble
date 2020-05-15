@@ -15,12 +15,15 @@ the Android Bluetooth API.
  - Support BLE devices for basic operations such as scanning, connect, read, write, notification subscription and cancellation.
  - Support custom scan mode (power saving, balance, power consumption), foreground background scanning mode, filtering rules, etc.
  - Support for periodic scanning function.
+ - Support connection retry feature to increase connection success probability.
+ - Support Bluetooth command timeout feature.
+ - Supports Bluetooth command cache, priority features, multiple devices connected to execute commands more stable.
 
 ## Getting Started
 ### Add FlipBLE in your build.gradle
 ```groovy
 dependencies {
-    implementation 'cn.bingerz.android:flipble:0.4.8'
+    implementation 'cn.bingerz.android:flipble:0.5.1'
 }
 ```
 
@@ -133,7 +136,64 @@ peripheral.connect(true, new ConnectStateCallback(){
 After the system is connected to the device, the ConnectStateCallback method is called back.
 Tips：The lower Android version connection completion time is slower, and the higher version will increase the connection speed.
 
+### Peripherals operation is performed immediately
+Call the following method, Bluetooth operation will be executed immediately.
+```java
+public void notify(String serviceUUID, String notifyUUID, NotifyCallback callback) {
+    /*someCode*/
+});
+public boolean stopNotify(String serviceUUID, String notifyUUID) {
+    /*someCode*/
+});
+public void indicate(String serviceUUID, String indicateUUID, IndicateCallback callback) {
+    /*someCode*/
+});
+public boolean stopIndicate(String serviceUUID, String indicateUUID) {
+    /*someCode*/
+});
+public void write(String serviceUUID, String writeUUID, byte[] data, WriteCallback callback) {
+    /*someCode*/
+});
+public void read(String serviceUUID, String readUUID, ReadCallback callback) {
+    /*someCode*/
+});
+public void readRssi(RssiCallback callback) {
+    /*someCode*/
+});
+public void setMtu(int mtu, MtuChangedCallback callback) {
+    /*someCode*/
+});
+```
+
+### Peripherals Operation supports priority and cache features
+Call the method, the operation supports priority and cache characteristics, and executes according to the set priority order. 
+The cache instruction is determined according to whether all currently connected peripherals are busy, and execution is delayed.
+```java
+public void notify(Command command) {
+    /*someCode*/
+});
+public void indicate(Command command) {
+    /*someCode*/
+});
+public void write(Command command) {
+    /*someCode*/
+});
+public void read(Command command) {
+    /*someCode*/
+});
+public void readRssi(Command command) {
+    /*someCode*/
+});
+public void setMtu(Command command) {
+    /*someCode*/
+});
+```
+
 ## Release Changes
+### v0.5.1
+ - Add Bluetooth command cache feature;
+ - Improve instruction concurrency stability;
+ - Increase the priority of instruction execution;
 ### v0.4.8
  - Add exception type
 ### v0.4.4

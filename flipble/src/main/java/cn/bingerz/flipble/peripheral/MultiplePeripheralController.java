@@ -67,10 +67,42 @@ public class MultiplePeripheralController {
         return isBusy;
     }
 
+    public void disconnectAllDevice() {
+        for (Map.Entry<String, Peripheral> stringPeripheralEntry : bleLruHashMap.entrySet()) {
+            stringPeripheralEntry.getValue().disconnect();
+        }
+        bleLruHashMap.clear();
+    }
+
+    public void destroy() {
+        for (Map.Entry<String, Peripheral> stringPeripheralEntry : bleLruHashMap.entrySet()) {
+            stringPeripheralEntry.getValue().destroy();
+        }
+        bleLruHashMap.clear();
+    }
+
+    public List<Peripheral> getPeripheralList() {
+        final List<Peripheral> bleBluetoothList = new ArrayList<>(bleLruHashMap.values());
+        Collections.sort(bleBluetoothList, new Comparator<Peripheral>() {
+            @Override
+            public int compare(final Peripheral lhs, final Peripheral rhs) {
+                return lhs.getAddress().compareToIgnoreCase(rhs.getAddress());
+            }
+        });
+        return bleBluetoothList;
+    }
+
     public void cacheCommand(Command command) {
         if (mCommandStack != null) {
             EasyLog.d("Peripherals is busy, cache command:\n%s", command);
             mCommandStack.add(command);
+        }
+    }
+
+    public void removeCommand(Command command) {
+        if (mCommandStack != null) {
+            EasyLog.d("Peripherals is busy, remove command:\n%s", command);
+            mCommandStack.remove(command);
         }
     }
 
@@ -117,30 +149,5 @@ public class MultiplePeripheralController {
                 }
             }
         }
-    }
-
-    public void disconnectAllDevice() {
-        for (Map.Entry<String, Peripheral> stringPeripheralEntry : bleLruHashMap.entrySet()) {
-            stringPeripheralEntry.getValue().disconnect();
-        }
-        bleLruHashMap.clear();
-    }
-
-    public void destroy() {
-        for (Map.Entry<String, Peripheral> stringPeripheralEntry : bleLruHashMap.entrySet()) {
-            stringPeripheralEntry.getValue().destroy();
-        }
-        bleLruHashMap.clear();
-    }
-
-    public List<Peripheral> getPeripheralList() {
-        final List<Peripheral> bleBluetoothList = new ArrayList<>(bleLruHashMap.values());
-        Collections.sort(bleBluetoothList, new Comparator<Peripheral>() {
-            @Override
-            public int compare(final Peripheral lhs, final Peripheral rhs) {
-                return lhs.getAddress().compareToIgnoreCase(rhs.getAddress());
-            }
-        });
-        return bleBluetoothList;
     }
 }
