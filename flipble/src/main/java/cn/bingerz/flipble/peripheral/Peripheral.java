@@ -512,7 +512,19 @@ public class Peripheral {
 
     private synchronized void closeBluetoothGatt() {
         if (mBluetoothGatt != null) {
-            mBluetoothGatt.close();
+            //Phone Model: Samsung Galaxy S*/J* Android 5.1.1/6.0.1
+            //java.lang.NullPointerException: Attempt to invoke virtual method
+            //'android.os.Looper android.os.Handler.getLooper()' on a null object reference
+            //android.os.Parcel.readException (Parcel.java:1626)
+            //android.os.Parcel.readException (Parcel.java:1573)
+            //android.bluetooth.IBluetoothGatt$Stub$Proxy.unregisterClient (IBluetoothGatt.java:1003)
+            //android.bluetooth.BluetoothGatt.unregisterApp (BluetoothGatt.java:820)
+            //android.bluetooth.BluetoothGatt.close (BluetoothGatt.java:759)
+            try {
+                mBluetoothGatt.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
