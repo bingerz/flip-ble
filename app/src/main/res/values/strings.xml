@@ -2,6 +2,7 @@
     <string name="app_name">flipBLE</string>
 
     <string name="action_test">Stress test</string>
+    <string name="action_retry_discover">Retry Discover</string>
 
     <string name="notifyTitle">Tips</string>
     <string name="gpsNotifyMsg">Bluetooth scanning requires the location be turned on.</string>

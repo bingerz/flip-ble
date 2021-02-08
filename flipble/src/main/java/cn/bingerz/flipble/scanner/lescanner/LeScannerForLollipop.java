@@ -107,6 +107,7 @@ public class LeScannerForLollipop extends LeScanner {
             @Override
             public void run() {
                 try {
+                    EasyLog.d("Starting LE scan on scan handler");
                     scanner.startScan(filters, settings, scanCallback);
                 } catch (IllegalStateException e) {
                     EasyLog.w("Cannot start scan. Bluetooth may be turned off.");

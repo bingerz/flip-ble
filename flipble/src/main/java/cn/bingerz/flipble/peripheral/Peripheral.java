@@ -70,7 +70,8 @@ public class Peripheral {
     private boolean isActivityDisconnect = false;
 
     private float mRssi;
-    private float mCov; //卡尔曼滤波用的协方差估计值(Covariance estimation)
+    //卡尔曼滤波用的协方差估计值(Covariance estimation)
+    private float mCov;
 
     private int mConnectRetryCount;
 
@@ -1024,6 +1025,7 @@ public class Peripheral {
                     status, newState, Thread.currentThread().getId());
 
             if (newState == BluetoothGatt.STATE_CONNECTED) {
+                mBluetoothGatt = gatt;
                 sendDiscoverServiceMsg(gatt);
             } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
                 if (gatt != null) {
@@ -1052,12 +1054,15 @@ public class Peripheral {
             }
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 mBluetoothGatt = gatt;
+                ConnectionState prevState = mConnectState;
                 synchronized (mStateLock) {
                     mConnectState = ConnectionState.CONNECT_CONNECTED;
                 }
                 isActivityDisconnect = false;
                 CentralManager.getInstance().getMultiplePeripheralController().addPeripheral(Peripheral.this);
-                sendMsgDelayedToMainH(MSG_CONNECT_SUCCESS, status, 0, Peripheral.this, DEFAULT_DELAY_CONNECT_EVENT);
+                if (prevState != mConnectState) {
+                    sendMsgDelayedToMainH(MSG_CONNECT_SUCCESS, status, 0, Peripheral.this, DEFAULT_DELAY_CONNECT_EVENT);
+                }
             } else {
                 if (gatt != null) {
                     gatt.close();

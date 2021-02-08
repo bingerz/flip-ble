@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -64,14 +65,19 @@ public class OperationActivity extends AppCompatActivity implements Observer {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_test, menu);
+        getMenuInflater().inflate(R.menu.menu_retry_discover, menu);
         return true;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_test:
                 commandPressureTest();
+                break;
+            case R.id.action_retry_discover:
+                retryDiscoverService();
                 break;
             default:
                 break;
@@ -236,6 +242,17 @@ public class OperationActivity extends AppCompatActivity implements Observer {
             batteryServiceCommandTest(service);
         }
         readRssiCommandTest();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+    private void retryDiscoverService() {
+        if (mPeripheral == null) {
+            return;
+        }
+        BluetoothGatt bluetoothGatt = mPeripheral.getBluetoothGatt();
+        if (bluetoothGatt != null) {
+            bluetoothGatt.discoverServices();
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
