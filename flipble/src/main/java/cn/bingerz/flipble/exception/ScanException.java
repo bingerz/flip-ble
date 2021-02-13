@@ -1,9 +1,8 @@
 package cn.bingerz.flipble.exception;
 
 /**
- * Created by hanson on 2018/3/14.
+ * @author hanson
  */
-
 public class ScanException extends BLEException {
 
     public ScanException(String message) {

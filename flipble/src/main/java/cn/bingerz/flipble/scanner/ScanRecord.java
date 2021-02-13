@@ -19,7 +19,6 @@ package cn.bingerz.flipble.scanner;
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.ParcelUuid;
-import android.util.Log;
 import android.util.SparseArray;
 
 import java.nio.ByteBuffer;
@@ -34,12 +33,13 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import cn.bingerz.flipble.utils.EasyLog;
+
 /**
  * Represents a scan record from Bluetooth LE scan.
+ * @author hanson
  */
 public final class ScanRecord {
-
-    private static final String TAG = "ScanRecord";
 
     //Length of bytes for 16 bit UUID
     public static final int UUID_BYTES_16_BIT = 2;
@@ -266,7 +266,7 @@ public final class ScanRecord {
             }
             return new ScanRecord(serviceUuids, manufacturerData, serviceData, advertiseFlag, txPowerLevel, localName, scanRecord);
         } catch (Exception e) {
-            Log.e(TAG, "unable to parse scan record: " + Arrays.toString(scanRecord));
+            EasyLog.e("Parse fail, ScanRecord=%s", Arrays.toString(scanRecord));
             // As the record is invalid, ignore all the parsed results for this packet
             // and return an empty record with raw scanRecord bytes in results
             return new ScanRecord(null, null, null, -1, Integer.MIN_VALUE, null, scanRecord);

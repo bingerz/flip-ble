@@ -13,7 +13,6 @@ import android.text.TextUtils;
 
 import java.util.List;
 
-import cn.bingerz.flipble.utils.EasyLog;
 import cn.bingerz.flipble.peripheral.ConnectionState;
 import cn.bingerz.flipble.peripheral.MultiplePeripheralController;
 import cn.bingerz.flipble.peripheral.Peripheral;
@@ -23,11 +22,11 @@ import cn.bingerz.flipble.scanner.ScanRuleConfig;
 import cn.bingerz.flipble.scanner.Scanner;
 import cn.bingerz.flipble.scanner.callback.ScanCallback;
 import cn.bingerz.flipble.utils.BLEConnectionCompat;
+import cn.bingerz.flipble.utils.EasyLog;
 
 /**
- * Created by hanson on 09/01/2018.
+ * @author hanson
  */
-
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class CentralManager {
 
@@ -96,15 +95,15 @@ public class CentralManager {
         if (android.os.Build.VERSION.SDK_INT < 23 || checkLocationPermission()) {
             mScanner = Scanner.createScanner(isCycled);
             mScanner.initConfig(config);
-            mScanner.startScan(callback);
+            mScanner.startScanner(callback);
         } else {
-            EasyLog.e("startScan is failure. Need to grant location permissions");
+            EasyLog.e("StartScan is fail. Need to grant location permissions");
         }
     }
 
     public void stopScan() {
         if (mScanner != null) {
-            mScanner.stopScan();
+            mScanner.stopScanner();
         }
         mScanner = null;
     }
@@ -143,7 +142,7 @@ public class CentralManager {
             }
         } catch (SecurityException e) {
             // Thrown by Samsung Knox devices if bluetooth access denied for an app
-            EasyLog.e("Cannot construct bluetooth adapter. Security Exception");
+            EasyLog.e(e, "Cannot construct bluetooth adapter.");
         }
         return mBluetoothAdapter;
     }
@@ -295,7 +294,7 @@ public class CentralManager {
         if (!BluetoothAdapter.checkBluetoothAddress(address)) {
             throw new IllegalArgumentException(address + " is not a valid Bluetooth address");
         } else if (!isBluetoothEnable()) {
-            EasyLog.e("BT adapter is not turn on.");
+            EasyLog.e("BluetoothAdapter is turn off.");
             return false;
         } else {
             BluetoothDevice device = retrieveDevice(address);

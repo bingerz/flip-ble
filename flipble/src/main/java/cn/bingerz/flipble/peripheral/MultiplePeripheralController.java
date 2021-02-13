@@ -15,9 +15,8 @@ import cn.bingerz.flipble.utils.BleLruHashMap;
 import cn.bingerz.flipble.utils.EasyLog;
 
 /**
- * Created by hanson on 09/01/2018.
+ * @author hanson
  */
-
 public class MultiplePeripheralController {
 
     private final BleLruHashMap<String, Peripheral> bleLruHashMap;
@@ -94,14 +93,14 @@ public class MultiplePeripheralController {
 
     public void cacheCommand(Command command) {
         if (mCommandStack != null) {
-            EasyLog.d("Peripherals is busy, cache command:\n%s", command);
+            EasyLog.d("Peripherals is busy, cache cmd=%s", command);
             mCommandStack.add(command);
         }
     }
 
     public void removeCommand(Command command) {
         if (mCommandStack != null) {
-            EasyLog.d("Peripherals is busy, remove command:\n%s", command);
+            EasyLog.d("Peripherals is busy, remove cmd=%s", command);
             mCommandStack.remove(command);
         }
     }
@@ -116,7 +115,7 @@ public class MultiplePeripheralController {
         if (!isContainBusyDevice() && mCommandStack != null) {
             Command command = mCommandStack.poll();
             if (command != null && command.isValid()) {
-                EasyLog.d("Peripherals is idle, execute next command:\n%s", command);
+                EasyLog.d("Peripherals is idle, execute next command=%s", command);
                 if (CentralManager.getInstance().isBLEConnected(command.getKey())) {
                     Peripheral peripheral = getPeripheral(command.getKey());
                     if (peripheral != null) {

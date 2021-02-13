@@ -3,6 +3,9 @@ package cn.bingerz.flipble.utils;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * @author hanson
+ */
 public class BleLruHashMap<K, V> extends ConcurrentHashMap<K, V> {
 
     public BleLruHashMap(int saveSize) {

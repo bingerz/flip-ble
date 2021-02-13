@@ -16,11 +16,13 @@ import android.text.TextUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.bingerz.flipble.utils.EasyLog;
 import cn.bingerz.flipble.scanner.ScanFilterConfig;
 import cn.bingerz.flipble.scanner.ScanRuleConfig;
-import cn.bingerz.flipble.utils.BLEHackingMethod;
+import cn.bingerz.flipble.utils.EasyLog;
 
+/**
+ * @author hanson
+ */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class LeScannerForLollipop extends LeScanner {
 
@@ -32,42 +34,156 @@ public class LeScannerForLollipop extends LeScanner {
     }
 
     @Override
-    protected void startScan() {
-        ScanSettings settings = parseSettings(mScanRuleConfig);
-        if (settings != null) {
-            postStartLeScan(parseFilters(mScanRuleConfig), settings);
-        }
+    protected void startLeScanner() {
+        postStartLeScan();
     }
 
     @Override
-    protected void stopScan() {
-        postStopLeScan();
+    protected void stopLeScanner() {
+        //TODO Hanson postStopLeScan();
+        stopLeScanHandler();
     }
 
-    private ScanSettings parseSettings(ScanRuleConfig config) {
-        ScanSettings settings = null;
-        if (config != null) {
-            ScanSettings.Builder builder = new ScanSettings.Builder();
-            switch (config.getScanMode()) {
-                case ScanRuleConfig.SCAN_MODE_LOW_POWER:
-                    builder.setScanMode(ScanSettings.SCAN_MODE_LOW_POWER);
-                    break;
-
-                case ScanRuleConfig.SCAN_MODE_BALANCED:
-                    builder.setScanMode(ScanSettings.SCAN_MODE_BALANCED);
-                    break;
-
-                case ScanRuleConfig.SCAN_MODE_HIGH_POWER:
-                    builder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
-                    break;
-
-                default:
-                    builder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
-                    break;
+    private void postStartLeScan() {
+        postToWorkerThread(true, new Runnable() {
+            @WorkerThread
+            @Override
+            public void run() {
+                startLeScanHandler();
             }
-            settings = builder.build();
+        });
+    }
+
+    private void postStopLeScan() {
+        postToWorkerThread(true, new Runnable() {
+            @WorkerThread
+            @Override
+            public void run() {
+                stopLeScanHandler();
+            }
+        });
+    }
+
+    @SuppressLint("MissingPermission")
+    private void startLeScanHandler() {
+        final BluetoothLeScanner scanner = getScanner();
+        final List<ScanFilter> filters = parseFilters(mScanRuleConfig);
+        final ScanSettings settings = parseSettings(mScanRuleConfig);
+        if (scanner == null || settings == null) {
+            EasyLog.e("StartLeScanHandler fail, scanner or settings is null.");
+            return;
         }
-        return settings;
+        final ScanCallback scanCallback = getNewLeScanCallback();
+        try {
+            EasyLog.v("Starting LE scan on scan handler");
+            scanner.startScan(filters, settings, scanCallback);
+            setScanState(LeScanState.STATE_SCANNED);
+        } catch (IllegalStateException e) {
+            EasyLog.e(e, "Cannot start scan. Bluetooth may be turned off.");
+        } catch (NullPointerException e) {
+            // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
+            EasyLog.e(e, "Cannot start scan. Unexpected NPE.");
+        } catch (SecurityException e) {
+            // Thrown by Samsung Knox devices if bluetooth access denied for an app
+            EasyLog.e(e, "Cannot start scan. Security Exception");
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void stopLeScanHandler() {
+        final BluetoothLeScanner scanner = getScanner();
+        if (scanner == null) {
+            EasyLog.e("StopLeScanHandler fail, scanner is null");
+            return;
+        }
+        final ScanCallback scanCallback = getNewLeScanCallback();
+        try {
+            if (isLeScanned()) {
+                EasyLog.v("Stopping LE scan on scan handler");
+                scanner.stopScan(scanCallback);
+                setScanState(LeScanState.STATE_IDLE);
+            } else {
+                EasyLog.w("LeScanner been Stopped");
+            }
+        } catch (IllegalStateException e) {
+            EasyLog.e(e, "Cannot stop scan. Bluetooth may be turned off.");
+        } catch (NullPointerException e) {
+            // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
+            EasyLog.e(e, "Cannot stop scan. Unexpected NPE.");
+        } catch (SecurityException e) {
+            // Thrown by Samsung Knox devices if bluetooth access denied for an app
+            EasyLog.e(e, "Cannot stop scan. Security Exception");
+        }
+    }
+
+    private BluetoothLeScanner getScanner() {
+        try {
+            if (mScanner == null) {
+                EasyLog.v("Making new Android L scanner");
+                BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
+                if (bluetoothAdapter != null) {
+                    mScanner = getBluetoothAdapter().getBluetoothLeScanner();
+                }
+                if (mScanner == null) {
+                    EasyLog.w("Failed to make new Android L scanner");
+                }
+            }
+        } catch (SecurityException e) {
+            EasyLog.e(e, "SecurityException making new Android L scanner");
+        }
+        return mScanner;
+    }
+
+    private ScanCallback getNewLeScanCallback() {
+        if (mScanCallback == null) {
+            mScanCallback = new ScanCallback() {
+                @Override
+                public void onScanResult(int callbackType, ScanResult scanResult) {
+                    if (mLeScanCallback != null) {
+                        mLeScanCallback.onLeScan(scanResult.getDevice(),
+                                scanResult.getRssi(), scanResult.getScanRecord().getBytes());
+                    }
+                }
+
+                @Override
+                public void onBatchScanResults(List<ScanResult> results) {
+                    for (ScanResult scanResult : results) {
+                        EasyLog.d("Scanned device=%s  rssi=%d",
+                                    scanResult.getDevice().getAddress(), scanResult.getRssi());
+                        if (mLeScanCallback != null) {
+                            mLeScanCallback.onLeScan(scanResult.getDevice(),
+                                    scanResult.getRssi(), scanResult.getScanRecord().getBytes());
+                        }
+                    }
+                }
+
+                @Override
+                public void onScanFailed(int errorCode) {
+                    setScanState(LeScanState.STATE_IDLE);
+                    switch (errorCode) {
+                        case SCAN_FAILED_ALREADY_STARTED:
+                            EasyLog.e("Scan failed, A BLE scan with the same settings is already started by the app");
+                            break;
+                        case SCAN_FAILED_APPLICATION_REGISTRATION_FAILED:
+                            EasyLog.e("Scan failed, App cannot be registered");
+                            break;
+                        case SCAN_FAILED_FEATURE_UNSUPPORTED:
+                            EasyLog.e("Scan failed, Power optimized scan feature is not supported");
+                            break;
+                        case SCAN_FAILED_INTERNAL_ERROR:
+                            EasyLog.e("Scan failed with internal error");
+                            break;
+                        default:
+                            EasyLog.e("Scan failed with unknown error (errorCode=%d)", errorCode);
+                            break;
+                    }
+                    if (mLeScanCallback != null) {
+                        mLeScanCallback.onLeScanFailed(errorCode);
+                    }
+                }
+            };
+        }
+        return mScanCallback;
     }
 
     private List<ScanFilter> parseFilters(ScanRuleConfig config) {
@@ -95,126 +211,29 @@ public class LeScannerForLollipop extends LeScanner {
         return filters;
     }
 
-    private void postStartLeScan(final List<ScanFilter> filters, final ScanSettings settings) {
-        final BluetoothLeScanner scanner = getScanner();
-        if (scanner == null) {
-            return;
-        }
-        final ScanCallback scanCallback = getNewLeScanCallback();
-        postToWorkerThread(true, new Runnable() {
-            @SuppressLint("MissingPermission")
-            @WorkerThread
-            @Override
-            public void run() {
-                try {
-                    EasyLog.d("Starting LE scan on scan handler");
-                    scanner.startScan(filters, settings, scanCallback);
-                } catch (IllegalStateException e) {
-                    EasyLog.w("Cannot start scan. Bluetooth may be turned off.");
-                } catch (NullPointerException npe) {
-                    // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
-                    EasyLog.e(npe, "Cannot start scan. Unexpected NPE.");
-                } catch (SecurityException e) {
-                    // Thrown by Samsung Knox devices if bluetooth access denied for an app
-                    EasyLog.e("Cannot start scan.  Security Exception");
-                }
+    private ScanSettings parseSettings(ScanRuleConfig config) {
+        ScanSettings settings = null;
+        if (config != null) {
+            ScanSettings.Builder builder = new ScanSettings.Builder();
+            switch (config.getScanMode()) {
+                case ScanRuleConfig.SCAN_MODE_LOW_POWER:
+                    builder.setScanMode(ScanSettings.SCAN_MODE_LOW_POWER);
+                    break;
+
+                case ScanRuleConfig.SCAN_MODE_BALANCED:
+                    builder.setScanMode(ScanSettings.SCAN_MODE_BALANCED);
+                    break;
+
+                case ScanRuleConfig.SCAN_MODE_HIGH_POWER:
+                    builder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
+                    break;
+
+                default:
+                    builder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
+                    break;
             }
-        });
-    }
-
-    private void postStopLeScan() {
-        final BluetoothLeScanner scanner = getScanner();
-        if (scanner == null) {
-            return;
+            settings = builder.build();
         }
-        final ScanCallback scanCallback = getNewLeScanCallback();
-        postToWorkerThread(true, new Runnable() {
-            @SuppressLint("MissingPermission")
-            @WorkerThread
-            @Override
-            public void run() {
-                try {
-                    EasyLog.d("Stopping LE scan on scan handler");
-                    scanner.stopScan(scanCallback);
-                } catch (IllegalStateException e) {
-                    EasyLog.w("Cannot stop scan. Bluetooth may be turned off.");
-                } catch (NullPointerException npe) {
-                    // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
-                    EasyLog.e(npe, "Cannot stop scan. Unexpected NPE.");
-                } catch (SecurityException e) {
-                    // Thrown by Samsung Knox devices if bluetooth access denied for an app
-                    EasyLog.e("Cannot stop scan. Security Exception");
-                }
-            }
-        });
-    }
-
-    private BluetoothLeScanner getScanner() {
-        try {
-            if (mScanner == null) {
-                EasyLog.d("Making new Android L scanner");
-                BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
-                if (bluetoothAdapter != null) {
-                    mScanner = getBluetoothAdapter().getBluetoothLeScanner();
-                }
-                if (mScanner == null) {
-                    EasyLog.w("Failed to make new Android L scanner");
-                }
-            }
-        } catch (SecurityException e) {
-            EasyLog.w("SecurityException making new Android L scanner");
-        }
-        return mScanner;
-    }
-
-    private ScanCallback getNewLeScanCallback() {
-        if (mScanCallback == null) {
-            mScanCallback = new ScanCallback() {
-                @Override
-                public void onScanResult(int callbackType, ScanResult scanResult) {
-                    if (mLeScanCallback != null) {
-                        mLeScanCallback.onLeScan(scanResult.getDevice(),
-                                scanResult.getRssi(), scanResult.getScanRecord().getBytes());
-                    }
-                }
-
-                @Override
-                public void onBatchScanResults(List<ScanResult> results) {
-                    for (ScanResult scanResult : results) {
-                        EasyLog.e("scanned device %s  rssi %d",
-                                scanResult.getDevice().getAddress(), scanResult.getRssi());
-                        if (mLeScanCallback != null) {
-                            mLeScanCallback.onLeScan(scanResult.getDevice(),
-                                    scanResult.getRssi(), scanResult.getScanRecord().getBytes());
-                        }
-                    }
-                }
-
-                @Override
-                public void onScanFailed(int errorCode) {
-                    switch (errorCode) {
-                        case SCAN_FAILED_ALREADY_STARTED:
-                            EasyLog.e("Scan failed: a BLE scan with the same settings is already started by the app");
-                            break;
-                        case SCAN_FAILED_APPLICATION_REGISTRATION_FAILED:
-                            EasyLog.e("Scan failed: app cannot be registered");
-                            break;
-                        case SCAN_FAILED_FEATURE_UNSUPPORTED:
-                            EasyLog.e("Scan failed: power optimized scan feature is not supported");
-                            break;
-                        case SCAN_FAILED_INTERNAL_ERROR:
-                            EasyLog.e("Scan failed: internal error");
-                            break;
-                        default:
-                            EasyLog.e("Scan failed with unknown error (errorCode=" + errorCode + ")");
-                            break;
-                    }
-                    if (mLeScanCallback != null) {
-                        mLeScanCallback.onLeScanFailed(errorCode);
-                    }
-                }
-            };
-        }
-        return mScanCallback;
+        return settings;
     }
 }

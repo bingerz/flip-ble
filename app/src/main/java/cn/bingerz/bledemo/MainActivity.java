@@ -239,10 +239,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         mScanRuleConfig = new ScanRuleConfig.Builder()
-                .setScanFilterConfigs(scanFilterConfigs)    // 只扫描指定的设备，可选
+                // 只扫描指定的设备，可选
+                .setScanFilterConfigs(scanFilterConfigs)
                 .setScanMode(ScanRuleConfig.SCAN_MODE_BALANCED)
-                .setScanDuration(6000)                      // 扫描持续时间，可选
-                .setScanInterval(6000)                      // 扫描间隔时间，可选
+                // 扫描持续时间，可选
+                .setScanDuration(6000)
+                // 扫描间隔时间，可选
+                .setScanInterval(6000)
                 .build();
     }
 

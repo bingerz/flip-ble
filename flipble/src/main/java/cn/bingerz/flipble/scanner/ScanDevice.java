@@ -4,6 +4,9 @@ import android.bluetooth.BluetoothDevice;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+/**
+ * @author hanson
+ */
 public class ScanDevice implements Parcelable{
 
     private int mRssi;

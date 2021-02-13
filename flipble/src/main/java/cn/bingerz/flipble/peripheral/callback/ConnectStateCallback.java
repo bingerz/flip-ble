@@ -8,7 +8,7 @@ import cn.bingerz.flipble.peripheral.Peripheral;
 import cn.bingerz.flipble.exception.BLEException;
 
 /**
- * Created by hanson on 09/01/2018.
+ * @author hanson
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public abstract class ConnectStateCallback extends BluetoothGattCallback {

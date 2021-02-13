@@ -10,7 +10,11 @@ import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.scanner.callback.ScanCallback;
 import cn.bingerz.flipble.scanner.lescanner.LeScanner;
 
+/**
+ * @author hanson
+ */
 public abstract class Scanner {
+
     protected LeScanner mLeScanner;
     protected ScanCallback mScanCallback;
     protected ScannerPresenter mScannerPresenter;
@@ -32,27 +36,29 @@ public abstract class Scanner {
                 mScannerPresenter = new CycledScanner.myScannerPresenter();
                 mLeScanner = LeScanner.createScanner(bluetoothAdapter, config, mScannerPresenter);
             }
+        } else {
+            mLeScanner.updateScanRuleConfig(config);
         }
     }
 
     public abstract void initConfig(ScanRuleConfig config);
 
-    public abstract void startScan(final ScanCallback callback);
+    public abstract void startScanner(final ScanCallback callback);
 
-    public abstract void stopScan();
+    public abstract void stopScanner();
 
     protected abstract void notifyScanStarted();
 
     protected abstract void notifyScanStopped();
 
-    protected synchronized void startLeScan() {
+    protected synchronized void startLeScanner() {
         if (mLeScanner != null) {
             mLeScanner.scanLeDevice(true);
         }
         notifyScanStarted();
     }
 
-    protected synchronized void stopLeScan() {
+    protected synchronized void stopLeScanner() {
         if (mLeScanner != null) {
             mLeScanner.scanLeDevice(false);
         }
@@ -60,7 +66,7 @@ public abstract class Scanner {
     }
 
     public boolean isScanning() {
-        return mLeScanner != null && mLeScanner.isScanning();
+        return mLeScanner != null && mLeScanner.isLeScanned();
     }
 
     public final void removeHandlerMsg() {

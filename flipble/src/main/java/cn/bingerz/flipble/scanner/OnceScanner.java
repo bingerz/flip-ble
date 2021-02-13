@@ -5,9 +5,10 @@ import android.os.Build;
 
 import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.scanner.callback.ScanCallback;
+import cn.bingerz.flipble.utils.EasyLog;
 
 /**
- * Created by hanson on 10/01/2018.
+ * @author hanson
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class OnceScanner extends Scanner {
@@ -27,14 +28,14 @@ public class OnceScanner extends Scanner {
     }
 
     @Override
-    public void startScan(final ScanCallback callback) {
+    public void startScanner(final ScanCallback callback) {
         mScanCallback = callback;
-        startLeScan();
+        startLeScanner();
     }
 
     @Override
-    public void stopScan() {
-        stopLeScan();
+    public void stopScanner() {
+        stopLeScanner();
         destroy();
         mScanCallback = null;
     }
@@ -45,7 +46,8 @@ public class OnceScanner extends Scanner {
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    stopScan();
+                    EasyLog.v("OnceScanner schedule stopScan run");
+                    stopScanner();
                 }
             }, mScanDuration);
         }

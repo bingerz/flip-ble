@@ -5,6 +5,9 @@ import java.util.List;
 
 import cn.bingerz.flipble.scanner.ScanDevice;
 
+/**
+ * @author hanson
+ */
 public abstract class ScanCallback {
 
     public abstract void onScanStarted();

@@ -7,6 +7,9 @@ import cn.bingerz.flipble.exception.OtherException;
 import cn.bingerz.flipble.exception.ScanException;
 import cn.bingerz.flipble.exception.TimeoutException;
 
+/**
+ * @author hanson
+ */
 public abstract class BLEExceptionHandler {
 
     public BLEExceptionHandler handleException(BLEException exception) {

@@ -13,10 +13,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import cn.bingerz.flipble.utils.EasyLog;
 import cn.bingerz.flipble.scanner.ScanFilterConfig;
 import cn.bingerz.flipble.scanner.ScanRuleConfig;
+import cn.bingerz.flipble.utils.EasyLog;
 
+/**
+ * @author hanson
+ */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class LeScannerForJellyBeanMr2 extends LeScanner {
 
@@ -27,13 +30,74 @@ public class LeScannerForJellyBeanMr2 extends LeScanner {
     }
 
     @Override
-    protected void startScan() {
-        postStartLeScan(parseServiceUUIDs(mScanRuleConfig));
+    protected void startLeScanner() {
+        postStartLeScan();
     }
 
     @Override
-    protected void stopScan() {
-        postStopLeScan();
+    protected void stopLeScanner() {
+        //TODO Hanson postStopLeScan();
+        stopLeScanHandler();
+    }
+
+    private void postStartLeScan() {
+        postToWorkerThread(true, new Runnable() {
+            @WorkerThread
+            @Override
+            public void run() {
+                startLeScanHandler();
+            }
+        });
+    }
+
+    private void postStopLeScan() {
+        postToWorkerThread(true, new Runnable() {
+            @WorkerThread
+            @Override
+            public void run() {
+                stopLeScanHandler();
+            }
+        });
+    }
+
+    @SuppressLint("MissingPermission")
+    private void startLeScanHandler() {
+        final BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
+        if (bluetoothAdapter == null) {
+            EasyLog.e("StartLeScanHandler fail, BluetoothAdapter is null");
+            return;
+        }
+        final UUID[] serviceUUIds = parseServiceUUIDs(mScanRuleConfig);
+        final BluetoothAdapter.LeScanCallback leScanCallback = getLeScanCallback();
+        try {
+            EasyLog.v("Starting LE scan on scan handler");
+            //noinspection deprecation
+            boolean result = bluetoothAdapter.startLeScan(serviceUUIds, leScanCallback);
+            setScanState(result ? LeScanState.STATE_SCANNED : LeScanState.STATE_IDLE);
+        } catch (Exception e) {
+            EasyLog.e(e, "Internal Android exception in startLeScan()");
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void stopLeScanHandler() {
+        final BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
+        if (bluetoothAdapter == null) {
+            EasyLog.e("StopLeScanHandler fail, BluetoothAdapter is null");
+            return;
+        }
+        try {
+            if (isLeScanned()) {
+                EasyLog.v("Stopping LE scan on scan handler");
+                //noinspection deprecation
+                bluetoothAdapter.stopLeScan(leScanCallback);
+                setScanState(LeScanState.STATE_IDLE);
+            } else {
+                EasyLog.w("LeScanner been Stopped");
+            }
+        } catch (Exception e) {
+            EasyLog.e(e, "Internal Android exception in stopLeScan()");
+        }
     }
 
     private List<ScanFilterConfig> parseScanFilterConfig(ScanRuleConfig config) {
@@ -62,52 +126,10 @@ public class LeScannerForJellyBeanMr2 extends LeScanner {
         return null;
     }
 
-    private void postStartLeScan(final UUID[] serviceUUIds) {
-        final BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
-        if (bluetoothAdapter == null) {
-            return;
-        }
-        final BluetoothAdapter.LeScanCallback leScanCallback = getLeScanCallback();
-        postToWorkerThread(true, new Runnable() {
-            @SuppressLint("MissingPermission")
-            @WorkerThread
-            @Override
-            public void run() {
-                try {
-                    //noinspection deprecation
-                    bluetoothAdapter.startLeScan(serviceUUIds, leScanCallback);
-                } catch (Exception e) {
-                    EasyLog.e(e, "Internal Android exception in startLeScan()");
-                }
-            }
-        });
-    }
-
-    private void postStopLeScan() {
-        final BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
-        if (bluetoothAdapter == null) {
-            return;
-        }
-        final BluetoothAdapter.LeScanCallback leScanCallback = getLeScanCallback();
-        postToWorkerThread(true, new Runnable() {
-            @SuppressLint("MissingPermission")
-            @WorkerThread
-            @Override
-            public void run() {
-                try {
-                    //noinspection deprecation
-                    bluetoothAdapter.stopLeScan(leScanCallback);
-                } catch (Exception e) {
-                    EasyLog.e(e, "Internal Android exception in stopLeScan()");
-                }
-            }
-        });
-    }
-
     @SuppressWarnings({"MissingPermission"})
     private synchronized boolean isNeedDevice(BluetoothDevice device) {
         if (device == null) {
-            EasyLog.e("device is null, device needs to be filtered.");
+            EasyLog.e("Device is null, device needs to be ignored");
             return false;
         }
         List<ScanFilterConfig> filterConfigs = parseScanFilterConfig(mScanRuleConfig);

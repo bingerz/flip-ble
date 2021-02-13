@@ -24,10 +24,8 @@ import cn.bingerz.flipble.exception.OtherException;
 import cn.bingerz.flipble.exception.TimeoutException;
 
 /**
- * Created by hanson on 09/01/2018.
- * be sure main thread
+ * @author hanson
  */
-
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class PeripheralController {
 
@@ -115,7 +113,7 @@ public class PeripheralController {
 
     public PeripheralController(Peripheral peripheral) {
         if (peripheral == null) {
-            throw new IllegalArgumentException("peripheral is null.");
+            throw new IllegalArgumentException("peripheral is null");
         }
         this.mPeripheral = peripheral;
         this.mBluetoothGatt = mPeripheral.getBluetoothGatt();
@@ -163,7 +161,7 @@ public class PeripheralController {
             setCharacteristicNotification(mBluetoothGatt, mCharacteristic, true, notifyCallback);
         } else {
             if (notifyCallback != null) {
-                notifyCallback.onNotifyFailure(new NoSuchPropertyException("This characteristic not support notify!"));
+                notifyCallback.onNotifyFailure(new NoSuchPropertyException("This characteristic not support notify"));
             }
         }
     }
@@ -236,7 +234,7 @@ public class PeripheralController {
             setCharacteristicIndication(mBluetoothGatt, mCharacteristic, true, indicateCallback);
         } else {
             if (indicateCallback != null) {
-                indicateCallback.onIndicateFailure(new NoSuchPropertyException("This characteristic not support indicate!"));
+                indicateCallback.onIndicateFailure(new NoSuchPropertyException("This characteristic not support indicate"));
             }
         }
     }
@@ -314,7 +312,7 @@ public class PeripheralController {
         if (mCharacteristic == null
                 || (mCharacteristic.getProperties() & (BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE)) == 0) {
             if (writeCallback != null) {
-                writeCallback.onWriteFailure(new NoSuchPropertyException("This characteristic not support write!"));
+                writeCallback.onWriteFailure(new NoSuchPropertyException("This characteristic not support write"));
             }
             return;
         }
@@ -360,7 +358,7 @@ public class PeripheralController {
             }
         } else {
             if (readCallback != null) {
-                readCallback.onReadFailure(new NoSuchPropertyException("This characteristic not support read!"));
+                readCallback.onReadFailure(new NoSuchPropertyException("This characteristic not support read"));
             }
         }
     }

@@ -4,9 +4,8 @@ import cn.bingerz.flipble.peripheral.PeripheralController;
 import cn.bingerz.flipble.exception.BLEException;
 
 /**
- * Created by hanson on 09/01/2018.
+ * @author hanson
  */
-
 public abstract class RssiCallback {
 
     public abstract void onRssiFailure(BLEException exception);

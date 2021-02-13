@@ -53,7 +53,7 @@ public class CommandStack {
             PriorityBlockingQueue<Command> queue = getCommandQueue();
             queue.offer(command);
         } else {
-            EasyLog.e("Add command fail, command is invalid. command: %s", command);
+            EasyLog.e("Add fail, command is invalid. cmd=%s", command);
         }
     }
 
@@ -69,10 +69,10 @@ public class CommandStack {
 
     public void printQueue() {
         int size = getCommandQueue().size();
-        EasyLog.i("PrintQueue size= %s", size);
+        EasyLog.i("PrintQueue size=%s", size);
         for (int i = 0; i < size; i++) {
             Command command = poll();
-            EasyLog.i("PrintQueue index= %s command= %s", i, command);
+            EasyLog.i("PrintQueue index=%s cmd=%s", i, command);
         }
     }
 }

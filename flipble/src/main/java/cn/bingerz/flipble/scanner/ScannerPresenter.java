@@ -8,13 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import cn.bingerz.flipble.utils.EasyLog;
 import cn.bingerz.flipble.scanner.lescanner.LeScanCallback;
+import cn.bingerz.flipble.utils.EasyLog;
 
 /**
- * Created by hanson on 10/01/2018.
+ * @author hanson
  */
-
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public abstract class ScannerPresenter implements LeScanCallback {
 
@@ -33,7 +32,7 @@ public abstract class ScannerPresenter implements LeScanCallback {
     @SuppressWarnings({"MissingPermission"})
     private void next(BluetoothDevice device, int rssi, byte[] scanRecord) {
         if (device == null) {
-            EasyLog.d("onLeScan device is null.");
+            EasyLog.e("Scanner:onLeScan next device is null");
             return;
         }
         AtomicBoolean hasFound = new AtomicBoolean(false);
@@ -43,8 +42,8 @@ public abstract class ScannerPresenter implements LeScanCallback {
             }
         }
         if (!hasFound.get()) {
-            EasyLog.i("Device detected: Name: %s  Mac: %s  Rssi: %d "
-                    , device.getName(), device.getAddress(), rssi);
+            EasyLog.i("Device detected Name=%s  Mac=%s  Rssi=%d ",
+                        device.getName(), device.getAddress(), rssi);
             ScanDevice scanDevice = new ScanDevice(device, rssi, scanRecord);
             mScanDevices.add(scanDevice);
             onScanning(scanDevice);

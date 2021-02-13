@@ -19,8 +19,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import cn.bingerz.flipble.peripheral.command.Command;
-import cn.bingerz.flipble.utils.EasyLog;
 import cn.bingerz.flipble.central.CentralManager;
 import cn.bingerz.flipble.exception.ConnectException;
 import cn.bingerz.flipble.exception.GattException;
@@ -32,14 +30,15 @@ import cn.bingerz.flipble.peripheral.callback.NotifyCallback;
 import cn.bingerz.flipble.peripheral.callback.ReadCallback;
 import cn.bingerz.flipble.peripheral.callback.RssiCallback;
 import cn.bingerz.flipble.peripheral.callback.WriteCallback;
+import cn.bingerz.flipble.peripheral.command.Command;
 import cn.bingerz.flipble.scanner.ScanDevice;
 import cn.bingerz.flipble.utils.BLEConnectionCompat;
+import cn.bingerz.flipble.utils.EasyLog;
 import cn.bingerz.flipble.utils.HexUtil;
 
 /**
- * Created by hanson on 09/01/2018.
+ * @author hanson
  */
-
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class Peripheral {
 
@@ -461,10 +460,10 @@ public class Peripheral {
                         new OtherException("When connecting the device, Recommended to stop scanning"));
             }
             if (mConnectState == ConnectionState.CONNECT_CONNECTING) {
-                EasyLog.w("When Connect(true/false) is called, retrying Connect is dangerous");
+                EasyLog.w("When Connect(true/false) is called, retrying Connect(true/false) is dangerous");
                 closeBluetoothGatt();
             }
-            EasyLog.i("connect device:%s mac:%s autoConnect:%s", getName(), getAddress(), autoConnect);
+            EasyLog.i("Connect device=%s mac=%s autoConnect=%s", getName(), getAddress(), autoConnect);
             addConnectionStateCallback(callback);
             setBusyState();
             mBluetoothGatt = connectGatt(autoConnect);
@@ -478,7 +477,7 @@ public class Peripheral {
                 }
                 return true;
             } else {
-                EasyLog.e("connect device fail, bluetoothGatt is null.");
+                EasyLog.e("Connect device fail, BluetoothGatt is null.");
                 resetBusyState();
             }
             return false;
@@ -489,7 +488,7 @@ public class Peripheral {
         BluetoothGatt bluetoothGatt = null;
         BluetoothDevice device = getBluetoothDevice();
         if (device == null) {
-            EasyLog.i("connect device fail, bluetooth device is null.");
+            EasyLog.i("Connect device fail, BluetoothDevice is null.");
             return null;
         }
         BLEConnectionCompat connectionCompat = CentralManager.getInstance().getConnectionCompat();
@@ -750,13 +749,13 @@ public class Peripheral {
         }
 
         if (data == null) {
-            EasyLog.e("data is Null!");
-            callback.onWriteFailure(new OtherException("data is Null !"));
+            EasyLog.e("Write device fail, data is null.");
+            callback.onWriteFailure(new OtherException("write data is null"));
             return;
         }
 
         if (data.length > 20) {
-            EasyLog.w("data's length beyond 20!");
+            EasyLog.w("Write device warning, data length > 20.");
         }
         PeripheralController controller = newPeripheralController();
         if (controller != null) {
@@ -774,17 +773,17 @@ public class Peripheral {
         if (command == null || !command.isValid() ||
                 command.getMethod() != Command.Method.WRITE ||
                 !(command.getCallback() != null && command.getCallback() instanceof WriteCallback)) {
-            throw new IllegalArgumentException("BleWrite Command is invalid!");
+            throw new IllegalArgumentException("BleWrite Command is invalid");
         }
 
         WriteCallback callback = (WriteCallback) command.getCallback();
         if (command.getData() == null) {
-            EasyLog.e("data is Null!");
-            callback.onWriteFailure(new OtherException("data is Null !"));
+            EasyLog.e("Write device fail, data is null.");
+            callback.onWriteFailure(new OtherException("write data is null"));
             return;
         }
         if (command.getData().length > 20) {
-            EasyLog.w("data's length beyond 20!");
+            EasyLog.w("Write device warning, data length > 20.");
         }
         if (CentralManager.getInstance().getMultiplePeripheralController().isContainBusyDevice()) {
             CentralManager.getInstance().getMultiplePeripheralController().cacheCommand(command);
@@ -805,7 +804,7 @@ public class Peripheral {
      */
     public void read(String serviceUUID, String readUUID, ReadCallback callback) {
         if (callback == null) {
-            throw new IllegalArgumentException("BleReadCallback can not be Null!");
+            throw new IllegalArgumentException("BleReadCallback is null");
         }
 
         PeripheralController controller = newPeripheralController();
@@ -824,7 +823,7 @@ public class Peripheral {
         if (command == null || !command.isValid() ||
                 command.getMethod() != Command.Method.READ ||
                 !(command.getCallback() != null && command.getCallback() instanceof ReadCallback)) {
-            throw new IllegalArgumentException("BleRead Command is invalid!");
+            throw new IllegalArgumentException("BleRead Command is invalid");
         }
 
         ReadCallback callback = (ReadCallback) command.getCallback();
@@ -847,7 +846,7 @@ public class Peripheral {
      */
     public void readRssi(RssiCallback callback) {
         if (callback == null) {
-            throw new IllegalArgumentException("BleRssiCallback can not be Null!");
+            throw new IllegalArgumentException("BleRssiCallback is null");
         }
         PeripheralController controller = newPeripheralController();
         if (controller != null) {
@@ -864,7 +863,7 @@ public class Peripheral {
         if (command == null || !command.isValid() ||
                 command.getMethod() != Command.Method.READ_RSSI ||
                 !(command.getCallback() != null && command.getCallback() instanceof RssiCallback)) {
-            throw new IllegalArgumentException("BleReadRssi Command is invalid!");
+            throw new IllegalArgumentException("BleReadRssi Command is invalid");
         }
 
         RssiCallback callback = (RssiCallback) command.getCallback();
@@ -881,18 +880,18 @@ public class Peripheral {
      */
     public void setMtu(int mtu, MtuChangedCallback callback) {
         if (callback == null) {
-            throw new IllegalArgumentException("BleMtuChangedCallback can not be Null!");
+            throw new IllegalArgumentException("BleMtuChangedCallback is null");
         }
 
         if (mtu > DEFAULT_MAX_MTU) {
-            EasyLog.e("requiredMtu should lower than 512 !");
-            callback.onSetMTUFailure(new OtherException("requiredMtu should lower than 512 !"));
+            EasyLog.e("SetMtu should lower than 512");
+            callback.onSetMTUFailure(new OtherException("SetMtu should lower than 512"));
             return;
         }
 
         if (mtu < DEFAULT_MTU) {
-            EasyLog.e("requiredMtu should higher than 23 !");
-            callback.onSetMTUFailure(new OtherException("requiredMtu should higher than 23 !"));
+            EasyLog.e("SetMtu should higher than 23");
+            callback.onSetMTUFailure(new OtherException("SetMtu should higher than 23"));
             return;
         }
 
@@ -911,13 +910,13 @@ public class Peripheral {
         if (command == null || !command.isValid() ||
                 command.getMethod() != Command.Method.SET_MTU ||
                 !(command.getCallback() != null && command.getCallback() instanceof MtuChangedCallback)) {
-            throw new IllegalArgumentException("BleSetMtu Command is invalid!");
+            throw new IllegalArgumentException("BleSetMtu Command is invalid");
         }
 
         MtuChangedCallback callback = (MtuChangedCallback) command.getCallback();
         if (command.getData() == null) {
-            EasyLog.e("data is Null!");
-            callback.onSetMTUFailure(new OtherException("data is Null !"));
+            EasyLog.e("Set device mtu fail, data is null");
+            callback.onSetMTUFailure(new OtherException("SetMtu data is null"));
             return;
         }
         if (CentralManager.getInstance().getMultiplePeripheralController().isContainBusyDevice()) {
@@ -928,24 +927,26 @@ public class Peripheral {
         }
     }
 
-    private void printCharacteristic(BluetoothGattCharacteristic characteristic) {
-        if (characteristic == null) {
+    private void printCharacteristic(String tag, BluetoothGattCharacteristic charact, String status) {
+        if (charact == null) {
             return;
         }
         String uuid, value;
-        uuid = characteristic.getUuid() != null ? characteristic.getUuid().toString() : "null";
-        value = characteristic.getValue() != null ? HexUtil.encodeHexStr(characteristic.getValue()) : "null";
-        EasyLog.d("Characteristic uuid：%s  value: %s", uuid, value);
+        uuid = charact.getUuid() != null ? charact.getUuid().toString() : "null";
+        value = charact.getValue() != null ? HexUtil.encodeHexStr(charact.getValue()) : "null";
+        EasyLog.v("%s uuid=%s  value=%s  status=%s  currentThread=%d",
+                    tag, uuid, value, status, Thread.currentThread().getId());
     }
 
-    private void printDescriptor(BluetoothGattDescriptor descriptor) {
+    private void printDescriptor(String tag, BluetoothGattDescriptor descriptor, String status) {
         if (descriptor == null) {
             return;
         }
         String uuid, value;
         uuid = descriptor.getUuid() != null ? descriptor.getUuid().toString() : "null";
         value = descriptor.getValue() != null ? HexUtil.encodeHexStr(descriptor.getValue()) : "null";
-        EasyLog.d("Descriptor uuid：%s  value: %s", uuid, value);
+        EasyLog.v("%s uuid=%s  value=%s  status=%s  currentThread=%d",
+                    tag, uuid, value, status, Thread.currentThread().getId());
     }
 
     private void handleConnectRetry(final int status) {
@@ -966,7 +967,7 @@ public class Peripheral {
             mConnectRetryCount = 0;
         } else {
             String address = mBluetoothGatt.getDevice().getAddress();
-            EasyLog.i("Retry connect device mac:%s status:%d", address, status);
+            EasyLog.i("Retry connect device mac=%s status=%d", address, status);
             mConnectRetryCount--;
         }
     }
@@ -1021,8 +1022,8 @@ public class Peripheral {
              * 0x101(257): no connection to cancel
              */
             super.onConnectionStateChange(gatt, status, newState);
-            EasyLog.i("GattCallback：Connection State Change\nstatus: %d  newState: %d  currentThread: %d",
-                    status, newState, Thread.currentThread().getId());
+            EasyLog.i("GattCallback：ConnectionStateChange status=%d  newState=%d  currentThread=%d",
+                        status, newState, Thread.currentThread().getId());
 
             if (newState == BluetoothGatt.STATE_CONNECTED) {
                 mBluetoothGatt = gatt;
@@ -1046,8 +1047,8 @@ public class Peripheral {
         @Override
         public void onServicesDiscovered(final BluetoothGatt gatt, final int status) {
             super.onServicesDiscovered(gatt, status);
-            EasyLog.i("GattCallback：services discovered\nstatus: %d  currentThread: %d",
-                    status, Thread.currentThread().getId());
+            EasyLog.i("GattCallback：ServicesDiscovered status=%d  currentThread=%d",
+                        status, Thread.currentThread().getId());
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_BALANCED);
@@ -1075,8 +1076,7 @@ public class Peripheral {
         @Override
         public void onCharacteristicChanged(final BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
-            EasyLog.i("GattCallback：onCharacteristicChanged ");
-            printCharacteristic(characteristic);
+            printCharacteristic("GattCallback：onCharacteristicChanged", characteristic, "null");
 
             final NotifyCallback notifyCallback = findNotifyCallback(characteristic.getUuid().toString());
             getMainHandler().post(new Runnable() {
@@ -1102,8 +1102,7 @@ public class Peripheral {
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, final int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
-            EasyLog.i("GattCallback：onCharacteristicWrite ");
-            printCharacteristic(characteristic);
+            printCharacteristic("GattCallback：onCharacteristicWrite", characteristic, status + "");
 
             final WriteCallback writeCallback = findWriteCallback(characteristic.getUuid().toString());
             if (writeCallback != null) {
@@ -1116,8 +1115,7 @@ public class Peripheral {
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic, final int status) {
             super.onCharacteristicRead(gatt, characteristic, status);
-            EasyLog.i("GattCallback：onCharacteristicRead ");
-            printCharacteristic(characteristic);
+            printCharacteristic("GattCallback：onCharacteristicRead", characteristic, status + "");
 
             final ReadCallback readCallback = findReadCallback(characteristic.getUuid().toString());
             if (readCallback != null) {
@@ -1139,8 +1137,7 @@ public class Peripheral {
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, final int status) {
             super.onDescriptorWrite(gatt, descriptor, status);
-            EasyLog.i("GattCallback：onDescriptorWrite ");
-            printDescriptor(descriptor);
+            printDescriptor("GattCallback：onDescriptorWrite", descriptor, status + "");
 
             String uuid = descriptor.getCharacteristic().getUuid().toString();
             final NotifyCallback notifyCallback = findNotifyCallback(uuid);
@@ -1162,14 +1159,13 @@ public class Peripheral {
         @Override
         public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             super.onDescriptorRead(gatt, descriptor, status);
-            EasyLog.i("GattCallback：onDescriptorRead ");
-            printDescriptor(descriptor);
+            printDescriptor("GattCallback：onDescriptorRead", descriptor, status + "");
         }
 
         @Override
         public void onReadRemoteRssi(BluetoothGatt gatt, final int rssi, final int status) {
             super.onReadRemoteRssi(gatt, rssi, status);
-            EasyLog.i("GattCallback：onReadRemoteRssi value: %d  status: %d", rssi, status);
+            EasyLog.v("GattCallback：onReadRemoteRssi value=%d  status=%d", rssi, status);
             if (mRssiCallback != null) {
                 resetBusyState();
                 mRssiCallback.getPeripheralConnector().rssiMsgInit();
@@ -1180,7 +1176,7 @@ public class Peripheral {
         @Override
         public void onMtuChanged(BluetoothGatt gatt, final int mtu, final int status) {
             super.onMtuChanged(gatt, mtu, status);
-            EasyLog.i("GattCallback：onMtuChanged value: %d  status: %d", mtu, status);
+            EasyLog.v("GattCallback：onMtuChanged value=%d  status=%d", mtu, status);
             if (mMtuChangedCallback != null) {
                 resetBusyState();
                 mMtuChangedCallback.getPeripheralConnector().mtuChangedMsgInit();

@@ -13,12 +13,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import cn.bingerz.flipble.utils.EasyLog;
-
-import static android.bluetooth.BluetoothDevice.TRANSPORT_LE;
-
+/**
+ * @author hanson
+ */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class BLEConnectionCompat {
+
     private final Context context;
 
     public BLEConnectionCompat(Context context) {
@@ -78,7 +78,7 @@ public class BLEConnectionCompat {
                 | InvocationTargetException
                 | InstantiationException
                 | NoSuchFieldException exception) {
-            EasyLog.w(exception, "Error during reflection");
+            EasyLog.w("Error during reflection", exception);
             return connectGattCompat(bluetoothGattCallback, remoteDevice, true);
         }
     }
@@ -87,7 +87,7 @@ public class BLEConnectionCompat {
         EasyLog.v("Connecting without reflection");
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return device.connectGatt(context, autoConnect, bluetoothGattCallback, TRANSPORT_LE);
+            return device.connectGatt(context, autoConnect, bluetoothGattCallback, BluetoothDevice.TRANSPORT_LE);
         } else {
             return device.connectGatt(context, autoConnect, bluetoothGattCallback);
         }
@@ -107,10 +107,10 @@ public class BLEConnectionCompat {
             throws IllegalAccessException, InvocationTargetException, InstantiationException {
         Constructor bluetoothGattConstructor = BluetoothGatt.class.getDeclaredConstructors()[0];
         bluetoothGattConstructor.setAccessible(true);
-        EasyLog.v("Found constructor with args count = " + bluetoothGattConstructor.getParameterTypes().length);
+        EasyLog.v("Found constructor with args count=%d", bluetoothGattConstructor.getParameterTypes().length);
 
         if (bluetoothGattConstructor.getParameterTypes().length == 4) {
-            return (BluetoothGatt) (bluetoothGattConstructor.newInstance(context, iBluetoothGatt, remoteDevice, TRANSPORT_LE));
+            return (BluetoothGatt) (bluetoothGattConstructor.newInstance(context, iBluetoothGatt, remoteDevice, BluetoothDevice.TRANSPORT_LE));
         } else {
             return (BluetoothGatt) (bluetoothGattConstructor.newInstance(context, iBluetoothGatt, remoteDevice));
         }

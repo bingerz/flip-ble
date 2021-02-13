@@ -4,6 +4,9 @@ package cn.bingerz.flipble.scanner;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author hanson
+ */
 public class ScanRuleConfig {
 
     public static final int SCAN_MODE_LOW_POWER = 0;

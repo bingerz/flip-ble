@@ -4,9 +4,8 @@ import cn.bingerz.flipble.exception.BLEException;
 import cn.bingerz.flipble.peripheral.PeripheralController;
 
 /**
- * Created by hanson on 09/01/2018.
+ * @author hanson
  */
-
 public abstract class NotifyCallback {
 
     public abstract void onNotifySuccess();

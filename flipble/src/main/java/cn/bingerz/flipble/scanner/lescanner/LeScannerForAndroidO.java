@@ -6,6 +6,9 @@ import android.os.Build;
 
 import cn.bingerz.flipble.scanner.ScanRuleConfig;
 
+/**
+ * @author hanson
+ */
 @TargetApi(Build.VERSION_CODES.O)
 public class LeScannerForAndroidO extends LeScannerForLollipop {
 

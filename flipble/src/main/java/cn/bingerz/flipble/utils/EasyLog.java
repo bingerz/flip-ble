@@ -8,9 +8,6 @@ import java.io.StringWriter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by hanson on 2018/3/2.
- */
 
 public final class EasyLog {
 
@@ -193,7 +190,7 @@ public final class EasyLog {
         StackTraceElement[] stackTrace = new Throwable().getStackTrace();
         if (stackTrace.length <= CALL_STACK_INDEX) {
             throw new IllegalStateException(
-                    "Synthetic stacktrace didn't have enough elements: are you using proguard?");
+                    "Synthetic stacktrace didn't have enough elements, Are you using proguard?");
         }
         return stackTrace[CALL_STACK_INDEX];
     }

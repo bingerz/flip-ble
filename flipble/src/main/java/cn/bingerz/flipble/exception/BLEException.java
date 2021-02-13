@@ -2,7 +2,9 @@ package cn.bingerz.flipble.exception;
 
 import java.io.Serializable;
 
-
+/**
+ * @author hanson
+ */
 public abstract class BLEException implements Serializable {
     private static final long serialVersionUID = 8004414918500865564L;
 

@@ -1,9 +1,8 @@
 package cn.bingerz.flipble.peripheral;
 
 /**
- * Created by hanson on 09/01/2018.
+ * @author hanson
  */
-
 public enum ConnectionState {
 
     CONNECT_IDLE(0x00),

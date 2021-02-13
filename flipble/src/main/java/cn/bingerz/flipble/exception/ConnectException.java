@@ -1,5 +1,8 @@
 package cn.bingerz.flipble.exception;
 
+/**
+ * @author hanson
+ */
 public class ConnectException extends BLEException {
 
     private int status;

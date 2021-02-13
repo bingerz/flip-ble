@@ -1,5 +1,8 @@
 package cn.bingerz.flipble.scanner;
 
+/**
+ * @author hanson
+ */
 public class ScanFilterConfig {
 
     private String mServiceUUID = null;
