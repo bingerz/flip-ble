@@ -2,7 +2,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/cn.bingerz.android/flipble.svg)](https://search.maven.org/artifact/cn.bingerz.android/flipble)
 [![Download](https://api.bintray.com/packages/bingerz/maven/flip-ble/images/download.svg)](https://bintray.com/bingerz/maven/flip-ble)
 
-A stable and simple Bluetooth development framework for the Android platform.
+An easy-to-use Bluetooth development framework for the Android platform.
 
 ## About FlipBLE
 This framework is already in production. After several iterations, it has been relatively stable 
