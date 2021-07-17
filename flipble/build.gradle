@@ -1,8 +1,7 @@
 apply plugin: 'com.android.library'
-//Gradle Bintray Plugin
-apply plugin: 'com.jfrog.bintray'
-//Gradle Android Maven plugin
-apply plugin: 'com.github.dcendents.android-maven'
+//Gradle Maven Publish Plugin
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
 
 android {
     compileSdkVersion build_versions.target_sdk
@@ -11,8 +10,8 @@ android {
     defaultConfig {
         minSdkVersion build_versions.min_sdk
         targetSdkVersion build_versions.target_sdk
-        versionCode 37
-        versionName version
+        versionCode 38
+        versionName versionName
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -49,94 +48,76 @@ dependencies {
 
 }
 
-version = "0.6.1"
-group = "cn.bingerz.android"
+//Gradle Maven Publish Plugin Script Configuration
+//Run Script: ./gradlew publish
+
+def versionName = "0.6.2"
+def groupName = "cn.bingerz.android"
+def artifactName = "flipble"
 def siteUrl = 'https://github.com/bingerz/flip-ble'
 def gitUrl = 'https://github.com/bingerz/flip-ble.git'
+def repositorySnapshotUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+def repositoryReleaseUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 
-install {
-    repositories.mavenInstaller {
-        // This generates POM.xml with proper parameters
-        pom {
-            project {
-                name 'FlipBLE'
-                packaging 'aar'
-                description 'A stable, easy-to-use framework developed based on the Android Bluetooth Low Energy API.'
-                url siteUrl
-                licenses {
-                    license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+task generateSourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier 'sources'
+}
+
+signing {
+    sign publishing.publications
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = groupName
+                artifactId = artifactName
+                version = versionName
+                // 上传source，这样使用放可以看到方法注释
+                artifact generateSourcesJar
+
+                pom {
+                    name = 'FlipBLE'
+                    description = 'A stable, easy-to-use framework developed based on the Android Bluetooth Low Energy API.'
+                    url = siteUrl
+                    licenses {
+                        license {
+                            name = 'The Apache Software License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
                     }
-                }
-
-                developers {
-                    developer {
-                        id 'bingerz'
-                        name 'bingerz'
-                        email 'hanbing0604@gmail.com'
+                    developers {
+                        developer {
+                            id = findProperty("developer.id")
+                            name = findProperty("developer.name")
+                            email = findProperty("developer.email")
+                        }
                     }
-                }
-
-                scm {
-                    connection gitUrl
-                    developerConnection gitUrl
-                    url siteUrl
+                    scm {
+                        connection = gitUrl
+                        developerConnection = gitUrl
+                        url = siteUrl
+                    }
                 }
             }
         }
-    }
-}
 
-
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
-}
-
-
-task javadoc(type: Javadoc) {
-    options.encoding = "UTF-8"
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-javadoc {
-    options {
-        encoding "UTF-8"
-        charSet 'UTF-8'
-        author true
-        version true
-        links "http://docs.oracle.com/javase/7/docs/api"
-        title 'A Library of FlipBLE'   // 文档标题
-    }
-}
-
-artifacts {
-    archives javadocJar
-    archives sourcesJar
-}
-
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
-bintray {
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
-    configurations = ['archives']
-    pkg {
-        userOrg = "bingerz"
-        repo = "maven"
-        name = "flip-ble"
-        websiteUrl = siteUrl
-        vcsUrl = gitUrl
-        licenses = ["Apache-2.0"]
-        publish = true
+        repositories {
+            // 定义一个 maven 仓库
+            maven {
+                // 可以有且仅有一个仓库不指定 name 属性，会隐式设置为 Maven
+                name = "release"
+                // 根据 versionName 来判断仓库地址
+                url = versionName.endsWith('SNAPSHOT') ? repositorySnapshotUrl : repositoryReleaseUrl
+                // 仓库用户名密码
+                credentials {
+                    username = findProperty("sonatype.username")
+                    password = findProperty("sonatype.password")
+                }
+            }
+        }
     }
 }
