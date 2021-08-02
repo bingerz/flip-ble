@@ -30,13 +30,13 @@ ext.build_versions = build_versions
 
 def versions = [:]
 versions.support = "28.0.0"
-versions.constraint_layout = "1.1.3"
+versions.constraint_layout = "2.0.4"
 
 versions.junit = '4.13.2'
 versions.mockito = '2.20.0'
 versions.hamcrest = '1.3'
 versions.powerMockito = '1.7.4'
-versions.runner = '1.0.2'
 versions.rules = '1.0.2'
+versions.runner = '1.0.2'
 versions.espresso = '3.0.2'
 ext.versions = versions

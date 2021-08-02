@@ -311,6 +311,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mScanDeviceAdapter.addDevice(mPeripheral.getDevice());
             mScanDeviceAdapter.notifyDataSetChanged();
 
+            mPeripheral.requestConnectionPriorityBalanced();
+
             readRssi(mPeripheral);
             setMtu(mPeripheral, 23);
         }
@@ -330,6 +332,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void connect(Peripheral peripheral) {
         boolean isAutoConnect = swAuto.isChecked();
+        peripheral.setDiscoverWithHighPriority(true);
         peripheral.connect(isAutoConnect, mConnectStateCallback);
     }
 

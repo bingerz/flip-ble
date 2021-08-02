@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
 
 import java.nio.ByteBuffer;
@@ -65,6 +66,9 @@ public class Peripheral {
 
     private ConnectionState mConnectState = ConnectionState.CONNECT_IDLE;
 
+    //Bluetooth performance optimization configuration
+    private boolean isDiscoverWithHighConnectionPriority;
+
     //Client actively performs the disconnect method
     private boolean isActivityDisconnect = false;
 
@@ -107,10 +111,11 @@ public class Peripheral {
                     }
                     break;
                 case MSG_DISCOVER_SERVICE:
-                    BluetoothGatt gatt = (BluetoothGatt) msg.obj;
-                    if (gatt != null) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+                    Peripheral peripheral = (Peripheral) msg.obj;
+                    if (peripheral != null && peripheral.getBluetoothGatt() != null) {
+                        BluetoothGatt gatt = peripheral.getBluetoothGatt();
+                        if (peripheral.isDiscoverWithHighPriority()) {
+                            peripheral.requestConnectionPriorityHigh();
                         }
                         gatt.discoverServices();
                     }
@@ -118,7 +123,7 @@ public class Peripheral {
                     break;
                 case MSG_CONNECT_SUCCESS:
                     status = msg.arg1;
-                    Peripheral peripheral = (Peripheral) msg.obj;
+                    peripheral = (Peripheral) msg.obj;
                     peripheral.handleConnectSuccess(status);
                     msg.obj = null;
                     break;
@@ -204,14 +209,55 @@ public class Peripheral {
 
     public Peripheral(BluetoothDevice device) {
         this.mDevice = new ScanDevice(device, 0, null);
+        initDefaultConfiguration();
     }
 
     public Peripheral(ScanDevice device) {
         this.mDevice = device;
+        initDefaultConfiguration();
     }
 
     public PeripheralController newPeripheralController() {
         return new PeripheralController(this);
+    }
+
+    /**
+     * Bluetooth performance optimization configuration
+     */
+    private void initDefaultConfiguration() {
+        isDiscoverWithHighConnectionPriority = false;
+    }
+
+    public boolean isDiscoverWithHighPriority() {
+        return isDiscoverWithHighConnectionPriority;
+    }
+
+    public void setDiscoverWithHighPriority(boolean isHighPriority) {
+        isDiscoverWithHighConnectionPriority = isHighPriority;
+    }
+
+    private boolean isSupportRequestPriority() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private boolean requestConnectionPriority(BluetoothGatt bluetoothGatt, int connectionPriority) {
+        return bluetoothGatt != null && bluetoothGatt.requestConnectionPriority(connectionPriority);
+    }
+
+    public boolean requestConnectionPriorityHigh() {
+        BluetoothGatt gatt = getBluetoothGatt();
+        return isSupportRequestPriority() && requestConnectionPriority(gatt, BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+    }
+
+    public boolean requestConnectionPriorityBalanced() {
+        BluetoothGatt gatt = getBluetoothGatt();
+         return isSupportRequestPriority() && requestConnectionPriority(gatt, BluetoothGatt.CONNECTION_PRIORITY_BALANCED);
+    }
+
+    public boolean requestConnectionPriorityLow() {
+        BluetoothGatt gatt = getBluetoothGatt();
+        return isSupportRequestPriority() && requestConnectionPriority(gatt, BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER);
     }
 
     private Handler getMainHandler() {
@@ -972,8 +1018,8 @@ public class Peripheral {
         }
     }
 
-    private void sendDiscoverServiceMsg(BluetoothGatt gatt) {
-        sendMsgDelayedToMainH(MSG_DISCOVER_SERVICE, 0, 0, gatt, DEFAULT_DELAY_DISCOVER_SERVICE);
+    private void sendDiscoverServiceMsg() {
+        sendMsgDelayedToMainH(MSG_DISCOVER_SERVICE, 0, 0, Peripheral.this, DEFAULT_DELAY_DISCOVER_SERVICE);
     }
 
     private void discoverServiceMsgInit() {
@@ -1027,7 +1073,7 @@ public class Peripheral {
 
             if (newState == BluetoothGatt.STATE_CONNECTED) {
                 mBluetoothGatt = gatt;
-                sendDiscoverServiceMsg(gatt);
+                sendDiscoverServiceMsg();
             } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
                 if (gatt != null) {
                     gatt.close();
@@ -1050,9 +1096,6 @@ public class Peripheral {
             EasyLog.i("GattCallback：ServicesDiscovered status=%d  currentThread=%d",
                         status, Thread.currentThread().getId());
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_BALANCED);
-            }
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 mBluetoothGatt = gatt;
                 ConnectionState prevState = mConnectState;
