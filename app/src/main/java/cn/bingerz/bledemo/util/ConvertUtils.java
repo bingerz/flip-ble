@@ -2,6 +2,9 @@ package cn.bingerz.bledemo.util;
 
 import android.util.SparseArray;
 
+/**
+ * @author hanson
+ */
 public class ConvertUtils {
 
     //解析product值

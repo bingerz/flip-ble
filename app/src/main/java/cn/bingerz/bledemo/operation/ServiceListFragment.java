@@ -1,27 +1,26 @@
 package cn.bingerz.bledemo.operation;
 
 import android.annotation.TargetApi;
-import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattService;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import cn.bingerz.bledemo.R;
 import cn.bingerz.flipble.peripheral.Peripheral;
+import cn.bingerz.flipble.utils.BluetoothGattCompat;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class ServiceListFragment extends Fragment {
@@ -51,13 +50,13 @@ public class ServiceListFragment extends Fragment {
         Peripheral peripheral = ((OperationActivity) getActivity()).getPeripheral();
         String name = peripheral.getName();
         String mac = peripheral.getAddress();
-        BluetoothGatt gatt = peripheral.getBluetoothGatt();
+        BluetoothGattCompat gattCompat = peripheral.getBluetoothGattCompat();
 
         tvName.setText(String.valueOf(getActivity().getString(R.string.name) + name));
         tvMacAddress.setText(String.valueOf(getActivity().getString(R.string.mac) + mac));
 
         mResultAdapter.clear();
-        for (BluetoothGattService service : gatt.getServices()) {
+        for (BluetoothGattService service : gattCompat.getServices()) {
             mResultAdapter.addResult(service);
         }
         mResultAdapter.notifyDataSetChanged();

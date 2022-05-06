@@ -8,7 +8,9 @@ import java.io.StringWriter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
+/**
+ * @author hanson
+ */
 public final class EasyLog {
 
     private static final int MAX_LOG_LENGTH = 4000;

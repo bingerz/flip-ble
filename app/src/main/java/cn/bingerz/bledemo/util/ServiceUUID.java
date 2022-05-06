@@ -3,6 +3,9 @@ package cn.bingerz.bledemo.util;
 
 import android.text.TextUtils;
 
+/**
+ * @author hanson
+ */
 public class ServiceUUID {
 
     /**

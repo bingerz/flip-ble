@@ -12,15 +12,6 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
-import android.support.test.espresso.IdlingResource;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -34,6 +25,14 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.test.espresso.IdlingResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,13 +51,17 @@ import cn.bingerz.flipble.peripheral.callback.MtuChangedCallback;
 import cn.bingerz.flipble.peripheral.callback.RssiCallback;
 import cn.bingerz.flipble.scanner.ScanRuleConfig;
 import cn.bingerz.flipble.scanner.callback.ScanCallback;
+import cn.bingerz.flipble.utils.GeneralUtil;
 
-
+/**
+ * @author hanson
+ */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_CODE_OPEN_GPS = 1;
-    private static final int REQUEST_CODE_PERMISSION_LOCATION = 2;
+    private static final int REQUEST_CODE_PERMISSION_BLUETOOTH = 2;
+    private static final int REQUEST_CODE_PERMISSION_LOCATION = 3;
 
     private LinearLayout llSetting;
     private TextView tvSetting;
@@ -364,51 +367,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    @Override
-    public final void onRequestPermissionsResult(int requestCode,
-                                                 @NonNull String[] permissions,
-                                                 @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case REQUEST_CODE_PERMISSION_LOCATION:
-                if (grantResults.length > 0) {
-                    for (int i = 0; i < grantResults.length; i++) {
-                        if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                            onPermissionGranted(permissions[i]);
-                        }
-                    }
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
     private void checkPermissions() {
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (!bluetoothAdapter.isEnabled()) {
             Toast.makeText(this, getString(R.string.please_open_blue), Toast.LENGTH_LONG).show();
             return;
         }
-
-        String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
-        List<String> permissionDeniedList = new ArrayList<>();
-        for (String permission : permissions) {
-            int permissionCheck = ContextCompat.checkSelfPermission(this, permission);
-            if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-                onPermissionGranted(permission);
-            } else {
-                permissionDeniedList.add(permission);
-            }
-        }
-        if (!permissionDeniedList.isEmpty()) {
-            String[] deniedPermissions = permissionDeniedList.toArray(new String[permissionDeniedList.size()]);
-            ActivityCompat.requestPermissions(this, deniedPermissions, REQUEST_CODE_PERMISSION_LOCATION);
+        if (GeneralUtil.isNeedBluetoothGrant() && !GeneralUtil.isBluetoothGranted(this)) {
+            String[] permissions = new String[]{Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT};
+            ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_PERMISSION_BLUETOOTH);
+        } else if (GeneralUtil.isNeedLocationGrant() && !GeneralUtil.isLocationGranted(this)) {
+            String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
+            ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_PERMISSION_LOCATION);
         }
     }
 
     private void onPermissionGranted(String permission) {
         switch (permission) {
+            case Manifest.permission.BLUETOOTH_SCAN:
+            case Manifest.permission.BLUETOOTH_CONNECT:
+                break;
             case Manifest.permission.ACCESS_FINE_LOCATION:
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !checkGPSIsOpen()) {
                     new AlertDialog.Builder(this)
@@ -455,6 +433,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 setScanRule();
                 startScan();
             }
+        }
+    }
+
+    @Override
+    public final void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case REQUEST_CODE_PERMISSION_BLUETOOTH:
+                checkPermissions();
+            case REQUEST_CODE_PERMISSION_LOCATION:
+                if (grantResults.length > 0) {
+                    for (int i = 0; i < grantResults.length; i++) {
+                        if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                            onPermissionGranted(permissions[i]);
+                        }
+                    }
+                }
+                break;
+            default:
+                break;
         }
     }
 

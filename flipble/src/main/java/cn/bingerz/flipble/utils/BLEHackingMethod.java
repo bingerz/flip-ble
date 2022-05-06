@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
+ * @author hanson
  * Reference:https://blog.csdn.net/u014418171/article/details/81219297
  */
 public class BLEHackingMethod {

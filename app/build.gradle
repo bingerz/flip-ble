@@ -22,9 +22,10 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "com.android.support:appcompat-v7:$versions.support"
-    implementation "com.android.support:recyclerview-v7:$versions.support"
-    implementation "com.android.support.constraint:constraint-layout:$versions.constraint_layout"
+    implementation project(':flipble')
+    implementation "androidx.appcompat:appcompat:$versions.appcompat"
+    implementation "androidx.recyclerview:recyclerview:$versions.recyclerview"
+    implementation "androidx.constraintlayout:constraintlayout:$versions.constraint_layout"
     implementation "com.android.support.test.espresso:espresso-idling-resource:$versions.espresso"
 
     // Dependencies for local unit tests
@@ -42,6 +43,4 @@ dependencies {
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$versions.espresso"
     androidTestImplementation "com.android.support.test.espresso:espresso-contrib:$versions.espresso"
     androidTestImplementation "com.android.support.test.espresso:espresso-intents:$versions.espresso"
-
-    implementation project(':flipble')
 }

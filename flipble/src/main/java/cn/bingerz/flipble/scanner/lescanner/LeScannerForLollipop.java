@@ -1,6 +1,5 @@
 package cn.bingerz.flipble.scanner.lescanner;
 
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.BluetoothLeScanner;
@@ -10,8 +9,9 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.os.Build;
 import android.os.ParcelUuid;
-import android.support.annotation.WorkerThread;
 import android.text.TextUtils;
+
+import androidx.annotation.WorkerThread;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +64,6 @@ public class LeScannerForLollipop extends LeScanner {
         });
     }
 
-    @SuppressLint("MissingPermission")
     private void startLeScanHandler() {
         final BluetoothLeScanner scanner = getScanner();
         final List<ScanFilter> filters = parseFilters(mScanRuleConfig);
@@ -85,11 +84,10 @@ public class LeScannerForLollipop extends LeScanner {
             EasyLog.e(e, "Cannot start scan. Unexpected NPE.");
         } catch (SecurityException e) {
             // Thrown by Samsung Knox devices if bluetooth access denied for an app
-            EasyLog.e(e, "Cannot start scan. Security Exception");
+            EasyLog.e(e, "Cannot start scan. Security Exception, Need BLUETOOTH_SCAN permission.");
         }
     }
 
-    @SuppressLint("MissingPermission")
     private void stopLeScanHandler() {
         final BluetoothLeScanner scanner = getScanner();
         if (scanner == null) {
@@ -112,7 +110,7 @@ public class LeScannerForLollipop extends LeScanner {
             EasyLog.e(e, "Cannot stop scan. Unexpected NPE.");
         } catch (SecurityException e) {
             // Thrown by Samsung Knox devices if bluetooth access denied for an app
-            EasyLog.e(e, "Cannot stop scan. Security Exception");
+            EasyLog.e(e, "Cannot stop scan. Security Exception, Need BLUETOOTH_SCAN permission.");
         }
     }
 
@@ -139,7 +137,7 @@ public class LeScannerForLollipop extends LeScanner {
             mScanCallback = new ScanCallback() {
                 @Override
                 public void onScanResult(int callbackType, ScanResult scanResult) {
-                    if (mLeScanCallback != null) {
+                    if (mLeScanCallback != null && scanResult.getScanRecord() != null) {
                         mLeScanCallback.onLeScan(scanResult.getDevice(),
                                 scanResult.getRssi(), scanResult.getScanRecord().getBytes());
                     }
@@ -150,7 +148,7 @@ public class LeScannerForLollipop extends LeScanner {
                     for (ScanResult scanResult : results) {
                         EasyLog.d("Scanned device=%s  rssi=%d",
                                     scanResult.getDevice().getAddress(), scanResult.getRssi());
-                        if (mLeScanCallback != null) {
+                        if (mLeScanCallback != null && scanResult.getScanRecord() != null) {
                             mLeScanCallback.onLeScan(scanResult.getDevice(),
                                     scanResult.getRssi(), scanResult.getScanRecord().getBytes());
                         }

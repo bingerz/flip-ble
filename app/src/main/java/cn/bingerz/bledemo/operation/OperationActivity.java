@@ -6,17 +6,18 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,7 @@ import cn.bingerz.flipble.peripheral.callback.NotifyCallback;
 import cn.bingerz.flipble.peripheral.callback.ReadCallback;
 import cn.bingerz.flipble.peripheral.callback.RssiCallback;
 import cn.bingerz.flipble.peripheral.command.Command;
+import cn.bingerz.flipble.utils.BluetoothGattCompat;
 
 public class OperationActivity extends AppCompatActivity implements Observer {
 
@@ -229,15 +231,15 @@ public class OperationActivity extends AppCompatActivity implements Observer {
         if (mPeripheral == null) {
             return;
         }
-        BluetoothGatt bluetoothGatt = mPeripheral.getBluetoothGatt();
+        BluetoothGattCompat gattCompat = mPeripheral.getBluetoothGattCompat();
 
         readRssiCommandTest();
-        BluetoothGattService service = bluetoothGatt.getService(UUID.fromString(ServiceUUID.SERVER_DEVICE_INFO));
+        BluetoothGattService service = gattCompat.getService(UUID.fromString(ServiceUUID.SERVER_DEVICE_INFO));
         if (service != null) {
             deviceInfoServiceCommandTest(service);
         }
         readRssiCommandTest();
-        service = bluetoothGatt.getService(UUID.fromString(ServiceUUID.SERVICE_BATTERY));
+        service = gattCompat.getService(UUID.fromString(ServiceUUID.SERVICE_BATTERY));
         if (service != null) {
             batteryServiceCommandTest(service);
         }
@@ -249,9 +251,9 @@ public class OperationActivity extends AppCompatActivity implements Observer {
         if (mPeripheral == null) {
             return;
         }
-        BluetoothGatt bluetoothGatt = mPeripheral.getBluetoothGatt();
-        if (bluetoothGatt != null) {
-            bluetoothGatt.discoverServices();
+        BluetoothGattCompat gattCompat = mPeripheral.getBluetoothGattCompat();
+        if (gattCompat != null) {
+            gattCompat.discoverServices();
         }
     }
 

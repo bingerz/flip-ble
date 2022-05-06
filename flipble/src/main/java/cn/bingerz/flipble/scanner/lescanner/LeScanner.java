@@ -1,16 +1,17 @@
 package cn.bingerz.flipble.scanner.lescanner;
 
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.support.annotation.MainThread;
-import android.support.annotation.WorkerThread;
+
+import androidx.annotation.MainThread;
+import androidx.annotation.WorkerThread;
 
 import cn.bingerz.flipble.scanner.ScanRuleConfig;
 import cn.bingerz.flipble.utils.EasyLog;
+import cn.bingerz.flipble.utils.GeneralUtil;
 
 /**
  * @author hanson
@@ -40,15 +41,15 @@ public abstract class LeScanner {
     public static LeScanner createScanner(BluetoothAdapter bluetoothAdapter, ScanRuleConfig config, LeScanCallback callback) {
         boolean useAndroidLScanner = false;
         boolean useAndroidOScanner = false;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        if (!GeneralUtil.isGreaterOrEqual4_3()) {
             EasyLog.w("Create scanner fail, Not supported prior to API 18.");
             return null;
         }
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+        if (!GeneralUtil.isGreaterOrEqual5_0()) {
             EasyLog.i("This is pre Android 5.0. We are using old scanning APIs");
             useAndroidLScanner = false;
-        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        } else if (!GeneralUtil.isGreaterOrEqual8_0()) {
             EasyLog.i("This is Android 5.0. We are using new scanning APIs");
             useAndroidLScanner = true;
         } else {
@@ -131,7 +132,6 @@ public abstract class LeScanner {
         return mBluetoothAdapter;
     }
 
-    @SuppressLint("MissingPermission")
     protected boolean isBluetoothOn() {
         return getBluetoothAdapter() != null && getBluetoothAdapter().isEnabled();
     }

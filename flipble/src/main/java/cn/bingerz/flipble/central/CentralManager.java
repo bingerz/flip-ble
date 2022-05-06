@@ -7,7 +7,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.text.TextUtils;
 
@@ -23,6 +22,7 @@ import cn.bingerz.flipble.scanner.Scanner;
 import cn.bingerz.flipble.scanner.callback.ScanCallback;
 import cn.bingerz.flipble.utils.BLEConnectionCompat;
 import cn.bingerz.flipble.utils.EasyLog;
+import cn.bingerz.flipble.utils.GeneralUtil;
 
 /**
  * @author hanson
@@ -92,7 +92,7 @@ public class CentralManager {
 
     public void startScan(boolean isCycled, ScanRuleConfig config, ScanCallback callback) {
         stopScan();
-        if (android.os.Build.VERSION.SDK_INT < 23 || checkLocationPermission()) {
+        if (checkLocationPermission()) {
             mScanner = Scanner.createScanner(isCycled);
             mScanner.initConfig(config);
             mScanner.startScanner(callback);
@@ -113,12 +113,9 @@ public class CentralManager {
     }
 
     private boolean checkLocationPermission() {
-        return checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
-                || checkPermission(Manifest.permission.ACCESS_FINE_LOCATION);
-    }
-
-    private boolean checkPermission(final String permission) {
-        return mContext.checkPermission(permission, android.os.Process.myPid(), android.os.Process.myUid()) == PackageManager.PERMISSION_GRANTED;
+        return !GeneralUtil.isGreaterOrEqual6_0()
+                || GeneralUtil.isGranted(mContext, Manifest.permission.ACCESS_FINE_LOCATION)
+                || GeneralUtil.isGranted(mContext, Manifest.permission.ACCESS_COARSE_LOCATION);
     }
 
     private BluetoothManager getBluetoothManager() {
@@ -146,7 +143,6 @@ public class CentralManager {
         }
         return mBluetoothAdapter;
     }
-
 
     /**
      * Handle Exception Information
@@ -221,16 +217,17 @@ public class CentralManager {
         if (mContext == null) {
             throw new IllegalStateException("Context is not initialized.");
         }
-        PackageManager packageManager = mContext.getApplicationContext().getPackageManager();
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
-                && packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+        return GeneralUtil.isSupportBle(mContext);
     }
 
     /**
      * Open bluetooth
      */
-    @SuppressWarnings({"MissingPermission"})
     public void enableBluetooth() {
+        if (!isBluetoothGranted()) {
+            EasyLog.e("Need BLUETOOTH_CONNECT permission.");
+            return;
+        }
         if (getBluetoothAdapter() != null) {
             getBluetoothAdapter().enable();
         }
@@ -239,17 +236,19 @@ public class CentralManager {
     /**
      * Disable bluetooth
      */
-    @SuppressWarnings({"MissingPermission"})
     public void disableBluetooth() {
+        if (!isBluetoothGranted()) {
+            EasyLog.e("Need BLUETOOTH_CONNECT permission.");
+            return;
+        }
         if (isBluetoothEnable()) {
             getBluetoothAdapter().disable();
         }
     }
 
     /**
-     * judge Bluetooth is enable
+     * Check Bluetooth enable status
      */
-    @SuppressWarnings({"MissingPermission"})
     public boolean isBluetoothEnable() {
         boolean result = false;
         try {
@@ -258,6 +257,16 @@ public class CentralManager {
             e.printStackTrace();
         }
         return result;
+    }
+
+    /**
+     * Check Bluetooth grant status
+     */
+    public boolean isBluetoothGranted() {
+        if (mContext == null) {
+            throw new IllegalStateException("Context is not initialized.");
+        }
+        return GeneralUtil.isBluetoothGranted(mContext);
     }
 
     private BluetoothDevice retrieveDevice(String address) {
@@ -289,12 +298,14 @@ public class CentralManager {
         return mMultiPeripheralController != null ? mMultiPeripheralController.getPeripheralList() : null;
     }
 
-    @SuppressWarnings({"MissingPermission"})
     public boolean isBLEConnected(String address) {
         if (!BluetoothAdapter.checkBluetoothAddress(address)) {
             throw new IllegalArgumentException(address + " is not a valid Bluetooth address");
         } else if (!isBluetoothEnable()) {
             EasyLog.e("BluetoothAdapter is turn off.");
+            return false;
+        } else if (!isBluetoothGranted()) {
+            EasyLog.e("Need BLUETOOTH_CONNECT permission.");
             return false;
         } else {
             BluetoothDevice device = retrieveDevice(address);

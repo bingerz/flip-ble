@@ -23,7 +23,7 @@ the Android Bluetooth API.
 ### Add FlipBLE in your build.gradle
 ```groovy
 dependencies {
-    implementation 'cn.bingerz.android:flipble:0.6.1'
+    implementation 'cn.bingerz.android:flipble:0.7.1'
 }
 ```
 
@@ -190,6 +190,11 @@ public void setMtu(Command command) {
 ```
 
 ## Release Changes
+### v0.7.1
+- Support AndroidX;
+- Adapt to Android12;
+### v0.6.3
+- Bug fixs
 ### v0.6.1
  - Improve scanner handle;
 ### v0.5.2

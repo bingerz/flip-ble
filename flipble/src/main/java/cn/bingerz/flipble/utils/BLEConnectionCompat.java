@@ -13,6 +13,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import cn.bingerz.flipble.central.CentralManager;
+
 /**
  * @author hanson
  */
@@ -25,7 +27,7 @@ public class BLEConnectionCompat {
         this.context = context;
     }
 
-    public BluetoothGatt connectGatt(BluetoothDevice remoteDevice, boolean autoConnect, BluetoothGattCallback bluetoothGattCallback) {
+    public BluetoothGattCompat connectGatt(BluetoothDevice remoteDevice, boolean autoConnect, BluetoothGattCallback bluetoothGattCallback) {
 
         if (remoteDevice == null) {
             return null;
@@ -38,7 +40,7 @@ public class BLEConnectionCompat {
          * https://android.googlesource.com/platform/frameworks/base/+/android-6.0.1_r72/core/java/android/bluetooth/BluetoothGatt.java#739
          * issue: https://android.googlesource.com/platform/frameworks/base/+/d35167adcaa40cb54df8e392379dfdfe98bcdba2%5E%21/#F0
          */
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N || !autoConnect) {
+        if (GeneralUtil.isGreaterOrEqual7_0() || !autoConnect) {
             return connectGattCompat(bluetoothGattCallback, remoteDevice, autoConnect);
         }
 
@@ -57,21 +59,21 @@ public class BLEConnectionCompat {
                 return connectGattCompat(bluetoothGattCallback, remoteDevice, true);
             }
 
-            BluetoothGatt bluetoothGatt = createBluetoothGatt(iBluetoothGatt, remoteDevice);
+            BluetoothGattCompat bluetoothGattCompat = createBluetoothGatt(iBluetoothGatt, remoteDevice);
 
-            if (bluetoothGatt == null) {
+            if (bluetoothGattCompat == null || bluetoothGattCompat.getBluetoothGatt() == null) {
                 EasyLog.w("Couldn't create BluetoothGatt object");
                 return connectGattCompat(bluetoothGattCallback, remoteDevice, true);
             }
 
-            boolean connectedSuccessfully = connectUsingReflection(bluetoothGatt, bluetoothGattCallback, true);
+            boolean connectedSuccessfully = connectUsingReflection(bluetoothGattCompat.getBluetoothGatt(),
+                                                                    bluetoothGattCallback, true);
 
             if (!connectedSuccessfully) {
                 EasyLog.w("Connection using reflection failed, closing gatt");
-                bluetoothGatt.close();
+                bluetoothGattCompat.close();
             }
-
-            return bluetoothGatt;
+            return bluetoothGattCompat;
         } catch (NoSuchMethodException
                 | IllegalAccessException
                 | IllegalArgumentException
@@ -83,14 +85,21 @@ public class BLEConnectionCompat {
         }
     }
 
-    private BluetoothGatt connectGattCompat(BluetoothGattCallback bluetoothGattCallback, BluetoothDevice device, boolean autoConnect) {
+    private BluetoothGattCompat connectGattCompat(BluetoothGattCallback callback, BluetoothDevice device, boolean autoConnect) {
         EasyLog.v("Connecting without reflection");
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return device.connectGatt(context, autoConnect, bluetoothGattCallback, BluetoothDevice.TRANSPORT_LE);
+        BluetoothGattCompat gattCompat = null;
+        if (CentralManager.getInstance().isBluetoothGranted()) {
+            BluetoothGatt gatt;
+            if (GeneralUtil.isGreaterOrEqual6_0()) {
+                gatt = device.connectGatt(context, autoConnect, callback, BluetoothDevice.TRANSPORT_LE);
+            } else {
+                gatt = device.connectGatt(context, autoConnect, callback);
+            }
+            gattCompat = new BluetoothGattCompat(gatt);
         } else {
-            return device.connectGatt(context, autoConnect, bluetoothGattCallback);
+            EasyLog.e("Connect device fail, need grant BLUETOOTH_CONNECT");
         }
+        return gattCompat;
     }
 
     private boolean connectUsingReflection(BluetoothGatt bluetoothGatt, BluetoothGattCallback bluetoothGattCallback, boolean autoConnect)
@@ -103,17 +112,18 @@ public class BLEConnectionCompat {
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    private BluetoothGatt createBluetoothGatt(Object iBluetoothGatt, BluetoothDevice remoteDevice)
+    private BluetoothGattCompat createBluetoothGatt(Object iBluetoothGatt, BluetoothDevice remoteDevice)
             throws IllegalAccessException, InvocationTargetException, InstantiationException {
-        Constructor bluetoothGattConstructor = BluetoothGatt.class.getDeclaredConstructors()[0];
-        bluetoothGattConstructor.setAccessible(true);
-        EasyLog.v("Found constructor with args count=%d", bluetoothGattConstructor.getParameterTypes().length);
-
-        if (bluetoothGattConstructor.getParameterTypes().length == 4) {
-            return (BluetoothGatt) (bluetoothGattConstructor.newInstance(context, iBluetoothGatt, remoteDevice, BluetoothDevice.TRANSPORT_LE));
+        Constructor<?> constructor = BluetoothGatt.class.getDeclaredConstructors()[0];
+        constructor.setAccessible(true);
+        EasyLog.v("Found constructor with args count=%d", constructor.getParameterTypes().length);
+        BluetoothGatt gatt;
+        if (constructor.getParameterTypes().length == 4) {
+            gatt = (BluetoothGatt) (constructor.newInstance(context, iBluetoothGatt, remoteDevice, BluetoothDevice.TRANSPORT_LE));
         } else {
-            return (BluetoothGatt) (bluetoothGattConstructor.newInstance(context, iBluetoothGatt, remoteDevice));
+            gatt = (BluetoothGatt) (constructor.newInstance(context, iBluetoothGatt, remoteDevice));
         }
+        return new BluetoothGattCompat(gatt);
     }
 
     private Object getIBluetoothGatt(Object iBluetoothManager)

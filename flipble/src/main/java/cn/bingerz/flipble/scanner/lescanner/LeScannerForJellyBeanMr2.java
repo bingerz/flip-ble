@@ -1,12 +1,12 @@
 package cn.bingerz.flipble.scanner.lescanner;
 
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.os.Build;
-import android.support.annotation.WorkerThread;
 import android.text.TextUtils;
+
+import androidx.annotation.WorkerThread;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +60,6 @@ public class LeScannerForJellyBeanMr2 extends LeScanner {
         });
     }
 
-    @SuppressLint("MissingPermission")
     private void startLeScanHandler() {
         final BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
         if (bluetoothAdapter == null) {
@@ -74,12 +73,14 @@ public class LeScannerForJellyBeanMr2 extends LeScanner {
             //noinspection deprecation
             boolean result = bluetoothAdapter.startLeScan(serviceUUIds, leScanCallback);
             setScanState(result ? LeScanState.STATE_SCANNED : LeScanState.STATE_IDLE);
+        } catch (SecurityException e) {
+            // Thrown by Samsung Knox devices if bluetooth access denied for an app
+            EasyLog.e(e, "Cannot start scan. Security Exception, Need BLUETOOTH_SCAN permission.");
         } catch (Exception e) {
             EasyLog.e(e, "Internal Android exception in startLeScan()");
         }
     }
 
-    @SuppressLint("MissingPermission")
     private void stopLeScanHandler() {
         final BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
         if (bluetoothAdapter == null) {
@@ -95,6 +96,9 @@ public class LeScannerForJellyBeanMr2 extends LeScanner {
             } else {
                 EasyLog.w("LeScanner been Stopped");
             }
+        } catch (SecurityException e) {
+            // Thrown by Samsung Knox devices if bluetooth access denied for an app
+            EasyLog.e(e, "Cannot start scan. Security Exception, Need BLUETOOTH_SCAN permission.");
         } catch (Exception e) {
             EasyLog.e(e, "Internal Android exception in stopLeScan()");
         }

@@ -11,7 +11,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
 
 import java.nio.ByteBuffer;
@@ -34,6 +33,7 @@ import cn.bingerz.flipble.peripheral.callback.WriteCallback;
 import cn.bingerz.flipble.peripheral.command.Command;
 import cn.bingerz.flipble.scanner.ScanDevice;
 import cn.bingerz.flipble.utils.BLEConnectionCompat;
+import cn.bingerz.flipble.utils.BluetoothGattCompat;
 import cn.bingerz.flipble.utils.EasyLog;
 import cn.bingerz.flipble.utils.HexUtil;
 
@@ -79,7 +79,7 @@ public class Peripheral {
     private int mConnectRetryCount;
 
     private ScanDevice mDevice;
-    private BluetoothGatt mBluetoothGatt;
+    private BluetoothGattCompat mBluetoothGattCompat;
 
     private final Object mStateLock = new Object();
     private Boolean mPeripheralBusy = false;
@@ -112,12 +112,12 @@ public class Peripheral {
                     break;
                 case MSG_DISCOVER_SERVICE:
                     Peripheral peripheral = (Peripheral) msg.obj;
-                    if (peripheral != null && peripheral.getBluetoothGatt() != null) {
-                        BluetoothGatt gatt = peripheral.getBluetoothGatt();
+                    if (peripheral != null && peripheral.getBluetoothGattCompat() != null) {
+                        BluetoothGattCompat gattCompat = peripheral.getBluetoothGattCompat();
                         if (peripheral.isDiscoverWithHighPriority()) {
                             peripheral.requestConnectionPriorityHigh();
                         }
-                        gatt.discoverServices();
+                        gattCompat.discoverServices();
                     }
                     msg.obj = null;
                     break;
@@ -236,28 +236,19 @@ public class Peripheral {
         isDiscoverWithHighConnectionPriority = isHighPriority;
     }
 
-    private boolean isSupportRequestPriority() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private boolean requestConnectionPriority(BluetoothGatt bluetoothGatt, int connectionPriority) {
-        return bluetoothGatt != null && bluetoothGatt.requestConnectionPriority(connectionPriority);
-    }
-
     public boolean requestConnectionPriorityHigh() {
-        BluetoothGatt gatt = getBluetoothGatt();
-        return isSupportRequestPriority() && requestConnectionPriority(gatt, BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+        BluetoothGattCompat gattCompat = getBluetoothGattCompat();
+        return gattCompat != null && gattCompat.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
     }
 
     public boolean requestConnectionPriorityBalanced() {
-        BluetoothGatt gatt = getBluetoothGatt();
-         return isSupportRequestPriority() && requestConnectionPriority(gatt, BluetoothGatt.CONNECTION_PRIORITY_BALANCED);
+        BluetoothGattCompat gattCompat = getBluetoothGattCompat();
+        return gattCompat != null && gattCompat.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_BALANCED);
     }
 
     public boolean requestConnectionPriorityLow() {
-        BluetoothGatt gatt = getBluetoothGatt();
-        return isSupportRequestPriority() && requestConnectionPriority(gatt, BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER);
+        BluetoothGattCompat gattCompat = getBluetoothGattCompat();
+        return gattCompat != null && gattCompat.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER);
     }
 
     private Handler getMainHandler() {
@@ -334,8 +325,8 @@ public class Peripheral {
         return mConnectState;
     }
 
-    public BluetoothGatt getBluetoothGatt() {
-        return mBluetoothGatt;
+    public BluetoothGattCompat getBluetoothGattCompat() {
+        return mBluetoothGattCompat;
     }
 
     public boolean isBusyState() {
@@ -512,8 +503,8 @@ public class Peripheral {
             EasyLog.i("Connect device=%s mac=%s autoConnect=%s", getName(), getAddress(), autoConnect);
             addConnectionStateCallback(callback);
             setBusyState();
-            mBluetoothGatt = connectGatt(autoConnect);
-            if (mBluetoothGatt != null) {
+            mBluetoothGattCompat = connectGatt(autoConnect);
+            if (mBluetoothGattCompat != null) {
                 synchronized (mStateLock) {
                     mConnectState = ConnectionState.CONNECT_CONNECTING;
                 }
@@ -530,8 +521,8 @@ public class Peripheral {
         }
     }
 
-    private BluetoothGatt connectGatt(boolean autoConnect) {
-        BluetoothGatt bluetoothGatt = null;
+    private BluetoothGattCompat connectGatt(boolean autoConnect) {
+        BluetoothGattCompat bluetoothGattCompat = null;
         BluetoothDevice device = getBluetoothDevice();
         if (device == null) {
             EasyLog.i("Connect device fail, BluetoothDevice is null.");
@@ -539,15 +530,15 @@ public class Peripheral {
         }
         BLEConnectionCompat connectionCompat = CentralManager.getInstance().getConnectionCompat();
         if (connectionCompat != null) {
-            bluetoothGatt = connectionCompat.connectGatt(device, autoConnect, coreGattCallback);
+            bluetoothGattCompat = connectionCompat.connectGatt(device, autoConnect, coreGattCallback);
         }
-        return bluetoothGatt;
+        return bluetoothGattCompat;
     }
 
     public synchronized void disconnect() {
-        if (mBluetoothGatt != null) {
+        if (mBluetoothGattCompat != null) {
             isActivityDisconnect = true;
-            mBluetoothGatt.disconnect();
+            mBluetoothGattCompat.disconnect();
             synchronized (mStateLock) {
                 mConnectState = ConnectionState.CONNECT_DISCONNECTING;
             }
@@ -557,17 +548,16 @@ public class Peripheral {
     }
 
     private synchronized void closeBluetoothGatt() {
-        if (mBluetoothGatt != null) {
+        if (mBluetoothGattCompat != null) {
             //Phone Model: Samsung Galaxy S*/J* Android 5.1.1/6.0.1
             //java.lang.NullPointerException: Attempt to invoke virtual method
             //'android.os.Looper android.os.Handler.getLooper()' on a null object reference
-            //android.os.Parcel.readException (Parcel.java:1626)
-            //android.os.Parcel.readException (Parcel.java:1573)
+            //......
             //android.bluetooth.IBluetoothGatt$Stub$Proxy.unregisterClient (IBluetoothGatt.java:1003)
             //android.bluetooth.BluetoothGatt.unregisterApp (BluetoothGatt.java:820)
             //android.bluetooth.BluetoothGatt.close (BluetoothGatt.java:759)
             try {
-                mBluetoothGatt.close();
+                mBluetoothGattCompat.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -580,8 +570,8 @@ public class Peripheral {
         }
         //Add try catch code block, Binder(IPC) NullPointerException, Parcel.readException
         try {
-            mBluetoothGatt.disconnect();
-            mBluetoothGatt.close();
+            mBluetoothGattCompat.disconnect();
+            mBluetoothGattCompat.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -598,10 +588,10 @@ public class Peripheral {
     }
 
     private BluetoothGattService getService(String serviceUUID) {
-        if (mBluetoothGatt == null) {
+        if (mBluetoothGattCompat == null) {
             return null;
         }
-        return mBluetoothGatt.getService(UUID.fromString(serviceUUID));
+        return mBluetoothGattCompat.getService(UUID.fromString(serviceUUID));
     }
 
     public boolean isContainCharact(String serviceUUID, String charactUUID) {
@@ -1007,12 +997,12 @@ public class Peripheral {
     }
 
     private void handleRetryConnectCallback(int status) {
-        mBluetoothGatt = connectGatt(false);
-        if (mBluetoothGatt == null) {
+        mBluetoothGattCompat = connectGatt(false);
+        if (mBluetoothGattCompat == null) {
             handleConnectFail(status);
             mConnectRetryCount = 0;
         } else {
-            String address = mBluetoothGatt.getDevice().getAddress();
+            String address = mBluetoothGattCompat.getDevice().getAddress();
             EasyLog.i("Retry connect device mac=%s status=%d", address, status);
             mConnectRetryCount--;
         }
@@ -1070,14 +1060,11 @@ public class Peripheral {
             super.onConnectionStateChange(gatt, status, newState);
             EasyLog.i("GattCallback：ConnectionStateChange status=%d  newState=%d  currentThread=%d",
                         status, newState, Thread.currentThread().getId());
-
+            mBluetoothGattCompat.setBluetoothGatt(gatt);
             if (newState == BluetoothGatt.STATE_CONNECTED) {
-                mBluetoothGatt = gatt;
                 sendDiscoverServiceMsg();
             } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
-                if (gatt != null) {
-                    gatt.close();
-                }
+                mBluetoothGattCompat.close();
                 synchronized (mStateLock) {
                     if (mConnectState == ConnectionState.CONNECT_CONNECTING) {
                         discoverServiceMsgInit();
@@ -1096,8 +1083,8 @@ public class Peripheral {
             EasyLog.i("GattCallback：ServicesDiscovered status=%d  currentThread=%d",
                         status, Thread.currentThread().getId());
 
+            mBluetoothGattCompat.setBluetoothGatt(gatt);
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                mBluetoothGatt = gatt;
                 ConnectionState prevState = mConnectState;
                 synchronized (mStateLock) {
                     mConnectState = ConnectionState.CONNECT_CONNECTED;
@@ -1108,9 +1095,7 @@ public class Peripheral {
                     sendMsgDelayedToMainH(MSG_CONNECT_SUCCESS, status, 0, Peripheral.this, DEFAULT_DELAY_CONNECT_EVENT);
                 }
             } else {
-                if (gatt != null) {
-                    gatt.close();
-                }
+                mBluetoothGattCompat.close();
                 handleConnectFail(status);
             }
             resetBusyState();

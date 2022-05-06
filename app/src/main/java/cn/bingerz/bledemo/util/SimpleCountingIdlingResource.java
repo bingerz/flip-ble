@@ -16,8 +16,7 @@
 
 package cn.bingerz.bledemo.util;
 
-import android.support.test.espresso.IdlingResource;
-import android.support.v4.util.Preconditions;
+import androidx.test.espresso.IdlingResource;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * This class can then be used to wrap up operations that while in progress should block tests from
  * accessing the UI.
+ * @author hanson
  */
 public final class SimpleCountingIdlingResource implements IdlingResource {
 
