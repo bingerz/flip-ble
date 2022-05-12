@@ -4,6 +4,8 @@ import android.bluetooth.BluetoothDevice;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import cn.bingerz.flipble.utils.EasyLog;
+
 /**
  * @author hanson
  */
@@ -27,9 +29,14 @@ public class ScanDevice implements Parcelable{
         this.mDevice = device;
     }
 
-    @SuppressWarnings({"MissingPermission"})
     public String getName() {
-        return mDevice != null ? mDevice.getName() : null;
+        String name = null;
+        try {
+            name = mDevice != null ? mDevice.getName() : null;
+        } catch (SecurityException e) {
+            EasyLog.e(e, "GetName Security Exception, Need BLUETOOTH_SCAN permission.");
+        }
+        return name;
     }
 
     public String getAddress() {

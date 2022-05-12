@@ -29,7 +29,6 @@ public abstract class ScannerPresenter implements LeScanCallback {
         onScanFailed(errorCode);
     }
 
-    @SuppressWarnings({"MissingPermission"})
     private void next(BluetoothDevice device, int rssi, byte[] scanRecord) {
         if (device == null) {
             EasyLog.e("Scanner:onLeScan next device is null");
@@ -42,8 +41,12 @@ public abstract class ScannerPresenter implements LeScanCallback {
             }
         }
         if (!hasFound.get()) {
-            EasyLog.i("Device detected Name=%s  Mac=%s  Rssi=%d ",
+            try {
+                EasyLog.i("Device detected Name=%s  Mac=%s  Rssi=%d ",
                         device.getName(), device.getAddress(), rssi);
+            } catch (SecurityException e) {
+                EasyLog.e(e, "GetName Security Exception, Need BLUETOOTH_SCAN permission.");
+            }
             ScanDevice scanDevice = new ScanDevice(device, rssi, scanRecord);
             mScanDevices.add(scanDevice);
             onScanning(scanDevice);

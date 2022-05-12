@@ -130,7 +130,6 @@ public class LeScannerForJellyBeanMr2 extends LeScanner {
         return null;
     }
 
-    @SuppressWarnings({"MissingPermission"})
     private synchronized boolean isNeedDevice(BluetoothDevice device) {
         if (device == null) {
             EasyLog.e("Device is null, device needs to be ignored");
@@ -141,8 +140,16 @@ public class LeScannerForJellyBeanMr2 extends LeScanner {
             return true;
         }
 
-        String remoteName = device.getName() == null ? "" : device.getName();
-        String remoteAddress = device.getAddress() == null ? "" : device.getAddress();
+        String remoteName = "";
+        String remoteAddress = "";
+        try {
+            remoteName = device.getName() == null ? "" : device.getName();
+            remoteAddress = device.getAddress() == null ? "" : device.getAddress();
+        } catch (SecurityException e) {
+            EasyLog.e(e, "GetName Security Exception, Need BLUETOOTH_SCAN permission.");
+        } catch (Exception e) {
+            EasyLog.e(e, "Device cannot getName/getAddress.");
+        }
 
         AtomicBoolean equal = new AtomicBoolean(false);
         for (ScanFilterConfig filterConfig : filterConfigs) {
