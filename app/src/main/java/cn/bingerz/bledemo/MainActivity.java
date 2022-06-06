@@ -107,7 +107,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.btn_scan:
                 if (btnScan.getText().equals(getString(R.string.start_scan))) {
-                    checkPermissions();
+                    if (checkPermissions()) {
+                        setScanRule();
+                        startScan();
+                    }
                 } else if (btnScan.getText().equals(getString(R.string.stop_scan))) {
                     stopScan();
                 }
@@ -367,19 +370,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    private void checkPermissions() {
+    private boolean checkPermissions() {
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (!bluetoothAdapter.isEnabled()) {
             Toast.makeText(this, getString(R.string.please_open_blue), Toast.LENGTH_LONG).show();
-            return;
+            return false;
         }
         if (GeneralUtil.isNeedBluetoothGrant() && !GeneralUtil.isBluetoothGranted(this)) {
             String[] permissions = new String[]{Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT};
             ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_PERMISSION_BLUETOOTH);
+            return false;
         } else if (GeneralUtil.isNeedLocationGrant() && !GeneralUtil.isLocationGranted(this)) {
             String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
             ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_PERMISSION_LOCATION);
+            return false;
         }
+        return true;
     }
 
     private void onPermissionGranted(String permission) {
@@ -453,6 +459,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             default:
                 break;
+        }
+    }
+
+    private void testFuncIsBLEConnected() {
+        String[] addresses = {"E1:D7:2A:97:CB:81", "C0:8C:CF:DF:1C:B6", "C5:C0:23:BD:41:92", "FC:08:B7:7B:13:18"};
+        boolean[] states = CentralManager.getInstance().isBLEConnected(addresses);
+        for (int i = 0; i < states.length; i++) {
+            Log.i(TAG, "BLEConnected Result index " + i + " value " + states[i]);
         }
     }
 

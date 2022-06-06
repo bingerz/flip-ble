@@ -1,5 +1,6 @@
 package cn.bingerz.bledemo.adapter;
 
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -85,6 +86,9 @@ public class ScanDeviceAdapter extends RecyclerView.Adapter<ScanDeviceAdapter.Vi
         if (device != null) {
             boolean isConnected = CentralManager.getInstance().isConnected(device.getAddress());
             String name = device.getName();
+            if (TextUtils.isEmpty(name)) {
+                name = "Undefined";
+            }
             String mac = device.getAddress();
             int rssi = device.getRssi();
             holder.tvName.setText(name);

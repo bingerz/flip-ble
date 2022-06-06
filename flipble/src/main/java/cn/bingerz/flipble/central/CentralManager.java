@@ -56,6 +56,7 @@ public class CentralManager {
     private Scanner mScanner;
     private Context mContext;
     private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothManager mBluetoothManager;
     private MultiplePeripheralController mMultiPeripheralController;
 
     private DefaultExceptionHandler mBLEExceptionHandler;
@@ -119,8 +120,23 @@ public class CentralManager {
     }
 
     private BluetoothManager getBluetoothManager() {
-        return mContext == null ? null :
-                (BluetoothManager) mContext.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
+        try {
+            if (mBluetoothManager == null) {
+                if (mContext != null) {
+                    Context appCtx = mContext.getApplicationContext();
+                    mBluetoothManager = (BluetoothManager) appCtx.getSystemService(Context.BLUETOOTH_SERVICE);
+                    if (mBluetoothManager == null) {
+                        if (mBluetoothAdapter == null) {
+                            EasyLog.w("Failed to construct a BluetoothManager");
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            EasyLog.e(e, "Cannot construct bluetooth manager.");
+        }
+        return mBluetoothManager;
+
     }
 
     /**
@@ -311,11 +327,50 @@ public class CentralManager {
             BluetoothDevice device = retrieveDevice(address);
             BluetoothManager bluetoothManager = getBluetoothManager();
             int state = BluetoothProfile.STATE_DISCONNECTED;
-            if (bluetoothManager != null) {
-                state = bluetoothManager.getConnectionState(device, BluetoothProfile.GATT);
+            try {
+                if (bluetoothManager != null) {
+                    state = bluetoothManager.getConnectionState(device, BluetoothProfile.GATT);
+                }
+            } catch (Exception e) {
+                EasyLog.e(e, "Cannot isBLEConnected(String[]), Exception.");
             }
             return state == BluetoothProfile.STATE_CONNECTED;
         }
+    }
+
+    public boolean[] isBLEConnected(String[] address) {
+        int size = address != null && address.length > 0 ? address.length : 0;
+        boolean[] stateArray = new boolean[size];
+        if (address == null || address.length == 0) {
+            throw new IllegalArgumentException("Address[] is not a valid Bluetooth address list");
+        } else if (!isBluetoothEnable()) {
+            EasyLog.e("BluetoothAdapter is turn off.");
+            return stateArray;
+        } else if (!isBluetoothGranted()) {
+            EasyLog.e("Need BLUETOOTH_CONNECT permission.");
+            return stateArray;
+        }
+        try {
+            final BluetoothManager bluetoothManager = getBluetoothManager();
+            if (bluetoothManager != null) {
+                List<BluetoothDevice> deviceList = bluetoothManager.getConnectedDevices(BluetoothProfile.GATT);
+                if (deviceList != null && !deviceList.isEmpty()) {
+                    for (int i = 0; i < address.length; i++) {
+                        String deviceAddr = address[i];
+                        boolean isConnected = false;
+                        for (BluetoothDevice device : deviceList) {
+                            if (device.getAddress().equals(deviceAddr)) {
+                                isConnected = true;
+                            }
+                        }
+                        stateArray[i] = isConnected;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            EasyLog.e(e, "Cannot isBLEConnected(String[]), Exception.");
+        }
+        return stateArray;
     }
 
     public boolean isConnecting(String address) {
