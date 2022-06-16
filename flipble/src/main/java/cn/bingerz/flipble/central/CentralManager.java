@@ -10,7 +10,9 @@ import android.content.Context;
 import android.os.Build;
 import android.text.TextUtils;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import cn.bingerz.flipble.peripheral.ConnectionState;
 import cn.bingerz.flipble.peripheral.MultiplePeripheralController;
@@ -308,6 +310,18 @@ public class CentralManager {
             return new Peripheral(device);
         }
         return null;
+    }
+
+    public Set<BluetoothDevice> getBondedDevices() {
+        Set<BluetoothDevice> devices = new HashSet<>();
+        if (!isBluetoothGranted()) {
+            EasyLog.e("Need BLUETOOTH_CONNECT permission.");
+            return devices;
+        }
+        if (isBluetoothEnable()) {
+            devices = getBluetoothAdapter().getBondedDevices();
+        }
+        return devices;
     }
 
     public List<Peripheral> getAllConnectedDevice() {

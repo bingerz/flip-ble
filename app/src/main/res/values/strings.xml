@@ -1,8 +1,9 @@
 <resources>
     <string name="app_name">flipBLE</string>
 
-    <string name="action_test">Stress test</string>
+    <string name="action_pressure_test">Stress Test</string>
     <string name="action_retry_discover">Retry Discover</string>
+    <string name="action_protocol_test">Protocol Test</string>
 
     <string name="notifyTitle">Tips</string>
     <string name="gpsNotifyMsg">Bluetooth scanning requires the location be turned on.</string>
@@ -30,7 +31,9 @@
     <string name="property_list">Property list</string>
     <string name="console">Operation Console</string>
     <string name="name">Broadcast Name：</string>
-    <string name="mac">Mac:</string>
+    <string name="mac">Mac Address:</string>
+    <string name="status">Status:</string>
+    <string name="status_tips">Print protocol test results</string>
     <string name="service">Service</string>
     <string name="type">Service type(Main Service)</string>
     <string name="scan_setting">Set the filtering rules of the scanned device, accepting is empty</string>

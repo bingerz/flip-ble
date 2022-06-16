@@ -1,8 +1,9 @@
 <resources>
     <string name="app_name">flipBLE</string>
 
-    <string name="action_test">压测</string>
+    <string name="action_pressure_test">压力测试</string>
     <string name="action_retry_discover">重试发现</string>
+    <string name="action_protocol_test">协议测试</string>
 
     <string name="notifyTitle">提示</string>
     <string name="gpsNotifyMsg">当前手机扫描蓝牙需要打开定位功能。</string>
@@ -29,8 +30,10 @@
     <string name="characteristic_list">特征列表</string>
     <string name="property_list">属性列表</string>
     <string name="console">操作控制台</string>
-    <string name="name">设备广播名：</string>
-    <string name="mac">Mac:</string>
+    <string name="name">设备广播名:</string>
+    <string name="mac">Mac地址:</string>
+    <string name="status">设备状态:</string>
+    <string name="status_tips">打印协议测试结果</string>
     <string name="service">服务</string>
     <string name="type">服务类型(主服务)</string>
     <string name="scan_setting">在下面你可以配置需要扫描的设备的条件，可以为空</string>

@@ -1,6 +1,5 @@
 # FlipBLE
 [![Maven Central](https://img.shields.io/maven-central/v/cn.bingerz.android/flipble.svg)](https://search.maven.org/artifact/cn.bingerz.android/flipble)
-[![Download](https://api.bintray.com/packages/bingerz/maven/flip-ble/images/download.svg)](https://bintray.com/bingerz/maven/flip-ble)
 
 An easy-to-use Bluetooth development framework for the Android platform.
 
@@ -23,14 +22,14 @@ the Android Bluetooth API.
 ### Add FlipBLE in your build.gradle
 ```groovy
 dependencies {
-    implementation 'cn.bingerz.android:flipble:0.7.3'
+    implementation 'cn.bingerz.android:flipble:0.7.4'
 }
 ```
 
 ## About Central/Peripheral：
  - As the name suggests, Bluetooth is a master-slave device.
    For example, the use of mobile phones and sports bracelets, the mobile phone is central, the bracelet is peripheral;
-   FlipBLE only supports mobile phones that are Central's working mode and do not support working mode as a peripheral.
+   FlipBLE only supports mobile phones that are Central's working mode and do not support working mode as a peripheral.
  
 ### Initialization instance
 
@@ -84,7 +83,26 @@ ScanRuleConfig mScanRuleConfig = new ScanRuleConfig.Builder()
 ```
 Mark:
 1、The ScanInterval configuration is only relevant for periodic scans (CycledScanner) 
-    and does not work for a single scan of OnceScanner.
+   and does not work for a single scan of OnceScanner.
+
+### Get connection status by MAC address
+
+```java
+//Get the connection status of a Bluetooth device
+CentralManager.getInstance()isBLEConnected(String macAddress);
+
+//Get the connection status of a group of Bluetooth devices
+CentralManager.getInstance()isBLEConnected(String[] macAddress);
+```
+Mark:
+Controlling the frequency of concurrent calls may cause ANR(Android internal Binder Method)
+
+### Get Bound devices
+
+```java
+//Get the device group that has been paired and bound in the system settings
+Set<BluetoothDevice> deviceSet = CentralManager.getInstance().getBondedDevices();
+```
 
 ### Connect/Disconnect Peripherals
 ```java
@@ -190,6 +208,9 @@ public void setMtu(Command command) {
 ```
 
 ## Release Changes
+### v0.7.4
+- Add getBoundDevices();
+- Add Protocol Test Tool;
 ### v0.7.3
 - Add isBLEConnected(String[]);
 ### v0.7.2

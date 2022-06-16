@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal">
@@ -17,22 +18,38 @@
             android:id="@+id/tv_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:text="Title"/>
 
         <TextView
-            android:id="@+id/tv_uuid"
+            android:id="@+id/tv_desc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            tools:text="Description"/>
 
         <TextView
-            android:id="@+id/tv_type"
+            android:id="@+id/tv_service_uuid"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            tools:text="Protocol Command Service UUID"/>
+
+        <TextView
+            android:id="@+id/tv_character_uuid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            tools:text="Protocol Command Character UUID"/>
+
+        <TextView
+            android:id="@+id/tv_protocol_data"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            tools:text="Protocol Command Data"/>
 
     </LinearLayout>
 

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -36,6 +37,7 @@ import androidx.test.espresso.IdlingResource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import cn.bingerz.bledemo.adapter.ScanDeviceAdapter;
 import cn.bingerz.bledemo.comm.ObserverManager;
@@ -106,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_scan:
+                showBoundDevice();
                 if (btnScan.getText().equals(getString(R.string.start_scan))) {
                     if (checkPermissions()) {
                         setScanRule();
@@ -189,6 +192,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mScanDeviceAdapter);
+    }
+
+    private void showBoundDevice() {
+        Set<BluetoothDevice> deviceSet = CentralManager.getInstance().getBondedDevices();
+        if (!deviceSet.isEmpty()) {
+            for (BluetoothDevice device : deviceSet) {
+                Log.d(TAG, String.format("Bluetooth Bound Device %s(%s)", device.getName(), device.getAddress()));
+            }
+        }
     }
 
     private void showConnectedDevice() {

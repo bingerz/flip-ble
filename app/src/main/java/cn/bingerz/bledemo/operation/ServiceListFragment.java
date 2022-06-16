@@ -97,8 +97,8 @@ public class ServiceListFragment extends Fragment {
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                ((OperationActivity) getActivity()).setBluetoothGattService(service);
-                ((OperationActivity) getActivity()).changePage(1);
+                    ((OperationActivity) getActivity()).setBluetoothGattService(service);
+                    ((OperationActivity) getActivity()).changePage(1);
                 }
             });
         }

@@ -1,7 +1,6 @@
 package cn.bingerz.bledemo.operation;
 
 import android.annotation.TargetApi;
-import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.os.Build;
@@ -55,19 +54,18 @@ public class OperationActivity extends AppCompatActivity implements Observer {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_operation);
         initData();
         initView();
         initPage();
-
         ObserverManager.getInstance().addObserver(this);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_test, menu);
+        getMenuInflater().inflate(R.menu.menu_pressure_test, menu);
         getMenuInflater().inflate(R.menu.menu_retry_discover, menu);
+        getMenuInflater().inflate(R.menu.menu_protocol_test, menu);
         return true;
     }
 
@@ -75,11 +73,14 @@ public class OperationActivity extends AppCompatActivity implements Observer {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_test:
+            case R.id.action_pressure_test:
                 commandPressureTest();
                 break;
             case R.id.action_retry_discover:
                 retryDiscoverService();
+                break;
+            case R.id.action_protocol_test:
+                showProtocolTest();
                 break;
             default:
                 break;
@@ -177,6 +178,7 @@ public class OperationActivity extends AppCompatActivity implements Observer {
         fragments.add(new CharacteristicListFragment());
         fragments.add(new PropertyListFragment());
         fragments.add(new CharacteristicOperationFragment());
+        fragments.add(new ProtocolListFragment());
         for (Fragment fragment : fragments) {
             getSupportFragmentManager().beginTransaction().add(R.id.fragment, fragment).hide(fragment).commit();
         }
@@ -255,6 +257,12 @@ public class OperationActivity extends AppCompatActivity implements Observer {
         if (gattCompat != null) {
             gattCompat.discoverServices();
         }
+    }
+
+    private void showProtocolTest() {
+        toolbar.setTitle(getString(R.string.action_protocol_test));
+        updateFragment(4);
+        ((ProtocolListFragment) fragments.get(4)).showData();
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)

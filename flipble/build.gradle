@@ -10,7 +10,7 @@ android {
     defaultConfig {
         minSdkVersion build_versions.min_sdk
         targetSdkVersion build_versions.target_sdk
-        versionCode 42
+        versionCode 44
         versionName versionName
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -51,7 +51,7 @@ dependencies {
 //Gradle Maven Publish Plugin Script Configuration
 //Run Script: ./gradlew publish
 
-def versionName = "0.7.3"
+def versionName = "0.7.4"
 def groupName = "cn.bingerz.android"
 def artifactName = "flipble"
 def siteUrl = 'https://github.com/bingerz/flip-ble'
