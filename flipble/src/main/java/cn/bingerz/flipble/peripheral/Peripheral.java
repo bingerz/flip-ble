@@ -998,7 +998,7 @@ public class Peripheral {
 
     private void handleRetryConnectCallback(int status) {
         mBluetoothGattCompat = connectGatt(false);
-        if (mBluetoothGattCompat == null) {
+        if (mBluetoothGattCompat == null || mBluetoothGattCompat.getDevice() == null) {
             handleConnectFail(status);
             mConnectRetryCount = 0;
         } else {

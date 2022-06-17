@@ -90,12 +90,16 @@ public class BLEConnectionCompat {
         BluetoothGattCompat gattCompat = null;
         if (CentralManager.getInstance().isBluetoothGranted()) {
             BluetoothGatt gatt;
-            if (GeneralUtil.isGreaterOrEqual6_0()) {
-                gatt = device.connectGatt(context, autoConnect, callback, BluetoothDevice.TRANSPORT_LE);
-            } else {
-                gatt = device.connectGatt(context, autoConnect, callback);
+            try {
+                if (GeneralUtil.isGreaterOrEqual6_0()) {
+                    gatt = device.connectGatt(context, autoConnect, callback, BluetoothDevice.TRANSPORT_LE);
+                } else {
+                    gatt = device.connectGatt(context, autoConnect, callback);
+                }
+                gattCompat = new BluetoothGattCompat(gatt);
+            } catch (Exception e) {
+                EasyLog.e("Error during connectGattCompat", e);
             }
-            gattCompat = new BluetoothGattCompat(gatt);
         } else {
             EasyLog.e("Connect device fail, need grant BLUETOOTH_CONNECT");
         }
