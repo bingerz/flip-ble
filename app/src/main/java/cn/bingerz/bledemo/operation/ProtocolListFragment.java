@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,7 @@ import cn.bingerz.flipble.utils.HexUtil;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class ProtocolListFragment extends Fragment {
 
+    private static final String TAG = ProtocolListFragment.class.getSimpleName();
     private Peripheral mPeripheral;
     private TextView tvDeviceInfo, tvDeviceStatus;
     private ProtocolAdapter mProtocolAdapter;
@@ -202,6 +204,7 @@ public class ProtocolListFragment extends Fragment {
                         if (tvDeviceStatus != null) {
                             String result = String.format("Indicate Data %s", HexUtil.formatHexString(data));
                             tvDeviceStatus.setText(String.format("%s %s", getString(R.string.status), result));
+                            Log.e(TAG, result);
                         }
                     }
                 });
