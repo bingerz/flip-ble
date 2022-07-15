@@ -30,6 +30,9 @@ import cn.bingerz.flipble.peripheral.callback.ReadCallback;
 import cn.bingerz.flipble.peripheral.callback.WriteCallback;
 import cn.bingerz.flipble.utils.HexUtil;
 
+/**
+ * @author hanson
+ */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class ProtocolListFragment extends Fragment {
 

@@ -28,7 +28,7 @@ build_versions.build_tools = "31.0.0"
 ext.build_versions = build_versions
 
 def versions = [:]
-versions.appcompat = "1.4.1"
+versions.appcompat = "1.4.2"
 versions.recyclerview = "1.2.1"
 versions.constraint_layout = "2.1.4"
 

@@ -627,7 +627,7 @@ public class Peripheral {
 
     public Command createIndicate(int priority, String serviceUUID, String charactUUID, boolean isEnable, IndicateCallback callback) {
         byte[] data = isEnable ? Command.ENABLE : Command.DISABLE;
-        return createCommand(priority, Command.Method.NOTIFY, serviceUUID, charactUUID, data, callback);
+        return createCommand(priority, Command.Method.INDICATE, serviceUUID, charactUUID, data, callback);
     }
 
     public Command createWrite(int priority, String serviceUUID, String charactUUID, byte[] data, WriteCallback callback) {
