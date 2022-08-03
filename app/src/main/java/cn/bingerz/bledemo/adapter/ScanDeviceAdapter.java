@@ -87,7 +87,7 @@ public class ScanDeviceAdapter extends RecyclerView.Adapter<ScanDeviceAdapter.Vi
             boolean isConnected = CentralManager.getInstance().isConnected(device.getAddress());
             String name = device.getName();
             if (TextUtils.isEmpty(name)) {
-                name = "Undefined";
+                name = "Null";
             }
             String mac = device.getAddress();
             int rssi = device.getRssi();

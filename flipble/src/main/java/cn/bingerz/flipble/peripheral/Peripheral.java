@@ -13,8 +13,9 @@ import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 
+import androidx.annotation.RequiresApi;
+
 import java.nio.ByteBuffer;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -236,16 +237,19 @@ public class Peripheral {
         isDiscoverWithHighConnectionPriority = isHighPriority;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public boolean requestConnectionPriorityHigh() {
         BluetoothGattCompat gattCompat = getBluetoothGattCompat();
         return gattCompat != null && gattCompat.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public boolean requestConnectionPriorityBalanced() {
         BluetoothGattCompat gattCompat = getBluetoothGattCompat();
         return gattCompat != null && gattCompat.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_BALANCED);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public boolean requestConnectionPriorityLow() {
         BluetoothGattCompat gattCompat = getBluetoothGattCompat();
         return gattCompat != null && gattCompat.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER);
@@ -302,13 +306,14 @@ public class Peripheral {
 
     /**
      * Calculate and predict real rssi values based on new values, affected by last rssi value.
+     * Reference https://github.com/wouterbulten/kalmanjs
      */
-    public int getFliterRssi(int newRSSI) {
-        int R = 1, Q = 1, A = 1, B = 0, C = 1;
-        int u = 0;
+    public int getFilterRssi(int newRSSI) {
+        float R = 1, Q = 1, A = 1, B = 0, C = 1;
+        float u = newRSSI;
         if (this.mRssi == 0) {
             this.mRssi = (1 / C) * newRSSI;
-            this.mCov = (1 / C) * Q * (1 / C);
+            this.mCov = (1 / C) * Q *  (1 / C);
         } else {
             final float predX = (A * this.mRssi) + (B * u);
             final float predCov = ((A * this.mCov) * A) + R;
@@ -359,22 +364,33 @@ public class Peripheral {
         this.mConnectStateCallback = null;
     }
 
+    /**
+     * Add notifyCallback to cache map
+     * @param uuid Characteristic UUID of notify command
+     * @param notifyCallback
+     */
     public synchronized void addNotifyCallback(String uuid, NotifyCallback notifyCallback) {
         mNotifyCallbackMap.put(uuid, notifyCallback);
     }
 
+    /**
+     * Remove notifyCallback from cache map
+     * @param uuid Characteristic UUID of notify command
+     */
     public synchronized void removeNotifyCallback(String uuid) {
         mNotifyCallbackMap.remove(uuid);
     }
 
+    /**
+     * Find notifyCallback from cache map
+     * @param uuid Characteristic UUID of notify command
+     */
     private NotifyCallback findNotifyCallback(String uuid) {
         if (TextUtils.isEmpty(uuid)) {
             return null;
         }
-        Iterator iterator = mNotifyCallbackMap.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry entry = (Map.Entry) iterator.next();
-            NotifyCallback notifyCallback = (NotifyCallback) entry.getValue();
+        for (Map.Entry<String, NotifyCallback> mapEntry : mNotifyCallbackMap.entrySet()) {
+            NotifyCallback notifyCallback = (NotifyCallback) ((Map.Entry) mapEntry).getValue();
             if (notifyCallback.getKey().equalsIgnoreCase(uuid)) {
                 return notifyCallback;
             }
@@ -382,22 +398,33 @@ public class Peripheral {
         return null;
     }
 
+    /**
+     * Add indicateCallback to cache map
+     * @param uuid Characteristic UUID of indicate command
+     * @param indicateCallback
+     */
     public synchronized void addIndicateCallback(String uuid, IndicateCallback indicateCallback) {
         mIndicateCallbackMap.put(uuid, indicateCallback);
     }
 
+    /**
+     * Remove indicateCallback from cache map
+     * @param uuid Characteristic UUID of indicate command
+     */
     public synchronized void removeIndicateCallback(String uuid) {
         mIndicateCallbackMap.remove(uuid);
     }
 
+    /**
+     * Find indicateCallback from cache map
+     * @param uuid Characteristic UUID of indicate command
+     */
     private IndicateCallback findIndicateCallback(String uuid) {
         if (TextUtils.isEmpty(uuid)) {
             return null;
         }
-        Iterator iterator = mIndicateCallbackMap.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry entry = (Map.Entry) iterator.next();
-            IndicateCallback indicateCallback = (IndicateCallback) entry.getValue();
+        for (Map.Entry<String, IndicateCallback> mapEntry : mIndicateCallbackMap.entrySet()) {
+            IndicateCallback indicateCallback = (IndicateCallback) ((Map.Entry) mapEntry).getValue();
             if (indicateCallback.getKey().equalsIgnoreCase(uuid)) {
                 return indicateCallback;
             }
@@ -405,22 +432,33 @@ public class Peripheral {
         return null;
     }
 
+    /**
+     * Add writeCallback to cache map
+     * @param uuid Characteristic UUID of write command
+     * @param writeCallback
+     */
     public synchronized void addWriteCallback(String uuid, WriteCallback writeCallback) {
         mWriteCallbackMap.put(uuid, writeCallback);
     }
 
+    /**
+     * Remove writeCallback from cache map
+     * @param uuid Characteristic UUID of write command
+     */
     public synchronized void removeWriteCallback(String uuid) {
         mWriteCallbackMap.remove(uuid);
     }
 
+    /**
+     * Find writeCallback from cache map
+     * @param uuid Characteristic UUID of write command
+     */
     private WriteCallback findWriteCallback(String uuid) {
         if (TextUtils.isEmpty(uuid)) {
             return null;
         }
-        Iterator iterator = mWriteCallbackMap.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry entry = (Map.Entry) iterator.next();
-            WriteCallback writeCallback = (WriteCallback) entry.getValue();
+        for (Map.Entry<String, WriteCallback> mapEntry : mWriteCallbackMap.entrySet()) {
+            WriteCallback writeCallback = (WriteCallback) ((Map.Entry) mapEntry).getValue();
             if (writeCallback.getKey().equalsIgnoreCase(uuid)) {
                 return writeCallback;
             }
@@ -428,22 +466,33 @@ public class Peripheral {
         return null;
     }
 
+    /**
+     * Add readCallback to cache map
+     * @param uuid Characteristic UUID of read command
+     * @param readCallback
+     */
     public synchronized void addReadCallback(String uuid, ReadCallback readCallback) {
         mReadCallbackMap.put(uuid, readCallback);
     }
 
+    /**
+     * Remove readCallback from cache map
+     * @param uuid Characteristic UUID of read command
+     */
     public synchronized void removeReadCallback(String uuid) {
         mReadCallbackMap.remove(uuid);
     }
 
+    /**
+     * Find readCallback from cache map
+     * @param uuid Characteristic UUID of read command
+     */
     private ReadCallback findReadCallback(String uuid) {
         if (TextUtils.isEmpty(uuid)) {
             return null;
         }
-        Iterator iterator = mReadCallbackMap.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry entry = (Map.Entry) iterator.next();
-            ReadCallback readCallback = (ReadCallback) entry.getValue();
+        for (Map.Entry<String, ReadCallback> mapEntry : mReadCallbackMap.entrySet()) {
+            ReadCallback readCallback = (ReadCallback) ((Map.Entry) mapEntry).getValue();
             if (readCallback.getKey().equalsIgnoreCase(uuid)) {
                 return readCallback;
             }
@@ -451,6 +500,9 @@ public class Peripheral {
         return null;
     }
 
+    /**
+     * Clear NotifyCallback/IndicateCallback/WriteCallback/ReadCallback map cache
+     */
     public synchronized void clearCharacterCallback() {
         if (mNotifyCallbackMap != null) {
             mNotifyCallbackMap.clear();
@@ -617,7 +669,7 @@ public class Peripheral {
     }
 
     private Command createCommand(int priority, int method, String serviceUUID, String charactUUID, byte[] data, Object callback) {
-        return  new Command(priority, getAddress(), method, serviceUUID, charactUUID, data, callback);
+        return new Command(priority, getAddress(), method, serviceUUID, charactUUID, data, callback);
     }
 
     public Command createNotify(int priority, String serviceUUID, String charactUUID, boolean isEnable, NotifyCallback callback) {
@@ -1047,16 +1099,14 @@ public class Peripheral {
         resetBusyState();
     }
 
-    private BluetoothGattCallback coreGattCallback = new BluetoothGattCallback() {
+    private final BluetoothGattCallback coreGattCallback = new BluetoothGattCallback() {
 
         @Override
         public void onConnectionStateChange(final BluetoothGatt gatt, final int status, final int newState) {
-            /**
-             * Status Code Description:
-             * 0x3E(62): connection fail to establish
-             * 0x85(133): GATT_ERROR
-             * 0x101(257): no connection to cancel
-             */
+            // Status Code Description:
+            // 0x3E(62): connection fail to establish
+            // 0x85(133): GATT_ERROR
+            // 0x101(257): no connection to cancel
             super.onConnectionStateChange(gatt, status, newState);
             EasyLog.i("GattCallback：ConnectionStateChange status=%d  newState=%d  currentThread=%d",
                         status, newState, Thread.currentThread().getId());
