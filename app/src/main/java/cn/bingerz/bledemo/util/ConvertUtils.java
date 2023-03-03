@@ -1,6 +1,11 @@
 package cn.bingerz.bledemo.util;
 
+import android.os.Build;
 import android.util.SparseArray;
+
+import java.nio.charset.StandardCharsets;
+
+import cn.bingerz.flipble.utils.HexUtil;
 
 /**
  * @author hanson
@@ -20,12 +25,29 @@ public class ConvertUtils {
     }
 
     public static int byteArrayToInt(byte[] bytes) {
-        if (bytes.length == 4) {
-            return bytes[0] << 24 | (bytes[1] & 0xff) << 16 | (bytes[2] & 0xff) << 8
-                    | (bytes[3] & 0xff);
-        } else if (bytes.length == 2) {
-            return (bytes[0] & 0xff) << 8 | (bytes[1] & 0xff);
+        int result = 0;
+        for (int i = 0; i < bytes.length; i++) {
+            result = result | (bytes[i] & 0xff) << 8 * (bytes.length - 1 - i);
         }
-        return 0;
+        return result;
+    }
+
+    public static String toAsciiString(byte[] bytes) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            return new String(bytes, StandardCharsets.UTF_8);
+        } else {
+            return HexUtil.encodeHexStr(bytes, false);
+        }
+    }
+
+    public static byte[] byteReverse(byte[] input) {
+        int length = input.length;
+        byte[] temp = new byte[length];
+        int i = 0;
+        while (--length >= 0) {
+            temp[length] = input[i];
+            i++;
+        }
+        return temp;
     }
 }

@@ -11,14 +11,20 @@ import cn.bingerz.flipble.utils.EasyLog;
  */
 public class ScanDevice implements Parcelable{
 
+    private long createTime;
     private int mRssi;
     private byte[] mScanRecord;
     private BluetoothDevice mDevice;
 
     public ScanDevice(BluetoothDevice device, int rssi, byte[] scanRecord) {
+        createTime = System.currentTimeMillis();
         mDevice = device;
         mScanRecord = scanRecord;
         mRssi = rssi;
+    }
+
+    public long getCreateTime() {
+        return createTime;
     }
 
     public BluetoothDevice getBluetoothDevice() {

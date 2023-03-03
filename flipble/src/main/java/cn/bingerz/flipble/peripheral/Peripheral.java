@@ -215,6 +215,7 @@ public class Peripheral {
 
     public Peripheral(ScanDevice device) {
         this.mDevice = device;
+        this.mRssi = device != null ? device.getRssi() : 0;
         initDefaultConfiguration();
     }
 

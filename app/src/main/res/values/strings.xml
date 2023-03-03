@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">flipBLE</string>
 
+    <string name="action_sort">Sort</string>
     <string name="action_pressure_test">Stress Test</string>
     <string name="action_retry_discover">Retry Discover</string>
     <string name="action_protocol_test">Protocol Test</string>
@@ -37,13 +38,13 @@
     <string name="service">Service</string>
     <string name="type">Service type(Main Service)</string>
     <string name="scan_setting">Set the filtering rules of the scanned device, accepting is empty</string>
-    <string name="setting_name">Broadcast Name,Separated by multiple commas</string>
-    <string name="setting_mac">Mac Address,Separated by multiple commas</string>
-    <string name="setting_uuid">Device UUID,Separated by multiple commas</string>
+    <string name="setting_name">Broadcast Name, Separated by multiple commas</string>
+    <string name="setting_mac">Mac Address, Separated by multiple commas</string>
+    <string name="setting_uuid">Device UUID, Separated by multiple commas</string>
     <string name="input_hex">HEX format command</string>
     <string name="connect">Connect</string>
     <string name="connected">Connected</string>
-    <string name="disconnect">Disconnect</string>
+    <string name="disconnect">Disconn</string>
     <string name="enter">Enter</string>
 
 </resources>

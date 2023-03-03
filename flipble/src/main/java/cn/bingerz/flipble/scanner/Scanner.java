@@ -33,7 +33,8 @@ public abstract class Scanner {
         if (mLeScanner == null) {
             BluetoothAdapter bluetoothAdapter = CentralManager.getInstance().getBluetoothAdapter();
             if (bluetoothAdapter != null) {
-                mScannerPresenter = new CycledScanner.myScannerPresenter();
+                mScannerPresenter = new Scanner.myScannerPresenter();
+                mScannerPresenter.setAllowDuplicates(config.getAllowDuplicates());
                 mLeScanner = LeScanner.createScanner(bluetoothAdapter, config, mScannerPresenter);
             }
         } else {

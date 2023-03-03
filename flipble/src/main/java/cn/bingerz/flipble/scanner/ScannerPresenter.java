@@ -17,7 +17,12 @@ import cn.bingerz.flipble.utils.EasyLog;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public abstract class ScannerPresenter implements LeScanCallback {
 
+    private boolean mAllowDuplicates = false;
     private List<ScanDevice> mScanDevices = new ArrayList<>();
+
+    public void setAllowDuplicates(boolean isAllowDup) {
+        mAllowDuplicates = isAllowDup;
+    }
 
     @Override
     public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
@@ -40,7 +45,7 @@ public abstract class ScannerPresenter implements LeScanCallback {
                 hasFound.set(true);
             }
         }
-        if (!hasFound.get()) {
+        if (mAllowDuplicates || !hasFound.get()) {
             try {
                 EasyLog.i("Device detected Name=%s  Mac=%s  Rssi=%d ",
                         device.getName(), device.getAddress(), rssi);

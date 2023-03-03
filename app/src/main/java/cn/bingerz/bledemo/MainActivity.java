@@ -1,6 +1,7 @@
 package cn.bingerz.bledemo;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -15,6 +16,8 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -78,7 +81,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Peripheral mPeripheral;
     private ScanRuleConfig mScanRuleConfig;
-    private String DEFAULT_SERVICE_UUID = "00001803-0000-1000-8000-00805f9b34fb";
+    private String SERVICE_UUID_LL = "00001803-0000-1000-8000-00805f9b34fb";
+    private String SERVICE_UUID_FMN = "0000FD44-0000-1000-8000-00805f9b34fb";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,11 +109,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_sort, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_sort:
+                sortScannedDevice();
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_scan:
                 showBoundDevice();
                 if (btnScan.getText().equals(getString(R.string.start_scan))) {
+                    cleanScanDeviceAdapter();
                     if (checkPermissions()) {
                         setScanRule();
                         startScan();
@@ -194,6 +217,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mRecyclerView.setAdapter(mScanDeviceAdapter);
     }
 
+    @SuppressLint("MissingPermission")
     private void showBoundDevice() {
         Set<BluetoothDevice> deviceSet = CentralManager.getInstance().getBondedDevices();
         if (!deviceSet.isEmpty()) {
@@ -207,15 +231,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         List<Peripheral> deviceList = CentralManager.getInstance().getAllConnectedDevice();
         mScanDeviceAdapter.clearConnectedDevice();
         for (Peripheral peripheral : deviceList) {
-            mScanDeviceAdapter.addDevice(peripheral.getDevice());
+            mScanDeviceAdapter.updateConnectedDevice(peripheral.getDevice());
         }
         mScanDeviceAdapter.notifyDataSetChanged();
+    }
+
+    private void sortScannedDevice() {
+        if (mScanDeviceAdapter != null) {
+            mScanDeviceAdapter.sortDevice();
+            mScanDeviceAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void cleanScanDeviceAdapter() {
+        if (mScanDeviceAdapter != null) {
+            mScanDeviceAdapter.clear();
+            mScanDeviceAdapter.notifyDataSetChanged();
+        }
     }
 
     private void setScanRule() {
         String[] uuids;
         String strUUID = etUUID.getText().toString();
-        //strUUID = DEFAULT_SERVICE_UUID;
+        //strUUID = SERVICE_UUID_LL;
         if (TextUtils.isEmpty(strUUID)) {
             uuids = null;
         } else {
@@ -264,6 +302,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .setScanDuration(6000)
                 // 扫描间隔时间，可选
                 .setScanInterval(6000)
+                .setAllowDuplicates(true)
                 .build();
     }
 
@@ -280,8 +319,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onScanning(ScanDevice device) {
-                mScanDeviceAdapter.addDevice(device);
-                mScanDeviceAdapter.notifyDataSetChanged();
+                int index = mScanDeviceAdapter.insertDevice(device);
+                if (index >= 0) {
+                    mScanDeviceAdapter.notifyItemChanged(index);
+                } else {
+                    mScanDeviceAdapter.notifyDataSetChanged();
+                }
             }
 
             @Override
@@ -326,10 +369,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             EspressoIdlingResource.decrement();
             progressDialog.dismiss();
             mPeripheral = peripheral;
-            mScanDeviceAdapter.addDevice(mPeripheral.getDevice());
+            mScanDeviceAdapter.updateConnectedDevice(mPeripheral.getDevice());
             mScanDeviceAdapter.notifyDataSetChanged();
 
-            mPeripheral.requestConnectionPriorityBalanced();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mPeripheral.requestConnectionPriorityBalanced();
+            }
 
             readRssi(mPeripheral);
             setMtu(mPeripheral, 23);

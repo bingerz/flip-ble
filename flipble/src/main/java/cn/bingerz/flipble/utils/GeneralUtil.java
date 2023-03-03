@@ -17,6 +17,22 @@ import java.util.List;
 public class GeneralUtil {
 
     /**************************************************************************
+     * Central/Peripheral BLE util functions -
+     *************************************************************************/
+    public static String extractServiceUUID(String uuid) {
+        String result = "null";
+        if (TextUtils.isEmpty(uuid)) {
+            return result;
+        }
+        try {
+            result = uuid.substring(4, 8);
+        } catch (Exception e) {
+            //ignore
+        }
+        return result;
+    }
+
+    /**************************************************************************
      * Handle Phone info system version & model functions -
      *************************************************************************/
     public static boolean isGreaterThanOrEqual(int versionCode) {

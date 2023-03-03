@@ -1,8 +1,14 @@
 package cn.bingerz.bledemo.operation;
 
 import android.annotation.TargetApi;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -35,6 +41,9 @@ import cn.bingerz.flipble.peripheral.callback.RssiCallback;
 import cn.bingerz.flipble.peripheral.command.Command;
 import cn.bingerz.flipble.utils.BluetoothGattCompat;
 
+/**
+ * @author hanson
+ */
 public class OperationActivity extends AppCompatActivity implements Observer {
 
     private static final String TAG = OperationActivity.class.toString();
@@ -51,6 +60,43 @@ public class OperationActivity extends AppCompatActivity implements Observer {
     private int currentPage = 0;
     private String[] titles = new String[4];
 
+    private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
+                switch (state) {
+                    case BluetoothAdapter.STATE_OFF:
+                        Log.d(TAG, "BluetoothAdapter State off");
+                        break;
+                    case BluetoothAdapter.STATE_ON:
+                        Log.d(TAG, "BluetoothAdapter State on");
+                        break;
+                    default:
+                        break;
+                }
+            } else if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (device != null) {
+                    switch (device.getBondState()) {
+                        case BluetoothDevice.BOND_BONDING:
+                            Log.d(TAG, "BluetoothDevice bond state change bonding");
+                            break;
+                        case BluetoothDevice.BOND_BONDED:
+                            Log.d(TAG, "BluetoothDevice bond state change bonded");
+                            break;
+                        case BluetoothDevice.BOND_NONE:
+                            Log.d(TAG, "BluetoothDevice bond state change none");
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,10 +108,20 @@ public class OperationActivity extends AppCompatActivity implements Observer {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        registerBroadcast();
+    }
+
+    @Override
+    protected void onStop() {
+        unregisterBroadcast();
+        super.onStop();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_pressure_test, menu);
-        getMenuInflater().inflate(R.menu.menu_retry_discover, menu);
-        getMenuInflater().inflate(R.menu.menu_protocol_test, menu);
+        getMenuInflater().inflate(R.menu.menu_operation, menu);
         return true;
     }
 
@@ -198,6 +254,16 @@ public class OperationActivity extends AppCompatActivity implements Observer {
             }
             transaction.commit();
         }
+    }
+
+    private void registerBroadcast() {
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(mBroadcastReceiver, intentFilter);
+    }
+
+    private void unregisterBroadcast() {
+        unregisterReceiver(mBroadcastReceiver);
     }
 
     public Peripheral getPeripheral() {

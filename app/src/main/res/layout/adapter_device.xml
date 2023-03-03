@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
@@ -32,22 +33,38 @@
                     android:id="@+id/tv_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    tools:text="Device Name" />
 
                 <TextView
-                    android:id="@+id/tv_type"
+                    android:id="@+id/tv_extra_data"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="5dp"
-                    android:textSize="14sp" />
+                    android:textSize="12sp"
+                    tools:text="Device Extra Data" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tv_mac"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textSize="12sp" />
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/tv_mac"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    tools:text="Device Mac Address" />
+
+                <TextView
+                    android:id="@+id/tv_adv_interval"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:textSize="12sp"
+                    tools:text="1000ms" />
+            </LinearLayout>
 
         </LinearLayout>
 
@@ -58,7 +75,8 @@
             android:layout_alignParentRight="true"
             android:gravity="center"
             android:orientation="horizontal"
-            android:visibility="gone">
+            android:visibility="gone"
+            tools:visibility="visible">
 
             <TextView
                 android:id="@+id/tv_rssi"
@@ -74,9 +92,9 @@
 
             <Button
                 android:id="@+id/btn_connect"
-                android:layout_width="wrap_content"
+                android:layout_width="75dp"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
+                android:layout_marginLeft="3dp"
                 android:text="@string/connect"
                 android:textSize="12sp" />
 
@@ -88,7 +106,8 @@
             android:layout_height="match_parent"
             android:layout_alignParentRight="true"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            tools:visibility="gone">
 
             <TextView
                 android:id="@+id/tv_connected"
@@ -96,11 +115,11 @@
                 android:layout_height="wrap_content"
                 android:text="@string/connected"
                 android:textColor="@color/colorPrimary"
-                android:textSize="14sp" />
+                android:textSize="12sp" />
 
             <Button
                 android:id="@+id/btn_disconnect"
-                android:layout_width="wrap_content"
+                android:layout_width="75dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
                 android:text="@string/disconnect"
@@ -108,7 +127,7 @@
 
             <Button
                 android:id="@+id/btn_detail"
-                android:layout_width="wrap_content"
+                android:layout_width="75dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
                 android:text="@string/enter"

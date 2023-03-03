@@ -16,6 +16,7 @@ public class ScanRuleConfig {
     private int mScanMode;
     private long mScanDuration;
     private long mScanInterval;
+    private boolean mAllowDuplicates;
 
     private List<ScanFilterConfig> mScanFilterConfigs = new ArrayList<>();
 
@@ -31,6 +32,10 @@ public class ScanRuleConfig {
         return mScanInterval;
     }
 
+    public boolean getAllowDuplicates() {
+        return mAllowDuplicates;
+    }
+
     public List<ScanFilterConfig> getScanFilterConfigs() {
         return mScanFilterConfigs;
     }
@@ -41,6 +46,7 @@ public class ScanRuleConfig {
                 "mScanMode=" + mScanMode +
                 ", mScanDuration=" + mScanDuration +
                 ", mScanInterval=" + mScanInterval +
+                ", mAllowDuplicates=" + mAllowDuplicates +
                 ", mScanFilterConfigs=" + mScanFilterConfigs +
                 '}';
     }
@@ -49,6 +55,7 @@ public class ScanRuleConfig {
         private int mScanMode = SCAN_MODE_HIGH_POWER;
         private long mDuration;
         private long mInterval;
+        private boolean mAllowDuplicates = false;
         private List<ScanFilterConfig> mScanFilterConfigs = new ArrayList<>();
 
         public Builder setScanMode(int scanMode) {
@@ -66,6 +73,11 @@ public class ScanRuleConfig {
             return this;
         }
 
+        public Builder setAllowDuplicates(boolean isAllowDup) {
+            this.mAllowDuplicates = isAllowDup;
+            return this;
+        }
+
         public Builder setScanFilterConfigs(List<ScanFilterConfig> scanFilterConfigs) {
             this.mScanFilterConfigs = scanFilterConfigs;
             return this;
@@ -75,6 +87,7 @@ public class ScanRuleConfig {
             config.mScanMode = this.mScanMode;
             config.mScanDuration = this.mDuration;
             config.mScanInterval = this.mInterval;
+            config.mAllowDuplicates = this.mAllowDuplicates;
             config.mScanFilterConfigs = this.mScanFilterConfigs;
         }
 

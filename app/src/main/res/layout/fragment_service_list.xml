@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -12,7 +13,8 @@
         android:paddingEnd="10dp"
         android:paddingStart="10dp"
         android:textSize="14sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        tools:text="Device Name"/>
 
     <TextView
         android:id="@+id/tv_service_list_mac"
@@ -22,7 +24,17 @@
         android:paddingEnd="10dp"
         android:paddingStart="10dp"
         android:textSize="14sp"
-        android:textStyle="bold" />
+        tools:text="Mac Address"/>
+
+    <TextView
+        android:id="@+id/tv_service_list_extra"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:paddingEnd="10dp"
+        android:paddingStart="10dp"
+        android:textSize="12sp"
+        tools:text="Formatted Adv"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_service_list"
