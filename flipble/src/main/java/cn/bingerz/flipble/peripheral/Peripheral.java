@@ -79,6 +79,13 @@ public class Peripheral {
 
     private int mConnectRetryCount;
 
+    // Connected device's time(millisecond)
+    private long mConnectedTime;
+    // Disconnected device's time(millisecond)
+    private long mDisconnectTime;
+
+    private long mDelayNotifyConnectEventTime = DEFAULT_DELAY_CONNECT_EVENT;
+
     private ScanDevice mDevice;
     private BluetoothGattCompat mBluetoothGattCompat;
 
@@ -325,6 +332,30 @@ public class Peripheral {
             this.mCov = predCov - (K * C * predCov);
         }
         return getRssi();
+    }
+
+    public void setConnectedTime(long time) {
+        this.mConnectedTime = time;
+    }
+
+    public long getConnectedTime() {
+        return this.mConnectedTime;
+    }
+
+    public void setDisconnectTime(long time) {
+        this.mDisconnectTime = time;
+    }
+
+    public long getDisconnectTime() {
+        return this.mDisconnectTime;
+    }
+
+    public void setDelayNotifyConnectEventTime(long time) {
+        this.mDelayNotifyConnectEventTime = time;
+    }
+
+    public long getDelayNotifyConnectEventTime() {
+        return this.mDelayNotifyConnectEventTime;
     }
 
     public ConnectionState getConnectState() {
@@ -1105,9 +1136,9 @@ public class Peripheral {
         @Override
         public void onConnectionStateChange(final BluetoothGatt gatt, final int status, final int newState) {
             // Status Code Description:
-            // 0x3E(62): connection fail to establish
-            // 0x85(133): GATT_ERROR
-            // 0x101(257): no connection to cancel
+            // 0x3E(62)     :   Connection fail to establish
+            // 0x85(133)    :   GATT_ERROR
+            // 0x101(257)   :   No connection to cancel
             super.onConnectionStateChange(gatt, status, newState);
             EasyLog.i("GattCallback：ConnectionStateChange status=%d  newState=%d  currentThread=%d",
                         status, newState, Thread.currentThread().getId());
@@ -1125,6 +1156,7 @@ public class Peripheral {
                         handleDisconnect(status);
                     }
                 }
+                setDisconnectTime(System.currentTimeMillis());
             }
         }
 
@@ -1141,9 +1173,10 @@ public class Peripheral {
                     mConnectState = ConnectionState.CONNECT_CONNECTED;
                 }
                 isActivityDisconnect = false;
+                setConnectedTime(System.currentTimeMillis());
                 CentralManager.getInstance().getMultiplePeripheralController().addPeripheral(Peripheral.this);
                 if (prevState != mConnectState) {
-                    sendMsgDelayedToMainH(MSG_CONNECT_SUCCESS, status, 0, Peripheral.this, DEFAULT_DELAY_CONNECT_EVENT);
+                    sendMsgDelayedToMainH(MSG_CONNECT_SUCCESS, status, 0, Peripheral.this, mDelayNotifyConnectEventTime);
                 }
             } else {
                 mBluetoothGattCompat.close();

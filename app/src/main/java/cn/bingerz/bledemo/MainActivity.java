@@ -396,6 +396,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void connect(Peripheral peripheral) {
         boolean isAutoConnect = swAuto.isChecked();
         peripheral.setDiscoverWithHighPriority(true);
+        peripheral.setDelayNotifyConnectEventTime(600);
         peripheral.connect(isAutoConnect, mConnectStateCallback);
     }
 
