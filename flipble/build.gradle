@@ -1,9 +1,10 @@
-apply plugin: 'com.android.library'
-//Gradle Maven Publish Plugin
-apply plugin: 'maven-publish'
-apply plugin: 'signing'
+plugins {
+    id 'com.android.library'
+    id "com.vanniktech.maven.publish"
+}
 
 android {
+    namespace 'cn.bingerz.flipblelib'
     compileSdkVersion build_versions.target_sdk
     buildToolsVersion build_versions.build_tools
 
@@ -26,7 +27,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-     implementation "androidx.appcompat:appcompat:$versions.appcompat"
+    implementation "androidx.appcompat:appcompat:$versions.appcompat"
 
     // Dependencies for local unit tests
     testImplementation "junit:junit:$versions.junit"
@@ -49,7 +50,7 @@ dependencies {
 //Gradle Maven Publish Plugin Script Configuration
 //Run Script: ./gradlew publish
 
-def versionName = "0.8.3"
+def versionName = "0.8.4"
 def groupName = "cn.bingerz.android"
 def artifactName = "flipble"
 def siteUrl = 'https://github.com/bingerz/flip-ble'
@@ -59,63 +60,36 @@ def repositoryReleaseUrl = "https://oss.sonatype.org/service/local/staging/deplo
 
 task generateSourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier 'sources'
+    archiveClassifier.set('sources')
 }
 
-signing {
-    sign publishing.publications
-}
+mavenPublishing {
+    coordinates(groupName, artifactName, versionName)
 
-afterEvaluate {
-    publishing {
-        publications {
-            release(MavenPublication) {
-                from components.release
-                groupId = groupName
-                artifactId = artifactName
-                version = versionName
-                // 上传source，这样使用放可以看到方法注释
-                artifact generateSourcesJar
-
-                pom {
-                    name = 'FlipBLE'
-                    description = 'A stable, easy-to-use framework developed based on the Android Bluetooth Low Energy API.'
-                    url = siteUrl
-                    licenses {
-                        license {
-                            name = 'The Apache Software License, Version 2.0'
-                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                        }
-                    }
-                    developers {
-                        developer {
-                            id = findProperty("developer.id")
-                            name = findProperty("developer.name")
-                            email = findProperty("developer.email")
-                        }
-                    }
-                    scm {
-                        connection = gitUrl
-                        developerConnection = gitUrl
-                        url = siteUrl
-                    }
-                }
+    pom {
+        name = "FlipBLE"
+        description = "A stable, easy-to-use framework developed based on the Android Bluetooth Low Energy API."
+        inceptionYear = "2021"
+        url = siteUrl
+        licenses {
+            license {
+                name = 'The Apache Software License, Version 2.0'
+                url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                distribution = "http://www.apache.org/licenses/LICENSE-2.0.txt"
             }
         }
-
-        repositories {
-            // 定义一个 maven 仓库
-            maven {
-                // 可以有且仅有一个仓库不指定 name 属性，会隐式设置为 Maven
-                name = "release"
-                // 根据 versionName 来判断仓库地址
-                url = versionName.endsWith('SNAPSHOT') ? repositorySnapshotUrl : repositoryReleaseUrl
-                // 仓库用户名密码
-                credentials {
-                    username = findProperty("sonatype.username")
-                    password = findProperty("sonatype.password")
-                }
+        developers {
+            developer {
+                id = findProperty("developer.id")
+                name = findProperty("developer.name")
+                email = findProperty("developer.email")
+                url = "https://github.com/bingerz"
             }
+        }
+        scm {
+            url = siteUrl
+            connection = gitUrl
+            developerConnection = gitUrl
         }
     }
 }

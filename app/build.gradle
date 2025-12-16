@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace 'cn.bingerz.bledemo'
     compileSdkVersion build_versions.target_sdk
     buildToolsVersion build_versions.build_tools
 
