@@ -180,6 +180,7 @@ ScanDeviceAdapter extends RecyclerView.Adapter<ScanDeviceAdapter.ViewHolder> {
                 String serviceDataUUID = BleUtils.parseAdvServiceDataUUID(scanRecord);
                 //Parsing the ManufacturerSpecificData Key in the Bluetooth broadcast
                 String manufacturerKey = BleUtils.parseAdvManufacturerDataKey(scanRecord);
+                String secondaryServiceUUID = BleUtils.parseAdvSecondaryServiceUUID(scanRecord);
 
                 StringBuffer sb = new StringBuffer();
                 if (!TextUtils.isEmpty(manufacturerKey)) {
@@ -192,6 +193,13 @@ ScanDeviceAdapter extends RecyclerView.Adapter<ScanDeviceAdapter.ViewHolder> {
                     }
                     sb.append("SD:");
                     sb.append(serviceDataUUID);
+                }
+                if (!TextUtils.isEmpty(secondaryServiceUUID)) {
+                    if (sb.length() > 0) {
+                        sb.append(" ");
+                    }
+                    sb.append("SS:");
+                    sb.append(secondaryServiceUUID);
                 }
                 String extraData = sb.toString();
                 if (!TextUtils.isEmpty(extraData)) {

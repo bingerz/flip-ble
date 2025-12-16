@@ -4,8 +4,10 @@ import static cn.bingerz.flipble.utils.GeneralUtil.extractServiceUUID;
 
 import android.os.ParcelUuid;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.SparseArray;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,7 +15,8 @@ import cn.bingerz.flipble.scanner.ScanRecord;
 import cn.bingerz.flipble.utils.HexUtil;
 
 public class BleUtils {
-
+    private static final String TAG = BleUtils.class.getSimpleName();
+    
     public static byte[] extractBytes(byte[] inputBytes, int start, int length) {
         byte[] bytes = new byte[length];
         System.arraycopy(inputBytes, start, bytes, 0, length);
@@ -105,5 +108,30 @@ public class BleUtils {
             }
         }
         return manufacturerData;
+    }
+
+    public static String parseAdvSecondaryServiceUUID(ScanRecord scanRecord) {
+        String secondaryServiceUUID = "";
+        if (scanRecord != null) {
+            try {
+                // Service Solicited UUID（次要服务 UUID）列表
+                List<ParcelUuid> solicitationUuids = scanRecord.getServiceSolicitationUuids();
+                if (solicitationUuids != null && !solicitationUuids.isEmpty()) {
+                    for (ParcelUuid parcelUuid : solicitationUuids) {
+                        String extractUUID = extractServiceUUID(parcelUuid.toString());
+                        extractUUID = extractUUID.toUpperCase();
+                        if (TextUtils.isEmpty(secondaryServiceUUID)) {
+                            secondaryServiceUUID = extractUUID;
+                        } else {
+                            secondaryServiceUUID = secondaryServiceUUID + "/" + extractUUID;
+                        }
+                    }
+                }
+            } catch (Throwable t) {
+                // 兼容旧系统或 ROM 未实现该接口的情况
+                Log.w(TAG, "parseAdvSecondaryServiceUUID: failed to get Service Solicitation UUIDs", t);
+            }
+        }
+        return secondaryServiceUUID;
     }
 }

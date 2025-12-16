@@ -77,12 +77,22 @@ public final class ScanRecord {
 
     private static final int DATA_TYPE_SERVICE_DATA = 0x16;
 
+    // List of 16-bit Service Solicitation UUIDs.
+    private static final int DATA_TYPE_SERVICE_SOLICITATION_UUIDS_16_BIT = 0x14;
+    // List of 128-bit Service Solicitation UUIDs.
+    private static final int DATA_TYPE_SERVICE_SOLICITATION_UUIDS_128_BIT = 0x15;
+    // List of 32-bit Service Solicitation UUIDs.
+    private static final int DATA_TYPE_SERVICE_SOLICITATION_UUIDS_32_BIT = 0x1F;
+
     private static final int DATA_TYPE_MANUFACTURER_SPECIFIC_DATA = 0xFF;
 
     // Flags of the advertising data.
     private final int mAdvertiseFlags;
 
     private final List<ParcelUuid> mServiceUuids;
+
+    // Service solicitation UUIDs in the advertisement.
+    private final List<ParcelUuid> mServiceSolicitationUuids;
 
     private final SparseArray<byte[]> mManufacturerSpecificData;
 
@@ -111,6 +121,14 @@ public final class ScanRecord {
      */
     public List<ParcelUuid> getServiceUuids() {
         return mServiceUuids;
+    }
+
+    /**
+     * 返回广播数据中 Service Solicitation UUID 列表。
+     * 若没有该字段则返回 {@code null}。
+     */
+    public List<ParcelUuid> getServiceSolicitationUuids() {
+        return mServiceSolicitationUuids;
     }
 
     /**
@@ -173,9 +191,16 @@ public final class ScanRecord {
         return mBytes;
     }
 
-    private ScanRecord(List<ParcelUuid> serviceUuids, SparseArray<byte[]> manufacturerData,
-                       Map<ParcelUuid, byte[]> serviceData, int advertiseFlags, int txPowerLevel, String localName, byte[] bytes) {
+    private ScanRecord(List<ParcelUuid> serviceUuids,
+                       List<ParcelUuid> serviceSolicitationUuids,
+                       SparseArray<byte[]> manufacturerData,
+                       Map<ParcelUuid, byte[]> serviceData,
+                       int advertiseFlags,
+                       int txPowerLevel,
+                       String localName,
+                       byte[] bytes) {
         mServiceUuids = serviceUuids;
+        mServiceSolicitationUuids = serviceSolicitationUuids;
         mManufacturerSpecificData = manufacturerData;
         mServiceData = serviceData;
         mDeviceName = localName;
@@ -201,6 +226,7 @@ public final class ScanRecord {
         int currentPos = 0;
         int advertiseFlag = -1;
         List<ParcelUuid> serviceUuids = new ArrayList<ParcelUuid>();
+        List<ParcelUuid> serviceSolicitationUuids = new ArrayList<ParcelUuid>();
         String localName = null;
         int txPowerLevel = Integer.MIN_VALUE;
         SparseArray<byte[]> manufacturerData = new SparseArray<byte[]>();
@@ -231,6 +257,18 @@ public final class ScanRecord {
                     case DATA_TYPE_SERVICE_UUIDS_128_BIT_PARTIAL:
                     case DATA_TYPE_SERVICE_UUIDS_128_BIT_COMPLETE:
                         parseServiceUuid(scanRecord, currentPos, dataLength, UUID_BYTES_128_BIT, serviceUuids);
+                        break;
+                    case DATA_TYPE_SERVICE_SOLICITATION_UUIDS_16_BIT:
+                        parseServiceSolicitationUuid(scanRecord, currentPos, dataLength,
+                                UUID_BYTES_16_BIT, serviceSolicitationUuids);
+                        break;
+                    case DATA_TYPE_SERVICE_SOLICITATION_UUIDS_32_BIT:
+                        parseServiceSolicitationUuid(scanRecord, currentPos, dataLength,
+                                UUID_BYTES_32_BIT, serviceSolicitationUuids);
+                        break;
+                    case DATA_TYPE_SERVICE_SOLICITATION_UUIDS_128_BIT:
+                        parseServiceSolicitationUuid(scanRecord, currentPos, dataLength,
+                                UUID_BYTES_128_BIT, serviceSolicitationUuids);
                         break;
                     case DATA_TYPE_LOCAL_NAME_SHORT:
                     case DATA_TYPE_LOCAL_NAME_COMPLETE:
@@ -264,12 +302,16 @@ public final class ScanRecord {
             if (serviceUuids.isEmpty()) {
                 serviceUuids = null;
             }
-            return new ScanRecord(serviceUuids, manufacturerData, serviceData, advertiseFlag, txPowerLevel, localName, scanRecord);
+            if (serviceSolicitationUuids.isEmpty()) {
+                serviceSolicitationUuids = null;
+            }
+            return new ScanRecord(serviceUuids, serviceSolicitationUuids, manufacturerData, serviceData,
+                    advertiseFlag, txPowerLevel, localName, scanRecord);
         } catch (Exception e) {
             EasyLog.e("Parse fail, ScanRecord=%s", Arrays.toString(scanRecord));
             // As the record is invalid, ignore all the parsed results for this packet
             // and return an empty record with raw scanRecord bytes in results
-            return new ScanRecord(null, null, null, -1, Integer.MIN_VALUE, null, scanRecord);
+            return new ScanRecord(null, null, null, null, -1, Integer.MIN_VALUE, null, scanRecord);
         }
     }
 
@@ -297,6 +339,21 @@ public final class ScanRecord {
         byte[] bytes = new byte[length];
         System.arraycopy(scanRecord, start, bytes, 0, length);
         return bytes;
+    }
+
+    /**
+     * 解析 Service Solicitation UUID 列表。
+     */
+    private static int parseServiceSolicitationUuid(byte[] scanRecord, int currentPos,
+                                                    int dataLength, int uuidLength,
+                                                    List<ParcelUuid> serviceSolicitationUuids) {
+        while (dataLength > 0) {
+            byte[] uuidBytes = extractBytes(scanRecord, currentPos, uuidLength);
+            serviceSolicitationUuids.add(parseUuidFrom(uuidBytes));
+            dataLength -= uuidLength;
+            currentPos += uuidLength;
+        }
+        return currentPos;
     }
 
     /**
