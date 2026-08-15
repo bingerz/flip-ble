@@ -1,3 +1,5 @@
+
+
 # FlipBLE
 [![Maven Central](https://img.shields.io/maven-central/v/cn.bingerz.android/flipble.svg)](https://search.maven.org/artifact/cn.bingerz.android/flipble)
 
@@ -40,7 +42,7 @@ CentralManager.getInstance().init(getApplicationContext());
 CentralManager.getInstance()
               .enableLog(true) //Enable ble log
               .setOperateTimeout(5000) //Set the timeout period for Read and Write operations
-              .setMaxConnectCount(7); //Set max number of connections, Default value:7
+              .setMaxConnectCount(7); //Set max number of connections, Default value:7 is Default value
                                       //This is the maximum value defined in the Bluetooth protocol doc.
 ```
 ### Start/Stop Scanning
@@ -89,10 +91,10 @@ Mark:
 
 ```java
 //Get the connection status of a Bluetooth device
-CentralManager.getInstance()isBLEConnected(String macAddress);
+CentralManager.getInstance().isBLEConnected(String macAddress);
 
 //Get the connection status of a group of Bluetooth devices
-CentralManager.getInstance()isBLEConnected(String[] macAddress);
+CentralManager.getInstance().isBLEConnected(String[] macAddress);
 ```
 Mark:
 Controlling the frequency of concurrent calls may cause ANR(Android internal Binder Method)
@@ -285,5 +287,3 @@ public void setMtu(Command command) {
  
   - Do not perform read, write, notify, etc. operations in callbacks such as onServicesDiscovered, 
     and put them on the main thread to execute.
-
-
